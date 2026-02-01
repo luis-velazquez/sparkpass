@@ -1,0 +1,103 @@
+"use client";
+
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { LogOut, User, Loader2 } from "lucide-react";
+
+export function AuthButtons() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <Button variant="ghost" className="min-h-[44px]" disabled>
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </Button>
+    );
+  }
+
+  if (session) {
+    return (
+      <div className="flex items-center gap-2">
+        <Link href="/dashboard">
+          <Button variant="ghost" className="min-h-[44px] gap-2">
+            <User className="h-4 w-4" />
+            <span className="hidden lg:inline">Dashboard</span>
+          </Button>
+        </Link>
+        <Button
+          variant="outline"
+          className="min-h-[44px] gap-2"
+          onClick={() => signOut({ callbackUrl: "/" })}
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="hidden lg:inline">Log out</span>
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Link href="/login">
+        <Button variant="ghost" className="min-h-[44px]">Log in</Button>
+      </Link>
+      <Link href="/register">
+        <Button className="bg-amber hover:bg-amber-dark text-white min-h-[44px]">
+          Sign up
+        </Button>
+      </Link>
+    </>
+  );
+}
+
+export function MobileAuthButtons({ onClose }: { onClose?: () => void }) {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <Button variant="outline" className="w-full min-h-[44px]" disabled>
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </Button>
+    );
+  }
+
+  if (session) {
+    return (
+      <div className="flex flex-col gap-3">
+        <Link href="/dashboard" className="w-full" onClick={onClose}>
+          <Button variant="outline" className="w-full min-h-[44px] gap-2">
+            <User className="h-4 w-4" />
+            Dashboard
+          </Button>
+        </Link>
+        <Button
+          variant="outline"
+          className="w-full min-h-[44px] gap-2 text-destructive hover:text-destructive"
+          onClick={() => {
+            onClose?.();
+            signOut({ callbackUrl: "/" });
+          }}
+        >
+          <LogOut className="h-4 w-4" />
+          Log out
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Link href="/login" className="w-full" onClick={onClose}>
+        <Button variant="outline" className="w-full min-h-[44px]">
+          Log in
+        </Button>
+      </Link>
+      <Link href="/register" className="w-full" onClick={onClose}>
+        <Button className="w-full bg-amber hover:bg-amber-dark text-white min-h-[44px]">
+          Sign up
+        </Button>
+      </Link>
+    </>
+  );
+}

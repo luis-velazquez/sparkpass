@@ -1,0 +1,101 @@
+// Database Schema for SparkPass
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+
+// Auth provider enum values
+export const authProviderValues = ["google", "facebook", "apple", "email"] as const;
+export type AuthProvider = (typeof authProviderValues)[number];
+
+// Users table
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash"),
+  authProvider: text("auth_provider", { enum: authProviderValues }).notNull().default("email"),
+  emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
+  city: text("city"),
+  state: text("state"),
+  dateOfBirth: integer("date_of_birth", { mode: "timestamp" }),
+  targetExamDate: integer("target_exam_date", { mode: "timestamp" }),
+  newsletterOptedIn: integer("newsletter_opted_in", { mode: "boolean" }).notNull().default(false),
+  xp: integer("xp").notNull().default(0),
+  level: integer("level").notNull().default(1),
+  studyStreak: integer("study_streak").notNull().default(0),
+  lastStudyDate: integer("last_study_date", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+// Type inference for User from schema
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
+// Verification tokens table for email verification
+export const verificationTokens = sqliteTable("verification_tokens", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+// Type inference for VerificationToken from schema
+export type VerificationToken = typeof verificationTokens.$inferSelect;
+export type NewVerificationToken = typeof verificationTokens.$inferInsert;
+
+// Password reset tokens table
+export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+// Type inference for PasswordResetToken from schema
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type NewPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+
+// Session type enum values
+export const sessionTypeValues = ["quiz", "flashcard", "mock_exam", "daily_challenge"] as const;
+export type SessionType = (typeof sessionTypeValues)[number];
+
+// User progress table - tracks individual question attempts
+export const userProgress = sqliteTable("user_progress", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  questionId: text("question_id").notNull(),
+  isCorrect: integer("is_correct", { mode: "boolean" }).notNull(),
+  timeSpentSeconds: integer("time_spent_seconds"),
+  answeredAt: integer("answered_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+// Type inference for UserProgress from schema
+export type UserProgress = typeof userProgress.$inferSelect;
+export type NewUserProgress = typeof userProgress.$inferInsert;
+
+// Study sessions table - tracks study session summaries
+export const studySessions = sqliteTable("study_sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  startedAt: integer("started_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  endedAt: integer("ended_at", { mode: "timestamp" }),
+  sessionType: text("session_type", { enum: sessionTypeValues }).notNull(),
+  xpEarned: integer("xp_earned").notNull().default(0),
+});
+
+// Type inference for StudySession from schema
+export type StudySession = typeof studySessions.$inferSelect;
+export type NewStudySession = typeof studySessions.$inferInsert;
+
+// Bookmarks table - tracks saved questions for review
+export const bookmarks = sqliteTable("bookmarks", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  questionId: text("question_id").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+// Type inference for Bookmark from schema
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type NewBookmark = typeof bookmarks.$inferInsert;
