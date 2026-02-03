@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, Zap, LogOut, User, Loader2 } from "lucide-react";
+import { Menu, Zap, LogOut, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -51,17 +51,6 @@ export function MobileNav() {
               {link.label}
             </Link>
           ))}
-
-          {/* Show Dashboard link when logged in */}
-          {session && (
-            <Link
-              href="/dashboard"
-              onClick={closeSheet}
-              className="flex items-center px-4 py-3 text-foreground hover:bg-muted rounded-lg transition-colors min-h-[44px]"
-            >
-              Dashboard
-            </Link>
-          )}
         </nav>
 
         <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-border">

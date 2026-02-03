@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Loader2 } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
 
 export function AuthButtons() {
   const { data: session, status } = useSession();
@@ -18,22 +18,14 @@ export function AuthButtons() {
 
   if (session) {
     return (
-      <div className="flex items-center gap-2">
-        <Link href="/dashboard">
-          <Button variant="ghost" className="min-h-[44px] gap-2">
-            <User className="h-4 w-4" />
-            <span className="hidden lg:inline">Dashboard</span>
-          </Button>
-        </Link>
-        <Button
-          variant="outline"
-          className="min-h-[44px] gap-2"
-          onClick={() => signOut({ callbackUrl: "/" })}
-        >
-          <LogOut className="h-4 w-4" />
-          <span className="hidden lg:inline">Log out</span>
-        </Button>
-      </div>
+      <Button
+        variant="outline"
+        className="min-h-[44px] gap-2"
+        onClick={() => signOut({ callbackUrl: "/" })}
+      >
+        <LogOut className="h-4 w-4" />
+        <span className="hidden lg:inline">Log out</span>
+      </Button>
     );
   }
 
@@ -64,25 +56,17 @@ export function MobileAuthButtons({ onClose }: { onClose?: () => void }) {
 
   if (session) {
     return (
-      <div className="flex flex-col gap-3">
-        <Link href="/dashboard" className="w-full" onClick={onClose}>
-          <Button variant="outline" className="w-full min-h-[44px] gap-2">
-            <User className="h-4 w-4" />
-            Dashboard
-          </Button>
-        </Link>
-        <Button
-          variant="outline"
-          className="w-full min-h-[44px] gap-2 text-destructive hover:text-destructive"
-          onClick={() => {
-            onClose?.();
-            signOut({ callbackUrl: "/" });
-          }}
-        >
-          <LogOut className="h-4 w-4" />
-          Log out
-        </Button>
-      </div>
+      <Button
+        variant="outline"
+        className="w-full min-h-[44px] gap-2 text-destructive hover:text-destructive"
+        onClick={() => {
+          onClose?.();
+          signOut({ callbackUrl: "/" });
+        }}
+      >
+        <LogOut className="h-4 w-4" />
+        Log out
+      </Button>
     );
   }
 

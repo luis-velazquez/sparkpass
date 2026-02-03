@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, Zap, Shield, ChevronRight, Navigation } from "lucide-react";
+import { BookOpen, Zap, Shield, ChevronRight, Navigation, Table } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SparkyMessage } from "@/components/sparky";
 import { CATEGORIES } from "@/types/question";
 import { getCategoryCounts } from "@/lib/questions";
 
 // Map category slugs to icons
-const categoryIcons = {
+const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "load-calculations": BookOpen,
   "grounding-bonding": Shield,
   services: Zap,
   "textbook-navigation": Navigation,
+  "chapter-9-tables": Table,
 };
 
 // Map category slugs to colors
@@ -37,6 +38,11 @@ const categoryColors = {
     icon: "text-blue-500",
     bg: "bg-blue-500/10",
     border: "hover:border-blue-500/50",
+  },
+  "chapter-9-tables": {
+    icon: "text-orange-500",
+    bg: "bg-orange-500/10",
+    border: "hover:border-orange-500/50",
   },
 };
 

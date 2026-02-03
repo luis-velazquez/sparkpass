@@ -43,6 +43,7 @@ import {
   QUICK_REFERENCE_ITEMS,
   isQuickRefCovered,
   STEP_APPLIANCE_MAP,
+  MOTOR_CONVERSION_STEPS,
   DIFFICULTY_LEVELS,
   type HouseScenario,
   type CalculationStep,
@@ -60,6 +61,14 @@ interface CalculatorState {
   sparkyMessage: string;
   isComplete: boolean;
   manualScratchedOff: Set<string>; // For intermediate mode manual tracking
+}
+
+interface SavedProgress {
+  difficulty: DifficultyLevel;
+  scenarioId: string;
+  currentStepIndex: number;
+  answers: Record<string, number>;
+  isComplete: boolean;
 }
 
 // Helper to get hint text (handles both string and function hints)
@@ -363,6 +372,9 @@ export default function LoadCalculatorPage() {
     manualScratchedOff: new Set(),
   });
 
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<SavedProgress | null>(null);
+
   const hasPlayedConfetti = useRef(false);
 
   // Fire confetti when calculation is complete
@@ -377,7 +389,7 @@ export default function LoadCalculatorPage() {
     }
   }, [state.isComplete]);
 
-  // Load saved progress from localStorage
+  // Check for saved progress from localStorage
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -387,24 +399,14 @@ export default function LoadCalculatorPage() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        // Reconstruct scenario object
+        const parsed = JSON.parse(saved) as SavedProgress;
+        // Validate saved data
         if (parsed.scenarioId && parsed.difficulty) {
           const scenario = HOUSE_SCENARIOS.find(s => s.id === parsed.scenarioId);
           if (scenario) {
-            setState(prev => ({
-              ...prev,
-              difficulty: parsed.difficulty,
-              selectedScenario: scenario,
-              currentStepIndex: parsed.currentStepIndex || 0,
-              answers: parsed.answers || {},
-              isComplete: parsed.isComplete || false,
-              sparkyMessage: parsed.isComplete
-                ? SPARKY_MESSAGES.complete
-                : scenario
-                ? CALCULATION_STEPS[parsed.currentStepIndex || 0]?.sparkyPrompt || prev.sparkyMessage
-                : prev.sparkyMessage,
-            }));
+            // Store saved progress and show the resume prompt
+            setSavedProgress(parsed);
+            setShowResumePrompt(true);
           }
         }
       } catch {
@@ -412,6 +414,35 @@ export default function LoadCalculatorPage() {
       }
     }
   }, [status, router]);
+
+  // Handle continuing saved progress
+  const handleContinueProgress = useCallback(() => {
+    if (!savedProgress) return;
+
+    const scenario = HOUSE_SCENARIOS.find(s => s.id === savedProgress.scenarioId);
+    if (scenario) {
+      setState(prev => ({
+        ...prev,
+        difficulty: savedProgress.difficulty,
+        selectedScenario: scenario,
+        currentStepIndex: savedProgress.currentStepIndex || 0,
+        answers: savedProgress.answers || {},
+        isComplete: savedProgress.isComplete || false,
+        sparkyMessage: savedProgress.isComplete
+          ? SPARKY_MESSAGES.complete
+          : CALCULATION_STEPS[savedProgress.currentStepIndex || 0]?.sparkyPrompt || prev.sparkyMessage,
+      }));
+    }
+    setShowResumePrompt(false);
+    setSavedProgress(null);
+  }, [savedProgress]);
+
+  // Handle starting fresh
+  const handleStartFresh = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setShowResumePrompt(false);
+    setSavedProgress(null);
+  }, []);
 
   // Save progress to localStorage
   const saveProgress = useCallback((currentState: CalculatorState) => {
@@ -576,6 +607,93 @@ export default function LoadCalculatorPage() {
     );
   }
 
+  // Show resume prompt if there's saved progress
+  if (showResumePrompt && savedProgress) {
+    const savedScenario = HOUSE_SCENARIOS.find(s => s.id === savedProgress.scenarioId);
+    const progressPercent = Math.round(
+      ((savedProgress.currentStepIndex + (savedProgress.isComplete ? 1 : 0)) / CALCULATION_STEPS.length) * 100
+    );
+
+    return (
+      <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full"
+        >
+          <Card>
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
+                <Save className="h-8 w-8 text-amber" />
+              </div>
+              <CardTitle className="text-xl">Welcome Back!</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-4">
+                  You have saved progress from a previous session.
+                </p>
+
+                {savedScenario && (
+                  <div className="bg-muted rounded-lg p-4 text-left space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Home className="h-4 w-4 text-amber" />
+                      <span className="font-medium">{savedScenario.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Zap className="h-3.5 w-3.5" />
+                      <span>
+                        {savedProgress.difficulty === "beginner" ? "Beginner" : "Intermediate"} Mode
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calculator className="h-3.5 w-3.5" />
+                      <span>
+                        {savedProgress.isComplete
+                          ? "Completed"
+                          : `Step ${savedProgress.currentStepIndex + 1} of ${CALCULATION_STEPS.length}`}
+                      </span>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="pt-2">
+                      <div className="h-2 bg-background rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber rounded-full transition-all"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 text-right">
+                        {progressPercent}% complete
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={handleContinueProgress}
+                  className="bg-amber hover:bg-amber/90 w-full"
+                >
+                  <ChevronRight className="h-4 w-4 mr-2" />
+                  Continue Where I Left Off
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleStartFresh}
+                  className="w-full"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Start a New Calculation
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </main>
+    );
+  }
+
   const currentStep = state.selectedScenario ? CALCULATION_STEPS[state.currentStepIndex] : null;
   const progress = state.selectedScenario
     ? ((state.currentStepIndex + (state.isComplete ? 1 : 0)) / CALCULATION_STEPS.length) * 100
@@ -592,9 +710,15 @@ export default function LoadCalculatorPage() {
       >
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-              <span className="text-amber">Load Calculator</span>
-            </h1>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-left"
+            >
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 cursor-pointer hover:opacity-80 transition-opacity">
+                <span className="text-amber">Load Calculator</span>
+              </h1>
+            </button>
             <p className="text-muted-foreground">
               Learn residential service load calculations step by step with Sparky!
             </p>
@@ -709,9 +833,19 @@ export default function LoadCalculatorPage() {
                   const isManuallyScratchedOff = isIntermediate && state.manualScratchedOff.has(appliance.id);
                   const currentStepId = CALCULATION_STEPS[state.currentStepIndex]?.id;
 
+                  // Check if this is a motor and if it's been converted
+                  const isMotor = appliance.isMotor && appliance.horsepower;
+                  const motorConversionStepId = Object.entries(MOTOR_CONVERSION_STEPS).find(
+                    ([, appId]) => appId === appliance.id
+                  )?.[0];
+                  const convertedWatts = motorConversionStepId ? state.answers[motorConversionStepId] : undefined;
+                  const hasBeenConverted = convertedWatts !== undefined && convertedWatts > 0;
+
                   // Highlight appliances relevant to the current step (beginner only)
                   const currentStepAppliances = currentStepId ? STEP_APPLIANCE_MAP[currentStepId] || [] : [];
-                  const isHighlighted = isBeginner && !isAccountedFor && currentStepAppliances.includes(appliance.id);
+                  // Also highlight motors during their conversion step
+                  const isMotorConversionStep = motorConversionStepId === currentStepId;
+                  const isHighlighted = isBeginner && !isAccountedFor && (currentStepAppliances.includes(appliance.id) || isMotorConversionStep);
 
                   return (
                     <div
@@ -738,14 +872,22 @@ export default function LoadCalculatorPage() {
                         )}
                         {appliance.name}
                       </span>
-                      <span className={`font-mono whitespace-nowrap ${
+                      <span className={`font-mono whitespace-nowrap flex items-center gap-1 ${
                         isHighlighted
                           ? "text-amber font-semibold"
                           : isAccountedFor || isManuallyScratchedOff
                           ? "text-muted-foreground/50 line-through"
                           : "text-foreground"
                       }`}>
-                        {appliance.watts.toLocaleString()}W
+                        {isMotor ? (
+                          hasBeenConverted ? (
+                            <span className="text-emerald font-semibold">= {convertedWatts.toLocaleString()}W</span>
+                          ) : (
+                            <span>{appliance.horsepower} HP</span>
+                          )
+                        ) : (
+                          <span>{appliance.watts.toLocaleString()}W</span>
+                        )}
                       </span>
                     </div>
                   );
@@ -1120,6 +1262,9 @@ export default function LoadCalculatorPage() {
               {Object.keys(state.answers).length > 0 ? (
                 <div className="space-y-2 text-sm">
                   {CALCULATION_STEPS.map((step) => {
+                    // Skip motor conversion steps - they show on the equipment card instead
+                    if (step.id in MOTOR_CONVERSION_STEPS) return null;
+
                     const answer = state.answers[step.id];
                     if (answer === undefined) return null;
 

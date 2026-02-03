@@ -18,7 +18,6 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SparkyMessage } from "@/components/sparky";
-import { CATEGORIES } from "@/types/question";
 import {
   FLASHCARD_SETS,
   FLASHCARDS,
@@ -36,7 +35,6 @@ export default function FlashcardsPage() {
   const [selectedSetId, setSelectedSetId] = useState<string>(
     FLASHCARD_SETS[0]?.id ?? "all"
   );
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -44,19 +42,35 @@ export default function FlashcardsPage() {
     }
   }, [status, router]);
 
+  // Load saved cards from database on mount
+  useEffect(() => {
+    async function loadSavedCards() {
+      try {
+        const response = await fetch("/api/flashcard-bookmarks");
+        if (response.ok) {
+          const data = await response.json();
+          const savedIds = new Set<string>(
+            data.bookmarks.map((b: { flashcardId: string }) => b.flashcardId)
+          );
+          setSavedCards(savedIds);
+        }
+      } catch (error) {
+        console.error("Failed to load saved flashcards:", error);
+      }
+    }
+    if (status === "authenticated") {
+      loadSavedCards();
+    }
+  }, [status]);
+
   useEffect(() => {
     const activeSet: FlashcardSet | undefined = FLASHCARD_SETS.find(
       (set) => set.id === selectedSetId
     );
-    const sourceCards = activeSet ? activeSet.cards : FLASHCARDS;
-    const filtered =
-      selectedCategory === "all"
-        ? sourceCards
-        : sourceCards.filter((card) => card.category === selectedCategory);
-    setCards(filtered);
+    setCards(activeSet ? activeSet.cards : FLASHCARDS);
     setCurrentIndex(0);
     setIsFlipped(false);
-  }, [selectedCategory, selectedSetId]);
+  }, [selectedSetId]);
 
   if (status === "loading") {
     return (
@@ -90,24 +104,77 @@ export default function FlashcardsPage() {
     setIsFlipped(false);
   };
 
-  const handleToggleSave = () => {
-    if (currentCard) {
+  const handleToggleSave = async () => {
+    if (!currentCard) return;
+
+    const isCurrentlySaved = savedCards.has(currentCard.id);
+
+    // Optimistically update UI
+    setSavedCards((prev) => {
+      const newSet = new Set(prev);
+      if (isCurrentlySaved) {
+        newSet.delete(currentCard.id);
+      } else {
+        newSet.add(currentCard.id);
+      }
+      return newSet;
+    });
+
+    // Persist to database
+    try {
+      if (isCurrentlySaved) {
+        await fetch("/api/flashcard-bookmarks", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ flashcardId: currentCard.id }),
+        });
+      } else {
+        await fetch("/api/flashcard-bookmarks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ flashcardId: currentCard.id }),
+        });
+      }
+    } catch (error) {
+      // Revert on error
+      console.error("Failed to toggle flashcard bookmark:", error);
       setSavedCards((prev) => {
         const newSet = new Set(prev);
-        if (newSet.has(currentCard.id)) {
-          newSet.delete(currentCard.id);
-        } else {
+        if (isCurrentlySaved) {
           newSet.add(currentCard.id);
+        } else {
+          newSet.delete(currentCard.id);
         }
         return newSet;
       });
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    // Clear all saved flashcards from database
+    const savedArray = Array.from(savedCards);
+
+    // Optimistically clear UI
     setSavedCards(new Set());
     setCurrentIndex(0);
     setIsFlipped(false);
+
+    // Delete each bookmark from database
+    try {
+      await Promise.all(
+        savedArray.map((id) =>
+          fetch("/api/flashcard-bookmarks", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ flashcardId: id }),
+          })
+        )
+      );
+    } catch (error) {
+      console.error("Failed to clear saved flashcards:", error);
+      // Revert on error
+      setSavedCards(new Set(savedArray));
+    }
   };
 
   return (
@@ -127,7 +194,7 @@ export default function FlashcardsPage() {
         </p>
       </motion.div>
 
-      {/* Filters */}
+      {/* Set Filters */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -139,25 +206,10 @@ export default function FlashcardsPage() {
             key={set.id}
             variant={selectedSetId === set.id ? "default" : "outline"}
             size="sm"
-            onClick={() => {
-              setSelectedSetId(set.id);
-              setSelectedCategory("all");
-            }}
+            onClick={() => setSelectedSetId(set.id)}
             className={selectedSetId === set.id ? "bg-emerald hover:bg-emerald/90" : ""}
           >
             {set.name}
-          </Button>
-        ))}
-        <span className="border-l border-border mx-1" />
-        {CATEGORIES.map((cat) => (
-          <Button
-            key={cat.slug}
-            variant={selectedCategory === cat.slug ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(cat.slug)}
-            className={selectedCategory === cat.slug ? "bg-emerald hover:bg-emerald/90" : ""}
-          >
-            {cat.name}
           </Button>
         ))}
       </motion.div>

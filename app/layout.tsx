@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Zap } from "lucide-react";
+import { Logo } from "@/components/layout/Logo";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -44,12 +45,7 @@ export default function RootLayout({
         <SessionProvider>
         <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
-            <Link href="/" className="flex items-center gap-2">
-              <Zap className="h-8 w-8 text-amber" />
-              <span className="text-xl font-bold text-foreground">
-                SparkPass
-              </span>
-            </Link>
+            <Logo />
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">

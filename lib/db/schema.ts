@@ -99,3 +99,15 @@ export const bookmarks = sqliteTable("bookmarks", {
 // Type inference for Bookmark from schema
 export type Bookmark = typeof bookmarks.$inferSelect;
 export type NewBookmark = typeof bookmarks.$inferInsert;
+
+// Flashcard bookmarks table - tracks saved flashcards for review
+export const flashcardBookmarks = sqliteTable("flashcard_bookmarks", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  flashcardId: text("flashcard_id").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+// Type inference for FlashcardBookmark from schema
+export type FlashcardBookmark = typeof flashcardBookmarks.$inferSelect;
+export type NewFlashcardBookmark = typeof flashcardBookmarks.$inferInsert;

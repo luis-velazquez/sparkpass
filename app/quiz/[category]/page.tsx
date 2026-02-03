@@ -57,7 +57,7 @@ const INCORRECT_MESSAGES = [
   "That's a tough one! Here's what the NEC says about this:",
 ];
 
-const QUESTIONS_PER_QUIZ = 40;
+const QUESTIONS_PER_QUIZ = 60;
 const XP_PER_CORRECT_ANSWER = 25;
 
 // Get a random message from an array
@@ -101,7 +101,7 @@ function createInitialState(categorySlug: CategorySlug): QuizState {
     questions,
     currentQuestionIndex: 0,
     selectedAnswer: null,
-    bookmarkedQuestions: new Set(),
+    bookmarkedQuestions: new Set<string>(),
     answers: new Map(),
     isSubmitted: false,
     showXpAnimation: false,
@@ -147,23 +147,40 @@ export default function QuizTakingPage() {
     };
   }, []);
 
-  // Fetch pre-quiz XP and create study session on mount
+  // Fetch pre-quiz XP, bookmarks, and create study session on mount
   useEffect(() => {
     async function initializeQuiz() {
       try {
-        // Fetch pre-quiz XP for level-up detection
-        const userResponse = await fetch("/api/user");
+        // Fetch user data, bookmarks, and create session in parallel
+        const [userResponse, bookmarksResponse, sessionResponse] = await Promise.all([
+          fetch("/api/user"),
+          fetch("/api/bookmarks"),
+          fetch("/api/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionType: "quiz" }),
+          }),
+        ]);
+
+        // Store pre-quiz XP for level-up detection
         if (userResponse.ok) {
           const userData = await userResponse.json();
           sessionStorage.setItem("preQuizXP", String(userData.xp || 0));
         }
 
-        // Create a new study session
-        const sessionResponse = await fetch("/api/sessions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionType: "quiz" }),
-        });
+        // Load bookmarks from database
+        if (bookmarksResponse.ok) {
+          const bookmarksData = await bookmarksResponse.json();
+          const bookmarkedIds = new Set<string>(
+            bookmarksData.bookmarks.map((b: { questionId: string }) => b.questionId)
+          );
+          setQuizState((prev) => ({
+            ...prev,
+            bookmarkedQuestions: bookmarkedIds,
+          }));
+        }
+
+        // Store session ID
         if (sessionResponse.ok) {
           const sessionData = await sessionResponse.json();
           sessionStorage.setItem("currentSessionId", sessionData.sessionId);
@@ -190,12 +207,16 @@ export default function QuizTakingPage() {
     });
   }, []);
 
-  const handleToggleBookmark = useCallback(() => {
+  const handleToggleBookmark = useCallback(async () => {
+    const question = quizState.questions[quizState.currentQuestionIndex];
+    if (!question) return;
+
+    const isCurrentlyBookmarked = quizState.bookmarkedQuestions.has(question.id);
+
+    // Optimistically update UI
     setQuizState((prev) => {
-      const question = prev.questions[prev.currentQuestionIndex];
-      if (!question) return prev;
       const newBookmarks = new Set(prev.bookmarkedQuestions);
-      if (newBookmarks.has(question.id)) {
+      if (isCurrentlyBookmarked) {
         newBookmarks.delete(question.id);
       } else {
         newBookmarks.add(question.id);
@@ -205,7 +226,41 @@ export default function QuizTakingPage() {
         bookmarkedQuestions: newBookmarks,
       };
     });
-  }, []);
+
+    // Persist to database
+    try {
+      if (isCurrentlyBookmarked) {
+        // Remove bookmark
+        await fetch("/api/bookmarks", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questionId: question.id }),
+        });
+      } else {
+        // Add bookmark
+        await fetch("/api/bookmarks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questionId: question.id }),
+        });
+      }
+    } catch (error) {
+      // Revert on error
+      console.error("Failed to toggle bookmark:", error);
+      setQuizState((prev) => {
+        const newBookmarks = new Set(prev.bookmarkedQuestions);
+        if (isCurrentlyBookmarked) {
+          newBookmarks.add(question.id);
+        } else {
+          newBookmarks.delete(question.id);
+        }
+        return {
+          ...prev,
+          bookmarkedQuestions: newBookmarks,
+        };
+      });
+    }
+  }, [quizState.questions, quizState.currentQuestionIndex, quizState.bookmarkedQuestions]);
 
   const handleSubmitAnswer = useCallback(async () => {
     // Get current state values
@@ -323,10 +378,12 @@ export default function QuizTakingPage() {
   }, [currentQuestionIndex, totalQuestions, answers, questions, bookmarkedQuestions, categorySlug, router]);
 
   // Bookmark handler specifically for the feedback section
-  const handleBookmarkFromFeedback = useCallback(() => {
+  const handleBookmarkFromFeedback = useCallback(async () => {
+    const question = quizState.questions[quizState.currentQuestionIndex];
+    if (!question) return;
+
+    // Optimistically update UI
     setQuizState((prev) => {
-      const question = prev.questions[prev.currentQuestionIndex];
-      if (!question) return prev;
       const newBookmarks = new Set(prev.bookmarkedQuestions);
       newBookmarks.add(question.id);
       return {
@@ -334,7 +391,27 @@ export default function QuizTakingPage() {
         bookmarkedQuestions: newBookmarks,
       };
     });
-  }, []);
+
+    // Persist to database
+    try {
+      await fetch("/api/bookmarks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: question.id }),
+      });
+    } catch (error) {
+      // Revert on error
+      console.error("Failed to save bookmark:", error);
+      setQuizState((prev) => {
+        const newBookmarks = new Set(prev.bookmarkedQuestions);
+        newBookmarks.delete(question.id);
+        return {
+          ...prev,
+          bookmarkedQuestions: newBookmarks,
+        };
+      });
+    }
+  }, [quizState.questions, quizState.currentQuestionIndex]);
 
   const handlePrevQuestion = useCallback(() => {
     if (currentQuestionIndex > 0) {

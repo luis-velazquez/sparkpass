@@ -17,6 +17,8 @@ import {
   CheckCircle2,
   Clock,
   Calculator,
+  Bookmark,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,24 @@ import { SparkyMessage } from "@/components/sparky";
 import { ExamCountdown } from "@/components/exam";
 import { getLevelTitle, getXPProgress } from "@/lib/levels";
 import { CATEGORIES } from "@/types/question";
+
+interface SavedFlashcard {
+  id: string;
+  flashcardId: string;
+  front: string;
+  back: string;
+  necReference: string;
+  setName: string;
+  createdAt: string;
+}
+
+interface SavedQuestion {
+  id: string;
+  questionId: string;
+  question: string;
+  category: string;
+  savedAt: string;
+}
 
 interface UserData {
   name: string;
@@ -194,6 +214,8 @@ export default function DashboardPage() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [savedFlashcards, setSavedFlashcards] = useState<SavedFlashcard[]>([]);
+  const [savedQuestions, setSavedQuestions] = useState<SavedQuestion[]>([]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -202,14 +224,27 @@ export default function DashboardPage() {
     }
 
     if (status === "authenticated" && session?.user?.id) {
-      // Fetch user data and progress stats in parallel
+      // Fetch user data, progress stats, bookmarks, and flashcard bookmarks in parallel
       Promise.all([
         fetch("/api/user").then((res) => res.json()),
         fetch("/api/progress/stats").then((res) => res.json()),
+        fetch("/api/bookmarks").then((res) => res.json()),
+        fetch("/api/flashcard-bookmarks").then((res) => res.json()),
       ])
-        .then(([user, stats]) => {
+        .then(([user, stats, bookmarksData, flashcardBookmarksData]) => {
           setUserData(user);
           setProgressStats(stats);
+          // Transform question bookmarks to match expected format
+          const questions = (bookmarksData.bookmarks || []).map((b: { id: string; questionId: string; questionText?: string; category?: string; createdAt?: string }) => ({
+            id: b.id,
+            questionId: b.questionId,
+            question: b.questionText || "Unknown question",
+            category: b.category || "unknown",
+            savedAt: b.createdAt,
+          }));
+          setSavedQuestions(questions);
+          // Set flashcard bookmarks
+          setSavedFlashcards(flashcardBookmarksData.bookmarks || []);
           setLoading(false);
         })
         .catch(() => {
@@ -555,6 +590,157 @@ export default function DashboardPage() {
       >
         <SparkyMessage size="medium" message={sparkyMessage} />
       </motion.div>
+
+      {/* Saved for Later Section */}
+      {(savedFlashcards.length > 0 || savedQuestions.length > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.52 }}
+          className="mb-8"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Bookmark className="h-5 w-5 text-amber" />
+                Saved for Later
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Saved Flashcards */}
+                {savedFlashcards.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-emerald" />
+                      Flashcards ({savedFlashcards.length})
+                    </h3>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                      {savedFlashcards.slice(0, 5).map((card) => (
+                        <div
+                          key={card.id}
+                          className="flex items-start justify-between p-3 rounded-lg bg-muted/50 group"
+                        >
+                          <div className="flex-1 min-w-0 mr-2">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {card.front}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {card.necReference}
+                            </p>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              // Optimistically remove from UI
+                              setSavedFlashcards((prev) =>
+                                prev.filter((f) => f.id !== card.id)
+                              );
+                              // Delete from database
+                              try {
+                                await fetch("/api/flashcard-bookmarks", {
+                                  method: "DELETE",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ flashcardId: card.flashcardId }),
+                                });
+                              } catch (error) {
+                                console.error("Failed to remove flashcard bookmark:", error);
+                              }
+                            }}
+                            className="p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remove from saved"
+                          >
+                            <X className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </div>
+                      ))}
+                      {savedFlashcards.length > 5 && (
+                        <Link href="/flashcards">
+                          <p className="text-sm text-amber hover:underline cursor-pointer">
+                            +{savedFlashcards.length - 5} more flashcards
+                          </p>
+                        </Link>
+                      )}
+                    </div>
+                    <Link href="/flashcards" className="block mt-3">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Review Flashcards
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Saved Questions */}
+                {savedQuestions.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-purple" />
+                      Quiz Questions ({savedQuestions.length})
+                    </h3>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                      {savedQuestions.slice(0, 5).map((question) => {
+                        const category = CATEGORIES.find(
+                          (c) => c.slug === question.category
+                        );
+                        return (
+                          <div
+                            key={question.id}
+                            className="flex items-start justify-between p-3 rounded-lg bg-muted/50 group"
+                          >
+                            <div className="flex-1 min-w-0 mr-2">
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {question.question}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {category?.name || question.category}
+                              </p>
+                            </div>
+                            <button
+                              onClick={async () => {
+                                // Optimistically remove from UI
+                                setSavedQuestions((prev) =>
+                                  prev.filter((q) => q.id !== question.id)
+                                );
+                                // Delete from database
+                                try {
+                                  await fetch("/api/bookmarks", {
+                                    method: "DELETE",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ questionId: question.questionId }),
+                                  });
+                                } catch (error) {
+                                  console.error("Failed to remove bookmark:", error);
+                                }
+                              }}
+                              className="p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Remove from saved"
+                            >
+                              <X className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                      {savedQuestions.length > 5 && (
+                        <Link href="/quiz">
+                          <p className="text-sm text-amber hover:underline cursor-pointer">
+                            +{savedQuestions.length - 5} more questions
+                          </p>
+                        </Link>
+                      )}
+                    </div>
+                    <Link href="/quiz" className="block mt-3">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Brain className="h-4 w-4 mr-2" />
+                        Practice Quiz
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Category Progress and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

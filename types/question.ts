@@ -2,7 +2,7 @@
 
 export type Difficulty = "easy" | "medium" | "hard";
 
-export type CategorySlug = "load-calculations" | "grounding-bonding" | "services" | "textbook-navigation";
+export type CategorySlug = "load-calculations" | "grounding-bonding" | "services" | "textbook-navigation" | "chapter-9-tables";
 
 export interface Category {
   slug: CategorySlug;
@@ -49,6 +49,12 @@ export const CATEGORIES: Category[] = [
     name: "Textbook Navigation",
     necArticle: "Article 90",
     description: "How to navigate the NEC code book, chapter organization, and finding rules",
+  },
+  {
+    slug: "chapter-9-tables",
+    name: "Chapter 9 Tables",
+    necArticle: "Chapter 9",
+    description: "Conduit fill calculations, conductor properties, and raceway dimensions",
   },
 ];
 

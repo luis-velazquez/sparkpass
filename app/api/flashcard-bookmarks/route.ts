@@ -1,11 +1,22 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { db, bookmarks } from "@/lib/db";
+import { db, flashcardBookmarks } from "@/lib/db";
 import { eq, and, sql } from "drizzle-orm";
 import crypto from "crypto";
-import { getQuestionById } from "@/lib/questions";
+import { FLASHCARD_SETS } from "@/app/flashcards/flashcards";
 
-// GET - List all bookmarks for the current user (with question details)
+// Helper to find flashcard by ID
+function getFlashcardById(id: string) {
+  for (const set of FLASHCARD_SETS) {
+    const card = set.cards.find((c) => c.id === id);
+    if (card) {
+      return { ...card, setName: set.name };
+    }
+  }
+  return null;
+}
+
+// GET - List all flashcard bookmarks for the current user (with flashcard details)
 export async function GET() {
   try {
     const session = await auth();
@@ -16,22 +27,24 @@ export async function GET() {
 
     const userBookmarks = await db
       .select({
-        id: bookmarks.id,
-        questionId: bookmarks.questionId,
-        createdAt: bookmarks.createdAt,
+        id: flashcardBookmarks.id,
+        flashcardId: flashcardBookmarks.flashcardId,
+        createdAt: flashcardBookmarks.createdAt,
       })
-      .from(bookmarks)
-      .where(eq(bookmarks.userId, session.user.id))
-      .orderBy(sql`${bookmarks.createdAt} DESC`);
+      .from(flashcardBookmarks)
+      .where(eq(flashcardBookmarks.userId, session.user.id))
+      .orderBy(sql`${flashcardBookmarks.createdAt} DESC`);
 
-    // Enrich bookmarks with question details
+    // Enrich bookmarks with flashcard details
     const enrichedBookmarks = userBookmarks.map((b) => {
-      const question = getQuestionById(b.questionId);
+      const flashcard = getFlashcardById(b.flashcardId);
       return {
         id: b.id,
-        questionId: b.questionId,
-        questionText: question?.questionText || null,
-        category: question?.category || null,
+        flashcardId: b.flashcardId,
+        front: flashcard?.front || null,
+        back: flashcard?.back || null,
+        necReference: flashcard?.necReference || null,
+        setName: flashcard?.setName || null,
         createdAt: b.createdAt?.toISOString() || null,
       };
     });
@@ -40,7 +53,7 @@ export async function GET() {
       bookmarks: enrichedBookmarks,
     });
   } catch (error) {
-    console.error("Error fetching bookmarks:", error);
+    console.error("Error fetching flashcard bookmarks:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -48,7 +61,7 @@ export async function GET() {
   }
 }
 
-// POST - Add a new bookmark
+// POST - Add a new flashcard bookmark
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -58,23 +71,23 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { questionId } = body;
+    const { flashcardId } = body;
 
-    if (!questionId) {
+    if (!flashcardId) {
       return NextResponse.json(
-        { error: "Missing required field: questionId" },
+        { error: "Missing required field: flashcardId" },
         { status: 400 }
       );
     }
 
     // Check if bookmark already exists
     const [existing] = await db
-      .select({ id: bookmarks.id })
-      .from(bookmarks)
+      .select({ id: flashcardBookmarks.id })
+      .from(flashcardBookmarks)
       .where(
         and(
-          eq(bookmarks.userId, session.user.id),
-          eq(bookmarks.questionId, questionId)
+          eq(flashcardBookmarks.userId, session.user.id),
+          eq(flashcardBookmarks.flashcardId, flashcardId)
         )
       )
       .limit(1);
@@ -90,10 +103,10 @@ export async function POST(request: Request) {
     // Create new bookmark
     const bookmarkId = crypto.randomUUID();
 
-    await db.insert(bookmarks).values({
+    await db.insert(flashcardBookmarks).values({
       id: bookmarkId,
       userId: session.user.id,
-      questionId,
+      flashcardId,
       createdAt: new Date(),
     });
 
@@ -102,7 +115,7 @@ export async function POST(request: Request) {
       bookmarkId,
     });
   } catch (error) {
-    console.error("Error creating bookmark:", error);
+    console.error("Error creating flashcard bookmark:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -110,7 +123,7 @@ export async function POST(request: Request) {
   }
 }
 
-// DELETE - Remove a bookmark by questionId
+// DELETE - Remove a flashcard bookmark by flashcardId
 export async function DELETE(request: Request) {
   try {
     const session = await auth();
@@ -120,22 +133,22 @@ export async function DELETE(request: Request) {
     }
 
     const body = await request.json();
-    const { questionId } = body;
+    const { flashcardId } = body;
 
-    if (!questionId) {
+    if (!flashcardId) {
       return NextResponse.json(
-        { error: "Missing required field: questionId" },
+        { error: "Missing required field: flashcardId" },
         { status: 400 }
       );
     }
 
-    // Delete bookmark by questionId for the current user
+    // Delete bookmark by flashcardId for the current user
     await db
-      .delete(bookmarks)
+      .delete(flashcardBookmarks)
       .where(
         and(
-          eq(bookmarks.userId, session.user.id),
-          eq(bookmarks.questionId, questionId)
+          eq(flashcardBookmarks.userId, session.user.id),
+          eq(flashcardBookmarks.flashcardId, flashcardId)
         )
       );
 
@@ -144,7 +157,7 @@ export async function DELETE(request: Request) {
       message: "Bookmark removed",
     });
   } catch (error) {
-    console.error("Error deleting bookmark:", error);
+    console.error("Error deleting flashcard bookmark:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
