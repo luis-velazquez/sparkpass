@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, Zap, Shield, ChevronRight } from "lucide-react";
+import { BookOpen, Zap, Shield, ChevronRight, Navigation } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SparkyMessage } from "@/components/sparky";
 import { CATEGORIES } from "@/types/question";
@@ -13,6 +13,7 @@ const categoryIcons = {
   "load-calculations": BookOpen,
   "grounding-bonding": Shield,
   services: Zap,
+  "textbook-navigation": Navigation,
 };
 
 // Map category slugs to colors
@@ -31,6 +32,11 @@ const categoryColors = {
     icon: "text-amber",
     bg: "bg-amber/10",
     border: "hover:border-amber/50",
+  },
+  "textbook-navigation": {
+    icon: "text-blue-500",
+    bg: "bg-blue-500/10",
+    border: "hover:border-blue-500/50",
   },
 };
 

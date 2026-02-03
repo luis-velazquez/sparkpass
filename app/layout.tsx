@@ -72,6 +72,12 @@ export default function RootLayout({
                 Mock Exam
               </Link>
               <Link
+                href="/load-calculator"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Load Calculator
+              </Link>
+              <Link
                 href="/contact"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >

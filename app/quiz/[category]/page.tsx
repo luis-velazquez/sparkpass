@@ -57,7 +57,7 @@ const INCORRECT_MESSAGES = [
   "That's a tough one! Here's what the NEC says about this:",
 ];
 
-const QUESTIONS_PER_QUIZ = 15;
+const QUESTIONS_PER_QUIZ = 40;
 const XP_PER_CORRECT_ANSWER = 25;
 
 // Get a random message from an array
@@ -92,6 +92,7 @@ interface QuizState {
   isSubmitted: boolean;
   showXpAnimation: boolean;
   sparkyMessage: string;
+  showHint: boolean;
 }
 
 function createInitialState(categorySlug: CategorySlug): QuizState {
@@ -105,6 +106,7 @@ function createInitialState(categorySlug: CategorySlug): QuizState {
     isSubmitted: false,
     showXpAnimation: false,
     sparkyMessage: "",
+    showHint: false,
   };
 }
 
@@ -133,6 +135,9 @@ export default function QuizTakingPage() {
   // Ref to track timeout for XP animation reset
   const xpTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Ref for feedback section to scroll to
+  const feedbackRef = useRef<HTMLDivElement | null>(null);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -142,20 +147,32 @@ export default function QuizTakingPage() {
     };
   }, []);
 
-  // Fetch and save pre-quiz XP on mount for level-up detection
+  // Fetch pre-quiz XP and create study session on mount
   useEffect(() => {
-    async function fetchPreQuizXP() {
+    async function initializeQuiz() {
       try {
-        const response = await fetch("/api/user");
-        if (response.ok) {
-          const userData = await response.json();
+        // Fetch pre-quiz XP for level-up detection
+        const userResponse = await fetch("/api/user");
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
           sessionStorage.setItem("preQuizXP", String(userData.xp || 0));
         }
+
+        // Create a new study session
+        const sessionResponse = await fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionType: "quiz" }),
+        });
+        if (sessionResponse.ok) {
+          const sessionData = await sessionResponse.json();
+          sessionStorage.setItem("currentSessionId", sessionData.sessionId);
+        }
       } catch {
-        // Silently fail - level-up detection just won't work
+        // Silently fail - tracking just won't work
       }
     }
-    fetchPreQuizXP();
+    initializeQuiz();
   }, []);
 
   // Redirect if invalid category or no questions
@@ -190,21 +207,40 @@ export default function QuizTakingPage() {
     });
   }, []);
 
-  const handleSubmitAnswer = useCallback(() => {
+  const handleSubmitAnswer = useCallback(async () => {
+    // Get current state values
+    const { selectedAnswer, questions, currentQuestionIndex } = quizState;
+    if (selectedAnswer === null) return;
+
+    const question = questions[currentQuestionIndex];
+    if (!question) return;
+
+    const isCorrect = selectedAnswer === question.correctAnswer;
+
+    // Save progress to database
+    try {
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionId: question.id,
+          isCorrect,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
+
+    // Update local state
     setQuizState((prev) => {
-      if (prev.selectedAnswer === null) return prev;
-      const question = prev.questions[prev.currentQuestionIndex];
-      if (!question) return prev;
-
       const newAnswers = new Map(prev.answers);
-      newAnswers.set(question.id, prev.selectedAnswer);
+      newAnswers.set(question.id, selectedAnswer);
 
-      const isCorrect = prev.selectedAnswer === question.correctAnswer;
       const message = isCorrect
         ? getRandomMessage(CORRECT_MESSAGES)
         : getRandomMessage(INCORRECT_MESSAGES);
 
-      // Fire confetti for correct answers (side effect is OK here as it doesn't affect state)
+      // Fire confetti for correct answers
       if (isCorrect) {
         fireConfetti();
         // Set timeout to hide XP animation
@@ -212,6 +248,11 @@ export default function QuizTakingPage() {
           setQuizState((p) => ({ ...p, showXpAnimation: false }));
         }, 2000);
       }
+
+      // Scroll to feedback section after a short delay with smooth animation
+      setTimeout(() => {
+        feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 500);
 
       return {
         ...prev,
@@ -221,12 +262,35 @@ export default function QuizTakingPage() {
         sparkyMessage: message,
       };
     });
-  }, []);
+  }, [quizState]);
 
-  const handleNextQuestion = useCallback(() => {
+  const handleNextQuestion = useCallback(async () => {
     const isLast = currentQuestionIndex >= totalQuestions - 1;
 
     if (isLast) {
+      // Calculate XP earned from correct answers
+      let correctCount = 0;
+      questions.forEach((q) => {
+        if (answers.get(q.id) === q.correctAnswer) {
+          correctCount++;
+        }
+      });
+      const xpEarned = correctCount * XP_PER_CORRECT_ANSWER;
+
+      // End the study session
+      const sessionId = sessionStorage.getItem("currentSessionId");
+      if (sessionId) {
+        try {
+          await fetch("/api/sessions", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId, xpEarned }),
+          });
+        } catch {
+          // Silently fail
+        }
+      }
+
       // Navigate to results - store answers in sessionStorage for the results page
       const answersObject = Object.fromEntries(answers);
       sessionStorage.setItem("quizAnswers", JSON.stringify(answersObject));
@@ -253,6 +317,7 @@ export default function QuizTakingPage() {
         isSubmitted: false,
         showXpAnimation: false,
         sparkyMessage: "",
+        showHint: false,
       }));
     }
   }, [currentQuestionIndex, totalQuestions, answers, questions, bookmarkedQuestions, categorySlug, router]);
@@ -270,6 +335,25 @@ export default function QuizTakingPage() {
       };
     });
   }, []);
+
+  const handlePrevQuestion = useCallback(() => {
+    if (currentQuestionIndex > 0) {
+      // Clear any pending timeout
+      if (xpTimeoutRef.current) {
+        clearTimeout(xpTimeoutRef.current);
+        xpTimeoutRef.current = null;
+      }
+      setQuizState((prev) => ({
+        ...prev,
+        currentQuestionIndex: prev.currentQuestionIndex - 1,
+        selectedAnswer: prev.answers.get(prev.questions[prev.currentQuestionIndex - 1]?.id) ?? null,
+        isSubmitted: prev.answers.has(prev.questions[prev.currentQuestionIndex - 1]?.id),
+        showXpAnimation: false,
+        sparkyMessage: "",
+        showHint: false,
+      }));
+    }
+  }, [currentQuestionIndex]);
 
   const handleExit = useCallback(() => {
     router.push("/quiz");
@@ -294,48 +378,87 @@ export default function QuizTakingPage() {
         </div>
       </div>
 
-      {/* Header Row */}
-      <div className="flex items-center justify-between mb-6">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ChevronLeft className="h-4 w-4" />
-              Exit
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Exit Quiz?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to exit? Your progress will be lost and you&apos;ll need to start over.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Continue Quiz</AlertDialogCancel>
-              <AlertDialogAction onClick={handleExit}>
-                Exit Quiz
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      {/* Navigation Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        {/* Left side - Exit and Previous */}
+        <div className="flex items-center gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="default" className="gap-2">
+                <ChevronLeft className="h-4 w-4" />
+                Exit
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Exit Quiz?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to exit? Your progress will be lost and you&apos;ll need to start over.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Continue Quiz</AlertDialogCancel>
+                <AlertDialogAction onClick={handleExit}>
+                  Exit Quiz
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
+          <Button
+            variant="outline"
+            size="default"
+            onClick={handlePrevQuestion}
+            disabled={currentQuestionIndex === 0}
+            className="gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+        </div>
+
+        {/* Center - Question counter */}
         <span className="text-sm font-medium text-muted-foreground">
-          Question {currentQuestionIndex + 1} of {totalQuestions}
+          {currentQuestionIndex + 1} / {totalQuestions}
         </span>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleToggleBookmark}
-          className={`gap-2 ${isBookmarked ? "text-amber" : ""}`}
-        >
-          {isBookmarked ? (
-            <Star className="h-4 w-4 fill-amber" />
+        {/* Right side - Save, Submit/Next */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="default"
+            onClick={handleToggleBookmark}
+            className={`gap-2 ${isBookmarked ? "text-amber border-amber" : ""}`}
+          >
+            {isBookmarked ? (
+              <Star className="h-4 w-4 fill-amber" />
+            ) : (
+              <StarOff className="h-4 w-4" />
+            )}
+            {isBookmarked ? "Saved" : "Save"}
+          </Button>
+
+          {!isSubmitted ? (
+            <Button
+              onClick={handleSubmitAnswer}
+              disabled={selectedAnswer === null}
+              size="default"
+              className="bg-amber hover:bg-amber/90 text-white gap-2"
+            >
+              Submit
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           ) : (
-            <StarOff className="h-4 w-4" />
+            <Button
+              onClick={handleNextQuestion}
+              size="default"
+              className="bg-amber hover:bg-amber/90 text-white gap-2"
+            >
+              {isLastQuestion ? "See Results" : "Next"}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           )}
-          {isBookmarked ? "Saved" : "Save"}
-        </Button>
+        </div>
       </div>
 
       {/* Question Card */}
@@ -349,12 +472,38 @@ export default function QuizTakingPage() {
         >
           <Card className="mb-6">
             <CardContent className="pt-6">
-              {/* NEC Reference Badge */}
+              {/* Hint Badge and Difficulty */}
               <div className="flex items-center gap-2 mb-4">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-soft text-purple text-sm font-medium">
-                  <Book className="h-3.5 w-3.5" />
-                  {currentQuestion.necReference}
-                </span>
+                {/* Flippable Hint Card */}
+                <div
+                  className="relative h-7 cursor-pointer"
+                  style={{ perspective: "1000px" }}
+                  onClick={() => setQuizState(prev => ({ ...prev, showHint: !prev.showHint }))}
+                >
+                  <motion.div
+                    className="relative"
+                    animate={{ rotateY: quizState.showHint ? 180 : 0 }}
+                    transition={{ duration: 0.4 }}
+                    style={{ transformStyle: "preserve-3d" }}
+                  >
+                    {/* Front - Hint Button */}
+                    <span
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber/10 text-amber text-sm font-medium border border-amber/30 hover:bg-amber/20 transition-colors"
+                      style={{ backfaceVisibility: "hidden" }}
+                    >
+                      <Book className="h-3.5 w-3.5" />
+                      Hint
+                    </span>
+                    {/* Back - NEC Reference */}
+                    <span
+                      className="absolute top-0 left-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-soft text-purple text-sm font-medium"
+                      style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                    >
+                      <Book className="h-3.5 w-3.5" />
+                      {currentQuestion.necReference}
+                    </span>
+                  </motion.div>
+                </div>
                 <span className="text-xs text-muted-foreground capitalize px-2 py-0.5 rounded bg-muted">
                   {currentQuestion.difficulty}
                 </span>
@@ -428,6 +577,7 @@ export default function QuizTakingPage() {
           <AnimatePresence>
             {isSubmitted && (
               <motion.div
+                ref={feedbackRef}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -523,32 +673,22 @@ export default function QuizTakingPage() {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Bottom Next Button */}
+                <div className="flex justify-center mt-6">
+                  <Button
+                    onClick={handleNextQuestion}
+                    size="lg"
+                    className="bg-amber hover:bg-amber/90 text-white gap-2 px-8"
+                  >
+                    {isLastQuestion ? "See Results" : "Next Question"}
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
-            {!isSubmitted ? (
-              <Button
-                onClick={handleSubmitAnswer}
-                disabled={selectedAnswer === null}
-                size="lg"
-                className="bg-amber hover:bg-amber/90 text-white"
-              >
-                Submit Answer
-              </Button>
-            ) : (
-              <Button
-                onClick={handleNextQuestion}
-                size="lg"
-                className="bg-amber hover:bg-amber/90 text-white gap-2"
-              >
-                {isLastQuestion ? "See Results" : "Next Question"}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
         </motion.div>
       </AnimatePresence>
     </main>

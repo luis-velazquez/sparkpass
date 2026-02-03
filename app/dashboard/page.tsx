@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  Calculator,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,12 +80,20 @@ const features = [
     bgColor: "bg-emerald/10",
   },
   {
+    title: "Load Calculator",
+    description: "Learn residential load calculations step by step with Sparky.",
+    icon: Calculator,
+    href: "/load-calculator",
+    color: "text-amber",
+    bgColor: "bg-amber/10",
+  },
+  {
     title: "Mock Exam",
     description: "Simulate the real exam with timed practice tests.",
     icon: ClipboardCheck,
     href: "/mock-exam",
-    color: "text-amber",
-    bgColor: "bg-amber/10",
+    color: "text-orange-500",
+    bgColor: "bg-orange-500/10",
   },
   {
     title: "Daily Challenge",
@@ -716,7 +725,7 @@ export default function DashboardPage() {
         <h2 className="text-xl font-semibold text-foreground mb-4">
           Start Studying
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}

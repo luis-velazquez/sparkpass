@@ -3,13 +3,11 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ClipboardCheck,
   Clock,
   BookOpen,
-  AlertTriangle,
   Play,
   Trophy,
   Target,
@@ -98,9 +96,7 @@ export default function MockExamPage() {
   }
 
   const handleStartExam = (examId: string) => {
-    setSelectedExam(examId);
-    // In a full implementation, this would navigate to the actual exam
-    // For now, we'll show a coming soon message
+    router.push(`/mock-exam/${examId}`);
   };
 
   return (
@@ -204,35 +200,6 @@ export default function MockExamPage() {
           </Card>
         </motion.div>
       )}
-
-      {/* Coming Soon Notice */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="mb-8"
-      >
-        <Card className="bg-purple-soft/50 border-purple/30">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-purple mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">
-                  Full Exam Feature Coming Soon
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  The complete timed mock exam experience is currently in development.
-                  In the meantime, practice with our{" "}
-                  <Link href="/quiz" className="text-purple hover:underline">
-                    category quizzes
-                  </Link>{" "}
-                  to build your knowledge!
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
 
       {/* Exam Tips */}
       <motion.div

@@ -11,87 +11,20 @@ import {
   RotateCcw,
   Shuffle,
   CheckCircle2,
+  Bookmark,
   Loader2,
+  Star,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SparkyMessage } from "@/components/sparky";
 import { CATEGORIES } from "@/types/question";
-
-interface Flashcard {
-  id: string;
-  front: string;
-  back: string;
-  category: string;
-  necReference: string;
-}
-
-// Sample flashcards data - in production this would come from an API
-const FLASHCARDS: Flashcard[] = [
-  {
-    id: "fc1",
-    front: "What is the standard voltage drop limit for branch circuits?",
-    back: "3% for branch circuits, 5% total for feeder and branch circuits combined (NEC 210.19(A) Informational Note No. 4)",
-    category: "load-calculations",
-    necReference: "NEC 210.19(A)",
-  },
-  {
-    id: "fc2",
-    front: "What size grounding electrode conductor is required for a 200A service?",
-    back: "4 AWG copper or 2 AWG aluminum (Table 250.66)",
-    category: "grounding-bonding",
-    necReference: "NEC Table 250.66",
-  },
-  {
-    id: "fc3",
-    front: "What is the minimum height for service drop clearance over residential driveways?",
-    back: "12 feet minimum clearance (NEC 230.24(B)(1))",
-    category: "services",
-    necReference: "NEC 230.24(B)(1)",
-  },
-  {
-    id: "fc4",
-    front: "What is the demand factor for the first 10 kW of electric range load?",
-    back: "100% - The first 10 kW is calculated at full demand (Table 220.55)",
-    category: "load-calculations",
-    necReference: "NEC Table 220.55",
-  },
-  {
-    id: "fc5",
-    front: "What is the minimum size equipment grounding conductor for a 60A circuit?",
-    back: "10 AWG copper or 8 AWG aluminum (Table 250.122)",
-    category: "grounding-bonding",
-    necReference: "NEC Table 250.122",
-  },
-  {
-    id: "fc6",
-    front: "What is the maximum number of service disconnects allowed?",
-    back: "Up to 6 disconnects grouped in any single enclosure or group of separate enclosures (NEC 230.71(A))",
-    category: "services",
-    necReference: "NEC 230.71(A)",
-  },
-  {
-    id: "fc7",
-    front: "What is the general lighting load for a dwelling unit?",
-    back: "3 VA per square foot (Table 220.12)",
-    category: "load-calculations",
-    necReference: "NEC Table 220.12",
-  },
-  {
-    id: "fc8",
-    front: "When is a ground rod required to be supplemented?",
-    back: "When a single ground rod has a resistance to earth greater than 25 ohms (NEC 250.53(A)(2))",
-    category: "grounding-bonding",
-    necReference: "NEC 250.53(A)(2)",
-  },
-  {
-    id: "fc9",
-    front: "What is the minimum service entrance conductor size for a single-family dwelling?",
-    back: "100 amperes, 3-wire (NEC 230.79(C))",
-    category: "services",
-    necReference: "NEC 230.79(C)",
-  },
-];
+import {
+  FLASHCARD_SETS,
+  FLASHCARDS,
+  type Flashcard,
+  type FlashcardSet,
+} from "@/app/flashcards/flashcards";
 
 export default function FlashcardsPage() {
   const { status } = useSession();
@@ -99,7 +32,10 @@ export default function FlashcardsPage() {
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [masteredCards, setMasteredCards] = useState<Set<string>>(new Set());
+  const [savedCards, setSavedCards] = useState<Set<string>>(new Set());
+  const [selectedSetId, setSelectedSetId] = useState<string>(
+    FLASHCARD_SETS[0]?.id ?? "all"
+  );
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   useEffect(() => {
@@ -109,14 +45,18 @@ export default function FlashcardsPage() {
   }, [status, router]);
 
   useEffect(() => {
+    const activeSet: FlashcardSet | undefined = FLASHCARD_SETS.find(
+      (set) => set.id === selectedSetId
+    );
+    const sourceCards = activeSet ? activeSet.cards : FLASHCARDS;
     const filtered =
       selectedCategory === "all"
-        ? FLASHCARDS
-        : FLASHCARDS.filter((card) => card.category === selectedCategory);
+        ? sourceCards
+        : sourceCards.filter((card) => card.category === selectedCategory);
     setCards(filtered);
     setCurrentIndex(0);
     setIsFlipped(false);
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedSetId]);
 
   if (status === "loading") {
     return (
@@ -150,15 +90,22 @@ export default function FlashcardsPage() {
     setIsFlipped(false);
   };
 
-  const handleMarkMastered = () => {
+  const handleToggleSave = () => {
     if (currentCard) {
-      setMasteredCards((prev) => new Set(prev).add(currentCard.id));
-      handleNext();
+      setSavedCards((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(currentCard.id)) {
+          newSet.delete(currentCard.id);
+        } else {
+          newSet.add(currentCard.id);
+        }
+        return newSet;
+      });
     }
   };
 
   const handleReset = () => {
-    setMasteredCards(new Set());
+    setSavedCards(new Set());
     setCurrentIndex(0);
     setIsFlipped(false);
   };
@@ -180,21 +127,28 @@ export default function FlashcardsPage() {
         </p>
       </motion.div>
 
-      {/* Category Filter */}
+      {/* Filters */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
         className="flex flex-wrap gap-2 mb-6"
       >
-        <Button
-          variant={selectedCategory === "all" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedCategory("all")}
-          className={selectedCategory === "all" ? "bg-emerald hover:bg-emerald/90" : ""}
-        >
-          All Categories
-        </Button>
+        {FLASHCARD_SETS.map((set) => (
+          <Button
+            key={set.id}
+            variant={selectedSetId === set.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setSelectedSetId(set.id);
+              setSelectedCategory("all");
+            }}
+            className={selectedSetId === set.id ? "bg-emerald hover:bg-emerald/90" : ""}
+          >
+            {set.name}
+          </Button>
+        ))}
+        <span className="border-l border-border mx-1" />
         {CATEGORIES.map((cat) => (
           <Button
             key={cat.slug}
@@ -212,14 +166,17 @@ export default function FlashcardsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.15 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
         className="mb-6"
       >
         <div className="flex justify-between text-sm text-muted-foreground mb-2">
           <span>
             Card {currentIndex + 1} of {cards.length}
           </span>
-          <span>{masteredCards.size} mastered</span>
+          <span className="flex items-center gap-1">
+            <Bookmark className="h-3.5 w-3.5 text-amber" />
+            {savedCards.size} saved
+          </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <motion.div
@@ -252,14 +209,25 @@ export default function FlashcardsPage() {
                 className="absolute inset-0"
               >
                 <Card
-                  className={`h-full flex flex-col justify-center items-center p-8 text-center ${
-                    isFlipped ? "bg-emerald/5 border-emerald/30" : "bg-card"
-                  } ${masteredCards.has(currentCard.id) ? "border-emerald" : ""}`}
+                  className={`h-full flex flex-col justify-center items-center p-8 text-center relative ${
+                    savedCards.has(currentCard.id)
+                      ? "border-2 border-amber bg-amber/5 shadow-lg shadow-amber/20"
+                      : isFlipped
+                      ? "bg-emerald/5 border-emerald/30"
+                      : "bg-card"
+                  }`}
                 >
+                  {/* Saved indicator badge */}
+                  {savedCards.has(currentCard.id) && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber text-white text-xs font-medium">
+                      <Star className="h-3 w-3 fill-white" />
+                      Study Later
+                    </div>
+                  )}
                   <CardContent className="flex flex-col items-center justify-center h-full">
                     {!isFlipped ? (
                       <>
-                        <BookOpen className="h-8 w-8 text-emerald mb-4" />
+                        <BookOpen className={`h-8 w-8 mb-4 ${savedCards.has(currentCard.id) ? "text-amber" : "text-emerald"}`} />
                         <p className="text-lg md:text-xl font-medium text-foreground mb-4">
                           {currentCard.front}
                         </p>
@@ -269,11 +237,11 @@ export default function FlashcardsPage() {
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="h-8 w-8 text-emerald mb-4" />
+                        <CheckCircle2 className={`h-8 w-8 mb-4 ${savedCards.has(currentCard.id) ? "text-amber" : "text-emerald"}`} />
                         <p className="text-lg md:text-xl text-foreground mb-4">
                           {currentCard.back}
                         </p>
-                        <p className="text-sm text-emerald font-medium">
+                        <p className={`text-sm font-medium ${savedCards.has(currentCard.id) ? "text-amber" : "text-emerald"}`}>
                           {currentCard.necReference}
                         </p>
                       </>
@@ -313,13 +281,13 @@ export default function FlashcardsPage() {
           Flip
         </Button>
         <Button
-          variant="default"
-          className="bg-emerald hover:bg-emerald/90"
-          onClick={handleMarkMastered}
-          disabled={!currentCard || masteredCards.has(currentCard?.id || "")}
+          variant={currentCard && savedCards.has(currentCard.id) ? "default" : "outline"}
+          className={currentCard && savedCards.has(currentCard.id) ? "bg-amber hover:bg-amber/90 text-white" : "border-amber text-amber hover:bg-amber/10"}
+          onClick={handleToggleSave}
+          disabled={!currentCard}
         >
-          <CheckCircle2 className="h-4 w-4 mr-1" />
-          Mark Mastered
+          <Bookmark className={`h-4 w-4 mr-1 ${currentCard && savedCards.has(currentCard.id) ? "fill-white" : ""}`} />
+          {currentCard && savedCards.has(currentCard.id) ? "Saved" : "Save for Later"}
         </Button>
         <Button
           variant="outline"
@@ -344,7 +312,7 @@ export default function FlashcardsPage() {
         </Button>
         <Button variant="outline" onClick={handleReset}>
           <RotateCcw className="h-4 w-4 mr-2" />
-          Reset Progress
+          Clear Saved
         </Button>
       </motion.div>
 

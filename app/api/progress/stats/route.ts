@@ -57,16 +57,19 @@ export async function GET() {
       "load-calculations": { answered: 0, correct: 0 },
       "grounding-bonding": { answered: 0, correct: 0 },
       services: { answered: 0, correct: 0 },
+      "textbook-navigation": { answered: 0, correct: 0 },
     };
 
     categoryProgress.forEach((p) => {
       let category = "services";
-      if (p.questionId.startsWith("LC-")) {
+      if (p.questionId.startsWith("LC-") || p.questionId.startsWith("HC-")) {
         category = "load-calculations";
       } else if (p.questionId.startsWith("GB-")) {
         category = "grounding-bonding";
       } else if (p.questionId.startsWith("SV-")) {
         category = "services";
+      } else if (p.questionId.startsWith("TN-")) {
+        category = "textbook-navigation";
       }
 
       categoryStats[category].answered++;

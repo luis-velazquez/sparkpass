@@ -2,7 +2,7 @@
 
 export type Difficulty = "easy" | "medium" | "hard";
 
-export type CategorySlug = "load-calculations" | "grounding-bonding" | "services";
+export type CategorySlug = "load-calculations" | "grounding-bonding" | "services" | "textbook-navigation";
 
 export interface Category {
   slug: CategorySlug;
@@ -43,6 +43,12 @@ export const CATEGORIES: Category[] = [
     name: "Services",
     necArticle: "Article 230",
     description: "Service entrance equipment, conductors, and disconnecting means",
+  },
+  {
+    slug: "textbook-navigation",
+    name: "Textbook Navigation",
+    necArticle: "Article 90",
+    description: "How to navigate the NEC code book, chapter organization, and finding rules",
   },
 ];
 

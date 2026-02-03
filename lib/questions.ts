@@ -66,6 +66,7 @@ export function getCategoryCounts(): Record<CategorySlug, number> {
     "load-calculations": getQuestionCountByCategory("load-calculations"),
     "grounding-bonding": getQuestionCountByCategory("grounding-bonding"),
     services: getQuestionCountByCategory("services"),
+    "textbook-navigation": getQuestionCountByCategory("textbook-navigation"),
   };
 }
 
