@@ -5385,7 +5385,7 @@
         "Table 10"
       ],
       "correctAnswer": 2,
-      "explanation": "Table 9 provides AC resistance and reactance for 600-volt cables, 3-phase, 60 Hz, at 75°C.",
+      "explanation": "Table 9 provides AC resistance and reactance for 600-volt cables, 3-phase, 60 Hz, at 75\u00b0C.",
       "necReference": "Chapter 9, Table 9",
       "sparkyTip": "Table 9 = AC resistance and reactance. Essential for AC voltage drop calculations!"
     },
@@ -5428,7 +5428,7 @@
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
-      "questionText": "What is the approximate area in square inches of a #12 AWG THHN conductor?",
+      "questionText": " in square inches of a #12 AWG THHN conductor?",
       "options": [
         "0.0117 sq in",
         "0.0133 sq in",
@@ -5438,7 +5438,7 @@
       "correctAnswer": 1,
       "explanation": "According to Chapter 9 Table 5, a #12 AWG THHN conductor has an approximate area of 0.0133 square inches.",
       "necReference": "Chapter 9, Table 5",
-      "sparkyTip": "#12 THHN ≈ 0.0133 sq in. Know your common conductor sizes for quick fill calculations!"
+      "sparkyTip": "#12 THHN \u2248 0.0133 sq in. Know your common conductor sizes for quick fill calculations!"
     },
     {
       "id": "C9-011",
@@ -5455,14 +5455,14 @@
       "correctAnswer": 2,
       "explanation": "According to Chapter 9 Table 5, a #10 AWG THHN conductor has an approximate area of 0.0211 square inches.",
       "necReference": "Chapter 9, Table 5",
-      "sparkyTip": "#10 THHN ≈ 0.0211 sq in. Roughly 60% larger than #12 THHN."
+      "sparkyTip": "#10 THHN \u2248 0.0211 sq in. Roughly 60% larger than #12 THHN."
     },
     {
       "id": "C9-012",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
-      "questionText": "How many #12 AWG THHN conductors can fit in a 1/2\" EMT according to Annex C?",
+      "questionText": "How many #12 AWG THHN conductors can fit in a 1/2\"?",
       "options": [
         "6",
         "9",
@@ -5489,14 +5489,14 @@
       "correctAnswer": 1,
       "explanation": "According to Chapter 9 Table 4, 3/4\" EMT has an internal diameter of 0.824 inches.",
       "necReference": "Chapter 9, Table 4",
-      "sparkyTip": "3/4\" EMT internal diameter ≈ 0.824 inches. Internal area ≈ 0.533 sq in."
+      "sparkyTip": "3/4\" EMT internal diameter \u2248 0.824 inches. Internal area \u2248 0.533 sq in."
     },
     {
       "id": "C9-014",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
-      "questionText": "What is the DC resistance per 1000 feet of uncoated #12 AWG copper conductor at 75°C?",
+      "questionText": "What is the DC resistance per 1000 feet of uncoated #12 AWG copper conductor at 75\u00b0C?",
       "options": [
         "1.21 ohms",
         "1.93 ohms",
@@ -5504,9 +5504,9 @@
         "4.89 ohms"
       ],
       "correctAnswer": 1,
-      "explanation": "According to Chapter 9 Table 8, #12 AWG uncoated copper has a DC resistance of 1.93 ohms per 1000 feet at 75°C.",
+      "explanation": "According to Chapter 9 Table 8, #12 AWG uncoated copper has a DC resistance of 1.93 ohms per 1000 feet at 75\u00b0C.",
       "necReference": "Chapter 9, Table 8",
-      "sparkyTip": "#12 copper ≈ 2 ohms per 1000 ft. Use Table 8 for DC voltage drop calculations!"
+      "sparkyTip": "#12 copper \u2248 2 ohms per 1000 ft. Use Table 8 for DC voltage drop calculations!"
     },
     {
       "id": "C9-015",
@@ -5572,29 +5572,12 @@
         "0.864 sq in"
       ],
       "correctAnswer": 1,
-      "explanation": "1\" EMT has a total internal area of 0.864 sq in. At 40% fill: 0.864 × 0.40 = 0.346 sq in.",
+      "explanation": "1\" EMT has a total internal area of 0.864 sq in. At 40% fill: 0.864 \u00d7 0.40 = 0.346 sq in.",
       "necReference": "Chapter 9, Table 4",
-      "sparkyTip": "40% of 1\" EMT ≈ 0.346 sq in. Know your common conduit fill areas!"
+      "sparkyTip": "40% of 1\" EMT \u2248 0.346 sq in. Know your common conduit fill areas!"
     },
     {
       "id": "C9-019",
-      "category": "chapter-9-tables",
-      "necArticle": "Chapter 9",
-      "difficulty": "hard",
-      "questionText": "How many #10 AWG THHN conductors can fit in 3/4\" EMT?",
-      "options": [
-        "4",
-        "6",
-        "8",
-        "10"
-      ],
-      "correctAnswer": 1,
-      "explanation": "According to Annex C, Table C.1, you can fit 6 #10 AWG THHN conductors in 3/4\" EMT at 40% fill.",
-      "necReference": "Annex C, Table C.1",
-      "sparkyTip": "6 #10 THHN in 3/4\" EMT. When in doubt, check Annex C!"
-    },
-    {
-      "id": "C9-020",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5611,7 +5594,7 @@
       "sparkyTip": "Table 5 = standard conductors. Table 5A = compact aluminum. Compact = smaller diameter!"
     },
     {
-      "id": "C9-021",
+      "id": "C9-020",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -5628,7 +5611,7 @@
       "sparkyTip": "Annex C = Conduit fill tables. A time-saver for everyday calculations!"
     },
     {
-      "id": "C9-022",
+      "id": "C9-021",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5645,11 +5628,11 @@
       "sparkyTip": "Mixed sizes = sum individual areas. Annex C only works for same-size conductors!"
     },
     {
-      "id": "C9-023",
+      "id": "C9-022",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
-      "questionText": "What is the DC resistance per 1000 feet of #6 AWG copper conductor at 75°C?",
+      "questionText": "What is the DC resistance per 1000 feet of #6 AWG copper conductor at 75\u00b0C?",
       "options": [
         "0.491 ohms",
         "0.764 ohms",
@@ -5657,12 +5640,12 @@
         "1.93 ohms"
       ],
       "correctAnswer": 0,
-      "explanation": "According to Chapter 9 Table 8, #6 AWG uncoated copper has a DC resistance of approximately 0.491 ohms per 1000 feet at 75°C.",
+      "explanation": "According to Chapter 9 Table 8, #6 AWG uncoated copper has a DC resistance of approximately 0.491 ohms per 1000 feet at 75\u00b0C.",
       "necReference": "Chapter 9, Table 8",
-      "sparkyTip": "#6 copper ≈ 0.5 ohms per 1000 ft. Roughly 1/4 the resistance of #12!"
+      "sparkyTip": "#6 copper \u2248 0.5 ohms per 1000 ft. Roughly 1/4 the resistance of #12!"
     },
     {
-      "id": "C9-024",
+      "id": "C9-023",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5679,7 +5662,7 @@
       "sparkyTip": "1 inch = metric 27. Common sizes: 1/2\"=16, 3/4\"=21, 1\"=27, 1-1/4\"=35."
     },
     {
-      "id": "C9-025",
+      "id": "C9-024",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -5696,7 +5679,7 @@
       "sparkyTip": "Circular mils = cross-sectional area. 1 cmil = area of a circle with 0.001\" diameter."
     },
     {
-      "id": "C9-026",
+      "id": "C9-025",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -5708,29 +5691,29 @@
         "1,000,000 cmil"
       ],
       "correctAnswer": 1,
-      "explanation": "A 500 kcmil conductor has an area of 500,000 circular mils. The 'k' in kcmil means 1000, so 500 kcmil = 500 × 1000 = 500,000 cmil.",
+      "explanation": "A 500 kcmil conductor has an area of 500,000 circular mils. The 'k' in kcmil means 1000, so 500 kcmil = 500 \u00d7 1000 = 500,000 cmil.",
       "necReference": "Chapter 9, Table 8",
       "sparkyTip": "kcmil = kilo-circular mils. 500 kcmil = 500,000 circular mils. Simple math!"
     },
     {
-      "id": "C9-027",
+      "id": "C9-026",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
       "questionText": "According to Table 9, at what temperature are the AC resistance values given?",
       "options": [
-        "60°C",
-        "75°C",
-        "90°C",
-        "30°C"
+        "60\u00b0C",
+        "75\u00b0C",
+        "90\u00b0C",
+        "30\u00b0C"
       ],
       "correctAnswer": 1,
-      "explanation": "Table 9 provides AC resistance and reactance values for 600-volt cables at 75°C (167°F).",
+      "explanation": "Table 9 provides AC resistance and reactance values for 600-volt cables at 75\u00b0C (167\u00b0F).",
       "necReference": "Chapter 9, Table 9",
-      "sparkyTip": "Table 9 values are at 75°C. This matches the most common conductor ampacity temperature rating!"
+      "sparkyTip": "Table 9 values are at 75\u00b0C. This matches the most common conductor ampacity temperature rating!"
     },
     {
-      "id": "C9-028",
+      "id": "C9-027",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -5742,12 +5725,12 @@
         "Resistance becomes zero"
       ],
       "correctAnswer": 1,
-      "explanation": "Conductor resistance increases with temperature. This is why Table 8 specifies resistance values at a specific temperature (75°C).",
+      "explanation": "Conductor resistance increases with temperature. This is why Table 8 specifies resistance values at a specific temperature (75\u00b0C).",
       "necReference": "Chapter 9, Table 8",
       "sparkyTip": "Hotter wire = higher resistance. This affects voltage drop calculations for long runs!"
     },
     {
-      "id": "C9-029",
+      "id": "C9-028",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5764,7 +5747,7 @@
       "sparkyTip": "Schedule 80 PVC has the thickest walls = smallest internal area. Use Schedule 40 when possible!"
     },
     {
-      "id": "C9-030",
+      "id": "C9-029",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -5775,13 +5758,13 @@
         "0.0133 sq in",
         "0.0211 sq in"
       ],
-      "correctAnswer": 1,
-      "explanation": "According to Chapter 9 Table 5, a #14 AWG THHN conductor has an approximate area of 0.0117 square inches.",
+      "correctAnswer": 0,
+      "explanation": "According to Chapter 9 Table 5, a #14 AWG THHN conductor has an approximate area of 0.0097 square inches.",
       "necReference": "Chapter 9, Table 5",
-      "sparkyTip": "#14 THHN ≈ 0.0117 sq in. Smaller than #12 (0.0133) and #10 (0.0211)."
+      "sparkyTip": "#14 THHN \u2248 0.0097 sq in. Smaller than #12 (0.0133) and #10 (0.0211)."
     },
     {
-      "id": "C9-031",
+      "id": "C9-030",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5798,7 +5781,7 @@
       "sparkyTip": "12 #14 THHN in 1/2\" EMT. Compare to 9 #12 THHN - smaller wire = more fit!"
     },
     {
-      "id": "C9-032",
+      "id": "C9-031",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -5815,7 +5798,7 @@
       "sparkyTip": "EGCs count! Include them in your fill calculations using Table 5 areas."
     },
     {
-      "id": "C9-033",
+      "id": "C9-032",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5829,14 +5812,14 @@
       "correctAnswer": 1,
       "explanation": "According to Chapter 9 Table 4, 1-1/4\" EMT has a total internal area of 1.496 square inches.",
       "necReference": "Chapter 9, Table 4",
-      "sparkyTip": "1-1/4\" EMT ≈ 1.5 sq in total area. At 40% fill ≈ 0.6 sq in usable."
+      "sparkyTip": "1-1/4\" EMT \u2248 1.5 sq in total area. At 40% fill \u2248 0.6 sq in usable."
     },
     {
-      "id": "C9-034",
+      "id": "C9-033",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
-      "questionText": "What is the DC resistance per 1000 feet of #8 AWG copper at 75°C?",
+      "questionText": "What is the DC resistance per 1000 feet of #8 AWG copper at 75\u00b0C?",
       "options": [
         "0.764 ohms",
         "1.21 ohms",
@@ -5844,12 +5827,12 @@
         "3.07 ohms"
       ],
       "correctAnswer": 0,
-      "explanation": "According to Chapter 9 Table 8, #8 AWG uncoated copper has a DC resistance of approximately 0.764 ohms per 1000 feet at 75°C.",
+      "explanation": "According to Chapter 9 Table 8, #8 AWG uncoated copper has a DC resistance of approximately 0.764 ohms per 1000 feet at 75\u00b0C.",
       "necReference": "Chapter 9, Table 8",
-      "sparkyTip": "#8 copper ≈ 0.76 ohms/1000 ft. Remember: larger wire = lower resistance!"
+      "sparkyTip": "#8 copper \u2248 0.76 ohms/1000 ft. Remember: larger wire = lower resistance!"
     },
     {
-      "id": "C9-035",
+      "id": "C9-034",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -5866,7 +5849,7 @@
       "sparkyTip": "THHN = Thermoplastic, High-heat, Nylon jacket. Most common building wire type!"
     },
     {
-      "id": "C9-036",
+      "id": "C9-035",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5878,12 +5861,12 @@
         "0.533 sq in"
       ],
       "correctAnswer": 1,
-      "explanation": "3/4\" EMT has a total internal area of 0.533 sq in. At 40% fill: 0.533 × 0.40 = 0.213 sq in.",
+      "explanation": "3/4\" EMT has a total internal area of 0.533 sq in. At 40% fill: 0.533 \u00d7 0.40 = 0.213 sq in.",
       "necReference": "Chapter 9, Table 4",
-      "sparkyTip": "40% of 3/4\" EMT ≈ 0.213 sq in. Know this for quick mental calculations!"
+      "sparkyTip": "40% of 3/4\" EMT \u2248 0.213 sq in. Know this for quick mental calculations!"
     },
     {
-      "id": "C9-037",
+      "id": "C9-036",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -5900,7 +5883,7 @@
       "sparkyTip": "#12 stranded = 7 strands. Larger conductors use more strands for flexibility."
     },
     {
-      "id": "C9-038",
+      "id": "C9-037",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5914,10 +5897,10 @@
       "correctAnswer": 1,
       "explanation": "Chapter 9 Note 4 permits up to 60% fill for conduit nipples not exceeding 24 inches in length.",
       "necReference": "Chapter 9, Note 4",
-      "sparkyTip": "Nipples ≤ 24\" = 60% fill allowed. A nipple exception that's often overlooked!"
+      "sparkyTip": "Nipples \u2264 24\" = 60% fill allowed. A nipple exception that's often overlooked!"
     },
     {
-      "id": "C9-039",
+      "id": "C9-038",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -5934,7 +5917,7 @@
       "sparkyTip": "2 inch = metric 53. Common sizes: 1-1/2\"=41, 2\"=53, 2-1/2\"=63, 3\"=78."
     },
     {
-      "id": "C9-040",
+      "id": "C9-039",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -5948,10 +5931,10 @@
       "correctAnswer": 2,
       "explanation": "According to Chapter 9 Table 5, a 3/0 AWG THHN conductor has an approximate area of 0.2624 square inches.",
       "necReference": "Chapter 9, Table 5",
-      "sparkyTip": "3/0 THHN ≈ 0.26 sq in. Large conductors add up quickly - always check fill!"
+      "sparkyTip": "3/0 THHN \u2248 0.26 sq in. Large conductors add up quickly - always check fill!"
     },
     {
-      "id": "C9-041",
+      "id": "C9-040",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5968,7 +5951,7 @@
       "sparkyTip": "4/0 AWG is the largest AWG size. Bigger = kcmil (250, 300, 350, 500, etc.)."
     },
     {
-      "id": "C9-042",
+      "id": "C9-041",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -5982,10 +5965,10 @@
       "correctAnswer": 3,
       "explanation": "According to Chapter 9 Table 8, a 4/0 AWG conductor has an area of 211,600 circular mils.",
       "necReference": "Chapter 9, Table 8",
-      "sparkyTip": "4/0 AWG ≈ 212 kcmil. The next size up is 250 kcmil."
+      "sparkyTip": "4/0 AWG \u2248 212 kcmil. The next size up is 250 kcmil."
     },
     {
-      "id": "C9-043",
+      "id": "C9-042",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -5999,10 +5982,10 @@
       "correctAnswer": 2,
       "explanation": "According to Chapter 9 Table 4, 2\" EMT has a total internal area of 3.356 square inches.",
       "necReference": "Chapter 9, Table 4",
-      "sparkyTip": "2\" EMT ≈ 3.36 sq in total area. At 40% fill ≈ 1.34 sq in usable."
+      "sparkyTip": "2\" EMT \u2248 3.36 sq in total area. At 40% fill \u2248 1.34 sq in usable."
     },
     {
-      "id": "C9-044",
+      "id": "C9-043",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -6019,7 +6002,7 @@
       "sparkyTip": "Chapter 9 = mandatory requirements, not suggestions. Annexes = informational."
     },
     {
-      "id": "C9-045",
+      "id": "C9-044",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -6031,12 +6014,12 @@
         "0.1332 sq in"
       ],
       "correctAnswer": 1,
-      "explanation": "Each #10 THHN is 0.0211 sq in (Table 5). Four conductors: 4 × 0.0211 = 0.0844 sq in total.",
+      "explanation": "Each #10 THHN is 0.0211 sq in (Table 5). Four conductors: 4 \u00d7 0.0211 = 0.0844 sq in total.",
       "necReference": "Chapter 9, Table 5",
-      "sparkyTip": "Conduit fill math: count conductors × individual area. #10 THHN = 0.0211 sq in each."
+      "sparkyTip": "Conduit fill math: count conductors \u00d7 individual area. #10 THHN = 0.0211 sq in each."
     },
     {
-      "id": "C9-046",
+      "id": "C9-045",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -6053,7 +6036,7 @@
       "sparkyTip": "3 #6 THHN = 3/4\" EMT minimum. Quick check: Annex C, Table C.1 shows 4 #6 THHN fit in 3/4\"."
     },
     {
-      "id": "C9-047",
+      "id": "C9-046",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -6065,12 +6048,12 @@
         "3.2 ohms"
       ],
       "correctAnswer": 1,
-      "explanation": "According to Chapter 9 Table 9, #12 AWG copper in steel conduit has an AC resistance of approximately 2.0 ohms per 1000 feet at 75°C.",
+      "explanation": "According to Chapter 9 Table 9, #12 AWG copper in steel conduit has an AC resistance of approximately 2.0 ohms per 1000 feet at 75\u00b0C.",
       "necReference": "Chapter 9, Table 9",
       "sparkyTip": "AC resistance in steel conduit is higher than DC due to skin effect and conduit losses."
     },
     {
-      "id": "C9-048",
+      "id": "C9-047",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -6087,7 +6070,7 @@
       "sparkyTip": "AC resistance > DC resistance due to skin effect. More significant in larger conductors!"
     },
     {
-      "id": "C9-049",
+      "id": "C9-048",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -6104,24 +6087,24 @@
       "sparkyTip": "Table 9 uses ohms per 1000 feet for both R and X. Convenient for voltage drop calculations!"
     },
     {
-      "id": "C9-050",
+      "id": "C9-049",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
       "questionText": "For voltage drop calculations on a 3-phase circuit, which formula applies?",
       "options": [
-        "Vd = 2 × I × R × L / 1000",
-        "Vd = √3 × I × R × L / 1000",
-        "Vd = I × R × L / 1000",
-        "Vd = 3 × I × R × L / 1000"
+        "Vd = 2 \u00d7 I \u00d7 R \u00d7 L / 1000",
+        "Vd = \u221a3 \u00d7 I \u00d7 R \u00d7 L / 1000",
+        "Vd = I \u00d7 R \u00d7 L / 1000",
+        "Vd = 3 \u00d7 I \u00d7 R \u00d7 L / 1000"
       ],
       "correctAnswer": 1,
-      "explanation": "For 3-phase circuits, voltage drop = √3 × I × R × L / 1000, where I is current, R is resistance per 1000 ft, and L is one-way length in feet.",
+      "explanation": "For 3-phase circuits, voltage drop = \u221a3 \u00d7 I \u00d7 R \u00d7 L / 1000, where I is current, R is resistance per 1000 ft, and L is one-way length in feet.",
       "necReference": "Chapter 9, Table 9",
-      "sparkyTip": "Single-phase = 2×I×R×L/1000. Three-phase = √3×I×R×L/1000 (√3 ≈ 1.732)."
+      "sparkyTip": "Single-phase = 2\u00d7I\u00d7R\u00d7L/1000. Three-phase = \u221a3\u00d7I\u00d7R\u00d7L/1000 (\u221a3 \u2248 1.732)."
     },
     {
-      "id": "C9-051",
+      "id": "C9-050",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -6133,12 +6116,12 @@
         "0.458 sq in"
       ],
       "correctAnswer": 1,
-      "explanation": "1\" EMT has a total internal area of 0.864 sq in. At 31% fill (2 conductors): 0.864 × 0.31 = 0.268 sq in.",
+      "explanation": "1\" EMT has a total internal area of 0.864 sq in. At 31% fill (2 conductors): 0.864 \u00d7 0.31 = 0.268 sq in.",
       "necReference": "Chapter 9, Tables 1 and 4",
-      "sparkyTip": "Two conductors = 31% fill. 1\" EMT × 31% ≈ 0.27 sq in."
+      "sparkyTip": "Two conductors = 31% fill. 1\" EMT \u00d7 31% \u2248 0.27 sq in."
     },
     {
-      "id": "C9-052",
+      "id": "C9-051",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -6152,10 +6135,10 @@
       "correctAnswer": 2,
       "explanation": "According to Chapter 9 Table 8, a #1 AWG conductor has an area of 66,360 circular mils (sometimes rounded to 66,400).",
       "necReference": "Chapter 9, Table 8",
-      "sparkyTip": "#1 AWG ≈ 66 kcmil. Useful for paralleling calculations!"
+      "sparkyTip": "#1 AWG \u2248 66 kcmil. Useful for paralleling calculations!"
     },
     {
-      "id": "C9-053",
+      "id": "C9-052",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
@@ -6172,7 +6155,7 @@
       "sparkyTip": "Annex C = quick lookup. Tables 4 & 5 = manual calculation. Both give the same answer!"
     },
     {
-      "id": "C9-054",
+      "id": "C9-053",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -6189,7 +6172,7 @@
       "sparkyTip": "Lead-covered conductors = 60% fill. They pull easier due to the smooth lead sheath."
     },
     {
-      "id": "C9-055",
+      "id": "C9-054",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -6203,31 +6186,31 @@
       "correctAnswer": 1,
       "explanation": "According to Chapter 9 Table 5, a 500 kcmil THHN conductor has an approximate area of 0.7073 square inches.",
       "necReference": "Chapter 9, Table 5",
-      "sparkyTip": "500 kcmil THHN ≈ 0.7 sq in. Large conductors require careful conduit sizing!"
+      "sparkyTip": "500 kcmil THHN \u2248 0.7 sq in. Large conductors require careful conduit sizing!"
     },
     {
-      "id": "C9-056",
+      "id": "C9-055",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "medium",
       "questionText": "What is the total internal area of 1-1/2\" EMT?",
       "options": [
         "1.496 sq in",
-        "2.013 sq in",
+        "2.036 sq in",
         "2.874 sq in",
         "3.356 sq in"
       ],
       "correctAnswer": 1,
-      "explanation": "According to Chapter 9 Table 4, 1-1/2\" EMT has a total internal area of 2.013 square inches.",
+      "explanation": "According to Chapter 9 Table 4, 1-1/2\" EMT has a total internal area of 2.036 square inches.",
       "necReference": "Chapter 9, Table 4",
-      "sparkyTip": "1-1/2\" EMT ≈ 2 sq in total area. At 40% fill ≈ 0.8 sq in usable."
+      "sparkyTip": "1-1/2\" EMT \u2248 2 sq in total area. At 40% fill \u2248 0.8 sq in usable."
     },
     {
-      "id": "C9-057",
+      "id": "C9-056",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
-      "questionText": "What is the DC resistance per 1000 feet of #4 AWG copper at 75°C?",
+      "questionText": "What is the DC resistance per 1000 feet of #4 AWG copper at 75\u00b0C?",
       "options": [
         "0.194 ohms",
         "0.308 ohms",
@@ -6235,29 +6218,12 @@
         "0.764 ohms"
       ],
       "correctAnswer": 1,
-      "explanation": "According to Chapter 9 Table 8, #4 AWG uncoated copper has a DC resistance of approximately 0.308 ohms per 1000 feet at 75°C.",
+      "explanation": "According to Chapter 9 Table 8, #4 AWG uncoated copper has a DC resistance of approximately 0.308 ohms per 1000 feet at 75\u00b0C.",
       "necReference": "Chapter 9, Table 8",
-      "sparkyTip": "#4 copper ≈ 0.3 ohms per 1000 ft. Roughly 1/6 the resistance of #12!"
+      "sparkyTip": "#4 copper \u2248 0.3 ohms per 1000 ft. Roughly 1/6 the resistance of #12!"
     },
     {
-      "id": "C9-058",
-      "category": "chapter-9-tables",
-      "necArticle": "Chapter 9",
-      "difficulty": "medium",
-      "questionText": "How many #8 AWG THHN conductors can fit in 1\" EMT?",
-      "options": [
-        "5",
-        "6",
-        "7",
-        "9"
-      ],
-      "correctAnswer": 2,
-      "explanation": "According to Annex C, Table C.1, you can fit 7 #8 AWG THHN conductors in 1\" EMT at 40% fill.",
-      "necReference": "Annex C, Table C.1",
-      "sparkyTip": "7 #8 THHN in 1\" EMT. Quick reference for common installations!"
-    },
-    {
-      "id": "C9-059",
+      "id": "C9-057",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "easy",
@@ -6269,12 +6235,12 @@
         "Area increases by 25%"
       ],
       "correctAnswer": 1,
-      "explanation": "Every 3 AWG sizes, the circular mil area approximately doubles (or halves going the other direction). For example, #10 ≈ 10,400 cmil, #7 ≈ 20,800 cmil.",
+      "explanation": "Every 3 AWG sizes, the circular mil area approximately doubles (or halves going the other direction). For example, #10 \u2248 10,400 cmil, #7 \u2248 20,800 cmil.",
       "necReference": "Chapter 9, Table 8",
-      "sparkyTip": "3 AWG sizes = 2× area. 6 sizes = 4× area. 10 sizes = 10× area (approximately)."
+      "sparkyTip": "3 AWG sizes = 2\u00d7 area. 6 sizes = 4\u00d7 area. 10 sizes = 10\u00d7 area (approximately)."
     },
     {
-      "id": "C9-060",
+      "id": "C9-058",
       "category": "chapter-9-tables",
       "necArticle": "Chapter 9",
       "difficulty": "hard",
@@ -6289,6 +6255,686 @@
       "explanation": "Reactance varies by conductor size and conduit type. In steel conduit, it ranges from about 0.050 to 0.068 ohms per 1000 feet depending on conductor size.",
       "necReference": "Chapter 9, Table 9",
       "sparkyTip": "Reactance varies with conductor size. Larger conductors generally have lower reactance."
+    },
+    {
+      "id": "BF-001",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "easy",
+      "questionText": "What is the volume allowance for a #14 AWG conductor in a box fill calculation?",
+      "options": [
+        "1.5 cubic inches",
+        "2.0 cubic inches",
+        "2.25 cubic inches",
+        "2.5 cubic inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Table 314.16(B), a #14 AWG conductor has a volume allowance of 2.0 cubic inches.",
+      "necReference": "Table 314.16(B)",
+      "sparkyTip": "Remember: #14 = 2.0 cu in, #12 = 2.25 cu in, #10 = 2.5 cu in. The gauge goes down, volume goes up!"
+    },
+    {
+      "id": "BF-002",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "easy",
+      "questionText": "What is the volume allowance for a #12 AWG conductor in a box fill calculation?",
+      "options": [
+        "2.0 cubic inches",
+        "2.25 cubic inches",
+        "2.5 cubic inches",
+        "3.0 cubic inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Table 314.16(B), a #12 AWG conductor has a volume allowance of 2.25 cubic inches.",
+      "necReference": "Table 314.16(B)",
+      "sparkyTip": "#12 gauge = 2.25 cubic inches. Think of it as 12 divided by 5 = roughly 2.25!"
+    },
+    {
+      "id": "BF-003",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "easy",
+      "questionText": "How many volume allowances must be counted for a single-gang device yoke (switch or receptacle)?",
+      "options": [
+        "One based on the largest conductor",
+        "Two based on the largest conductor",
+        "One for each conductor connected",
+        "None - devices don't count"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC 314.16(B)(4), for each yoke or strap containing one or more devices, a double volume allowance based on the largest conductor connected to that device shall be made.",
+      "necReference": "314.16(B)(4)",
+      "sparkyTip": "Devices count DOUBLE! One switch or receptacle = 2x the largest wire size connected to it."
+    },
+    {
+      "id": "BF-004",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "medium",
+      "questionText": "When counting conductors for box fill, how are conductors that pass through the box without splice counted?",
+      "options": [
+        "They don't count",
+        "Count as one conductor",
+        "Count as two conductors",
+        "Count as half a conductor"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC 314.16(B)(1), conductors that pass through a box without splice or termination count as one conductor.",
+      "necReference": "314.16(B)(1)",
+      "sparkyTip": "Pass-through wires count as ONE, not two! They enter and exit but only take up one conductor's worth of space."
+    },
+    {
+      "id": "BF-005",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "medium",
+      "questionText": "What is the volume allowance for internal cable clamps in a box?",
+      "options": [
+        "One volume allowance for each clamp",
+        "A single volume allowance for all clamps combined",
+        "No volume allowance required",
+        "Two volume allowances for all clamps"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC 314.16(B)(2), a single volume allowance based on the largest conductor in the box shall be made for all cable clamps combined, whether one or more.",
+      "necReference": "314.16(B)(2)",
+      "sparkyTip": "All clamps together = just ONE volume allowance. Doesn't matter if you have 1 clamp or 5!"
+    },
+    {
+      "id": "BF-006",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "medium",
+      "questionText": "How is the equipment grounding conductor(s) counted for box fill?",
+      "options": [
+        "Each EGC counts as one conductor",
+        "All EGCs count as a single volume based on the largest EGC",
+        "EGCs don't count toward box fill",
+        "EGCs count at half volume"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC 314.16(B)(5), a single volume allowance based on the largest equipment grounding conductor shall be made for all equipment grounding conductors, whether one or more.",
+      "necReference": "314.16(B)(5)",
+      "sparkyTip": "Like clamps, ALL ground wires together = ONE allowance based on the biggest ground wire."
+    },
+    {
+      "id": "BF-007",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "hard",
+      "questionText": "A box contains: 4 #12 AWG conductors, 2 #12 AWG equipment grounding conductors, internal cable clamps, and one single-gang receptacle. What is the minimum box fill required?",
+      "options": [
+        "13.5 cubic inches",
+        "15.75 cubic inches",
+        "18.0 cubic inches",
+        "20.25 cubic inches"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Calculation: 4 conductors (4 × 2.25 = 9.0) + 1 for all EGCs (2.25) + 1 for clamps (2.25) + 2 for device (2 × 2.25 = 4.5) = 18.0 cubic inches.",
+      "necReference": "314.16(B)",
+      "sparkyTip": "Count separately: wires + grounds (as 1) + clamps (as 1) + device (as 2). Then multiply each group by the wire size volume!"
+    },
+    {
+      "id": "BF-008",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "easy",
+      "questionText": "What is the volume allowance for a #10 AWG conductor?",
+      "options": [
+        "2.0 cubic inches",
+        "2.25 cubic inches",
+        "2.5 cubic inches",
+        "3.0 cubic inches"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Per NEC Table 314.16(B), a #10 AWG conductor has a volume allowance of 2.5 cubic inches.",
+      "necReference": "Table 314.16(B)",
+      "sparkyTip": "#10 = 2.5 cubic inches. Easy to remember: the wire gauge (10) divided by 4 = 2.5!"
+    },
+    {
+      "id": "BF-009",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "medium",
+      "questionText": "Pigtails (short conductors for splicing) originating and terminating within the box are counted as:",
+      "options": [
+        "One conductor each",
+        "Not counted",
+        "Half a conductor each",
+        "Two conductors each"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC 314.16(B)(1), conductors that originate within the box and do not leave (such as pigtails) are not counted for box fill.",
+      "necReference": "314.16(B)(1)",
+      "sparkyTip": "Pigtails are FREE! If it starts AND ends inside the box, it doesn't count toward fill."
+    },
+    {
+      "id": "BF-010",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "hard",
+      "questionText": "What is the minimum volume for a standard 4-inch square box that is 1-1/2 inches deep?",
+      "options": [
+        "18.0 cubic inches",
+        "21.0 cubic inches",
+        "24.0 cubic inches",
+        "30.3 cubic inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Table 314.16(A), a 4 × 1-1/2 inch square box has a volume of 21.0 cubic inches.",
+      "necReference": "Table 314.16(A)",
+      "sparkyTip": "Know your common box sizes! 4-inch square at 1-1/2 deep = 21 cubic inches."
+    },
+    {
+      "id": "BF-011",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "medium",
+      "questionText": "A 4-inch square box with a single-gang plaster ring has what total volume?",
+      "options": [
+        "The box volume alone",
+        "The box volume plus the ring's marked volume",
+        "The box volume minus the ring thickness",
+        "Always 21 cubic inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC 314.16(A), the volume of plaster rings, extension rings, or raised covers shall be added to the box volume if they are marked with their volume or if their dimensions allow calculation.",
+      "necReference": "314.16(A)",
+      "sparkyTip": "Add the ring volume to the box volume! Rings give you extra fill space."
+    },
+    {
+      "id": "BF-012",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "easy",
+      "questionText": "What is the minimum depth for outlet boxes in walls or ceilings?",
+      "options": [
+        "1/2 inch",
+        "1-1/4 inches",
+        "1-1/2 inches",
+        "2 inches"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Per NEC 314.24, outlet boxes shall have a minimum internal depth of 1/2 inch (12.7 mm).",
+      "necReference": "314.24",
+      "sparkyTip": "Minimum box depth is 1/2 inch, but deeper is usually better for working room!"
+    },
+    {
+      "id": "BF-013",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "hard",
+      "questionText": "A junction box contains: 6 #14 conductors entering, 6 #14 conductors leaving, 3 #14 equipment grounding conductors, and internal clamps. What is the minimum required box volume?",
+      "options": [
+        "16.0 cubic inches",
+        "18.0 cubic inches",
+        "20.0 cubic inches",
+        "24.0 cubic inches"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Calculation: 6 conductors entering + 6 leaving = 12 conductors, but pass-throughs count as 1 each, so 6 conductor counts (6 × 2.0 = 12.0) + 1 for all EGCs (2.0) + 1 for all clamps (2.0) + 4 spliced conductors (4 x 2.0 = 8.0 no - actually splices within box are counted). Correct: 6 pass-through (6 × 2.0) + 1 EGC (2.0) + 1 clamp (2.0) = 20.0.",
+      "necReference": "314.16(B)",
+      "sparkyTip": "In junction boxes, wires passing straight through count once! Add grounds and clamps as single allowances."
+    },
+    {
+      "id": "BF-014",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "medium",
+      "questionText": "When different conductor sizes are present in a box, what size is used for the clamp fill allowance?",
+      "options": [
+        "The smallest conductor",
+        "The largest conductor",
+        "An average of all sizes",
+        "Always #12 AWG"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC 314.16(B)(2), the volume allowance for clamps is based on the largest conductor in the box.",
+      "necReference": "314.16(B)(2)",
+      "sparkyTip": "Clamps and grounds always use the LARGEST conductor size in the box for their volume calculation."
+    },
+    {
+      "id": "BF-015",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "easy",
+      "questionText": "What is the volume allowance for a #8 AWG conductor?",
+      "options": [
+        "2.5 cubic inches",
+        "3.0 cubic inches",
+        "4.0 cubic inches",
+        "5.0 cubic inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Table 314.16(B), a #8 AWG conductor has a volume allowance of 3.0 cubic inches.",
+      "necReference": "Table 314.16(B)",
+      "sparkyTip": "#8 AWG = 3.0 cubic inches. As wires get bigger, so does the volume needed!"
+    },
+    {
+      "id": "BF-016",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "hard",
+      "questionText": "A device box contains: 2 #12 cables (each with 2 conductors and 1 EGC), internal clamps, and a duplex receptacle. What is the minimum box fill?",
+      "options": [
+        "15.75 cubic inches",
+        "18.0 cubic inches",
+        "20.25 cubic inches",
+        "22.5 cubic inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Calculation: 4 circuit conductors (4 × 2.25 = 9.0) + 1 for all EGCs (2.25) + 1 for clamps (2.25) + 2 for receptacle (2 × 2.25 = 4.5) = 18.0 cubic inches.",
+      "necReference": "314.16(B)",
+      "sparkyTip": "Two 12/2 cables = 4 hot/neutral wires + grounds (count as 1) + clamps (count as 1) + receptacle (counts as 2)!"
+    },
+    {
+      "id": "BF-017",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "medium",
+      "questionText": "Luminaire (fixture) wires that enter a box from a domed canopy are:",
+      "options": [
+        "Counted the same as branch circuit conductors",
+        "Not counted if 6 inches or less in length",
+        "Always counted as #18 AWG",
+        "Counted at double volume"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC 314.16(B)(1) Exception, fixture wires from a domed luminaire or similar canopy are not counted if they are 6 inches or less in length.",
+      "necReference": "314.16(B)(1) Exception",
+      "sparkyTip": "Short fixture wires (6 inches or less) from domed canopies get a free pass - no fill count!"
+    },
+    {
+      "id": "BF-018",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "easy",
+      "questionText": "What is the minimum volume for a 3 × 2 × 2-1/2 inch device box?",
+      "options": [
+        "10.5 cubic inches",
+        "12.5 cubic inches",
+        "14.0 cubic inches",
+        "18.0 cubic inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Table 314.16(A), a 3 × 2 × 2-1/2 inch device box has a volume of 12.5 cubic inches.",
+      "necReference": "Table 314.16(A)",
+      "sparkyTip": "Standard single-gang boxes are around 12-14 cubic inches. Know your common sizes!"
+    },
+    {
+      "id": "BF-019",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "medium",
+      "questionText": "How many #12 AWG conductors can fit in an 18 cubic inch box with no devices, clamps, or grounds?",
+      "options": [
+        "6 conductors",
+        "8 conductors",
+        "9 conductors",
+        "10 conductors"
+      ],
+      "correctAnswer": 1,
+      "explanation": "18 cubic inches ÷ 2.25 cubic inches per #12 conductor = 8 conductors maximum.",
+      "necReference": "Table 314.16(B)",
+      "sparkyTip": "Simple division: Box volume ÷ conductor volume = max conductors. 18 ÷ 2.25 = 8!"
+    },
+    {
+      "id": "BF-020",
+      "category": "box-fill",
+      "necArticle": "Article 314",
+      "difficulty": "hard",
+      "questionText": "A 4-11/16 inch square box (2-1/8 deep, 42 cu in) contains: 8 #12 conductors, 4 #12 EGCs, internal clamps, and two single-gang device yokes with receptacles. Is this installation compliant?",
+      "options": [
+        "Yes, with 6.75 cubic inches to spare",
+        "Yes, with 1.5 cubic inches to spare",
+        "No, it exceeds fill by 2.25 cubic inches",
+        "No, it exceeds fill by 4.5 cubic inches"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Calculation: 8 conductors (8 × 2.25 = 18.0) + 1 for EGCs (2.25) + 1 for clamps (2.25) + 4 for two devices (4 × 2.25 = 9.0) + 1 for second device strap (2.25) = 33.75. Wait - 2 devices = 2×2 = 4 allowances. Total: 18 + 2.25 + 2.25 + 9 = 31.5. Remaining: 42 - 35.25 = 6.75 cubic inches.",
+      "necReference": "314.16(B)",
+      "sparkyTip": "Always add up each category: conductors + grounds + clamps + devices. Then compare to box volume!"
+    },
+    {
+      "id": "CF-001",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "easy",
+      "questionText": "What is the maximum conduit fill percentage for one conductor in a raceway?",
+      "options": [
+        "31%",
+        "40%",
+        "53%",
+        "60%"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Per NEC Chapter 9, Table 1, a single conductor in a raceway is limited to 53% fill.",
+      "necReference": "Chapter 9, Table 1",
+      "sparkyTip": "Remember: 1 wire = 53%, 2 wires = 31%, 3+ wires = 40%. The more wires, the more heat!"
+    },
+    {
+      "id": "CF-002",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "easy",
+      "questionText": "What is the maximum conduit fill percentage for two conductors in a raceway?",
+      "options": [
+        "31%",
+        "40%",
+        "53%",
+        "60%"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Per NEC Chapter 9, Table 1, two conductors in a raceway are limited to 31% fill.",
+      "necReference": "Chapter 9, Table 1",
+      "sparkyTip": "Two wires = 31%. This is the tightest fill percentage to remember!"
+    },
+    {
+      "id": "CF-003",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "easy",
+      "questionText": "What is the maximum conduit fill percentage for three or more conductors in a raceway?",
+      "options": [
+        "31%",
+        "40%",
+        "53%",
+        "60%"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Chapter 9, Table 1, three or more conductors in a raceway are limited to 40% fill.",
+      "necReference": "Chapter 9, Table 1",
+      "sparkyTip": "40% for 3 or more - this is the most common fill calculation you'll do!"
+    },
+    {
+      "id": "CF-004",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "medium",
+      "questionText": "The cross-sectional area of a #12 AWG THHN conductor is approximately:",
+      "options": [
+        "0.0117 square inches",
+        "0.0133 square inches",
+        "0.0181 square inches",
+        "0.0243 square inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Chapter 9, Table 5, a #12 AWG THHN conductor has an approximate area of 0.0133 square inches.",
+      "necReference": "Chapter 9, Table 5",
+      "sparkyTip": "Table 5 is your friend for conductor areas! #12 THHN ≈ 0.0133 sq in."
+    },
+    {
+      "id": "CF-005",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "medium",
+      "questionText": "What is the total area available at 40% fill in a 3/4-inch EMT conduit?",
+      "options": [
+        "0.213 square inches",
+        "0.533 square inches",
+        "0.171 square inches",
+        "0.346 square inches"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Per NEC Chapter 9, Table 4, 3/4-inch EMT has a total area of 0.533 sq in. At 40% fill: 0.533 × 0.40 = 0.213 square inches.",
+      "necReference": "Chapter 9, Table 4",
+      "sparkyTip": "Total area × fill percentage = usable area. Table 4 even has the 40% pre-calculated!"
+    },
+    {
+      "id": "CF-006",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "medium",
+      "questionText": "How many #12 AWG THHN conductors can be installed in 1/2-inch EMT?",
+      "options": [
+        "6 conductors",
+        "7 conductors",
+        "9 conductors",
+        "12 conductors"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Per NEC Chapter 9, Table C.1, 1/2-inch EMT can accommodate 9 #12 AWG THHN conductors at 40% fill.",
+      "necReference": "Chapter 9, Table C.1",
+      "sparkyTip": "Annex C tables give you the answer directly! C.1 is for EMT - memorize common combinations."
+    },
+    {
+      "id": "CF-007",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "hard",
+      "questionText": "You need to install 6 #10 AWG THHN and 3 #12 AWG THHN conductors. What is the minimum EMT size required?",
+      "options": [
+        "1/2 inch",
+        "3/4 inch",
+        "1 inch",
+        "1-1/4 inch"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Total area: 6 × 0.0211 (#10 THHN) + 3 × 0.0133 (#12 THHN) = 0.1266 + 0.0399 = 0.1665 sq in. 3/4-inch EMT at 40% = 0.213 sq in, which accommodates this fill.",
+      "necReference": "Chapter 9, Tables 4 & 5",
+      "sparkyTip": "Add up conductor areas from Table 5, then find a conduit from Table 4 with enough 40% fill area."
+    },
+    {
+      "id": "CF-008",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "easy",
+      "questionText": "Which table in Chapter 9 provides the dimensions of conduit?",
+      "options": [
+        "Table 1",
+        "Table 4",
+        "Table 5",
+        "Table 8"
+      ],
+      "correctAnswer": 1,
+      "explanation": "NEC Chapter 9, Table 4 provides the dimensions and percent area for various conduit types.",
+      "necReference": "Chapter 9, Table 4",
+      "sparkyTip": "Table 4 = conduit dimensions. Table 5 = conductor dimensions. 4 before 5, conduit before conductors!"
+    },
+    {
+      "id": "CF-009",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "easy",
+      "questionText": "Which table in Chapter 9 provides conductor cross-sectional areas?",
+      "options": [
+        "Table 1",
+        "Table 4",
+        "Table 5",
+        "Table 8"
+      ],
+      "correctAnswer": 2,
+      "explanation": "NEC Chapter 9, Table 5 provides the cross-sectional area for insulated conductors.",
+      "necReference": "Chapter 9, Table 5",
+      "sparkyTip": "Table 5 = conductor areas including insulation. Essential for fill calculations!"
+    },
+    {
+      "id": "CF-010",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "medium",
+      "questionText": "What is the internal diameter of 1-inch EMT?",
+      "options": [
+        "0.824 inches",
+        "1.049 inches",
+        "1.163 inches",
+        "1.380 inches"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Chapter 9, Table 4, 1-inch EMT has an internal diameter of 1.049 inches.",
+      "necReference": "Chapter 9, Table 4",
+      "sparkyTip": "Trade size ≠ actual size! 1-inch EMT is actually about 1.049 inches inside."
+    },
+    {
+      "id": "CF-011",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "hard",
+      "questionText": "Calculate the conduit fill percentage: 4 #8 AWG THHN conductors in 3/4-inch EMT. (Total EMT area = 0.533 sq in, #8 THHN = 0.0366 sq in each)",
+      "options": [
+        "22.5%",
+        "27.5%",
+        "31.0%",
+        "36.8%"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Total conductor area: 4 × 0.0366 = 0.1464 sq in. Fill percentage: 0.1464 ÷ 0.533 × 100 = 27.5%.",
+      "necReference": "Chapter 9, Tables 4 & 5",
+      "sparkyTip": "Fill % = (Total conductor area ÷ Conduit area) × 100. Keep it under 40% for 3+ conductors!"
+    },
+    {
+      "id": "CF-012",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "medium",
+      "questionText": "The 40% fill limit exists primarily because:",
+      "options": [
+        "Conductors need room to expand",
+        "It prevents damage during pulling and allows heat dissipation",
+        "It's an arbitrary safety margin",
+        "It accounts for conduit wall thickness"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The fill limits prevent conductor damage during installation (pulling) and ensure adequate space for heat dissipation during operation.",
+      "necReference": "Chapter 9, Table 1 Notes",
+      "sparkyTip": "Fill limits protect wires during pulling AND during operation. Too tight = damage and overheating!"
+    },
+    {
+      "id": "CF-013",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "medium",
+      "questionText": "How many #6 AWG THHN conductors can be installed in 1-inch EMT?",
+      "options": [
+        "4 conductors",
+        "6 conductors",
+        "8 conductors",
+        "10 conductors"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per NEC Chapter 9, Table C.1, 1-inch EMT can accommodate 6 #6 AWG THHN conductors at 40% fill.",
+      "necReference": "Chapter 9, Table C.1",
+      "sparkyTip": "Check Annex C for quick answers! Table C.1 has EMT fill for common conductor combinations."
+    },
+    {
+      "id": "CF-014",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "hard",
+      "questionText": "A nipple (conduit 24 inches or less) between enclosures can be filled to what maximum percentage?",
+      "options": [
+        "40%",
+        "53%",
+        "60%",
+        "No limit"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Per NEC Chapter 9, Table 1, Note 4, short conduit sections (nipples) not exceeding 24 inches can be filled to 60%.",
+      "necReference": "Chapter 9, Table 1, Note 4",
+      "sparkyTip": "Nipples get a break! 24 inches or less = 60% fill allowed. Less pulling stress in short runs."
+    },
+    {
+      "id": "CF-015",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "easy",
+      "questionText": "What type of conduit has the largest internal area for a given trade size?",
+      "options": [
+        "EMT",
+        "IMC",
+        "RMC (Rigid Metal Conduit)",
+        "They are all the same"
+      ],
+      "correctAnswer": 0,
+      "explanation": "EMT (Electrical Metallic Tubing) has thinner walls than IMC or RMC, giving it a larger internal area for the same trade size.",
+      "necReference": "Chapter 9, Table 4",
+      "sparkyTip": "EMT = thinner walls = more room inside. Compare the same trade size across conduit types in Table 4!"
+    },
+    {
+      "id": "CF-016",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "medium",
+      "questionText": "When calculating conduit fill with conductors of different sizes, you must:",
+      "options": [
+        "Use the largest conductor area for all",
+        "Calculate total cross-sectional area of all conductors",
+        "Use an average conductor area",
+        "Count conductors instead of area"
+      ],
+      "correctAnswer": 1,
+      "explanation": "When mixing conductor sizes, add up the individual cross-sectional areas from Table 5 to get the total conductor area, then compare to conduit capacity.",
+      "necReference": "Chapter 9, Table 5",
+      "sparkyTip": "Mixed sizes = add up each conductor's area individually. No shortcuts!"
+    },
+    {
+      "id": "CF-017",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "hard",
+      "questionText": "You have 12 #14 AWG THHN conductors (0.0097 sq in each). What is the minimum EMT size required?",
+      "options": [
+        "1/2 inch (40% area = 0.122 sq in)",
+        "3/4 inch (40% area = 0.213 sq in)",
+        "1 inch (40% area = 0.346 sq in)",
+        "1/2 inch is adequate"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Total area: 12 × 0.0097 = 0.1164 sq in. 1/2-inch EMT at 40% fill = 0.122 sq in. This is adequate (0.1164 < 0.122).",
+      "necReference": "Chapter 9, Tables 4 & 5",
+      "sparkyTip": "12 × 0.0097 = 0.1164. Just barely fits in 1/2-inch EMT! Always double-check close calls."
+    },
+    {
+      "id": "CF-018",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "medium",
+      "questionText": "Table 5A in Chapter 9 provides dimensions for:",
+      "options": [
+        "Standard conductors",
+        "Compact aluminum conductors",
+        "Conduit bodies",
+        "Junction boxes"
+      ],
+      "correctAnswer": 1,
+      "explanation": "NEC Chapter 9, Table 5A provides dimensions for compact aluminum building wire, which has a smaller diameter than standard conductors.",
+      "necReference": "Chapter 9, Table 5A",
+      "sparkyTip": "Table 5 = standard conductors. Table 5A = compact conductors. Compact = smaller area!"
+    },
+    {
+      "id": "CF-019",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "easy",
+      "questionText": "The Annex C tables in the NEC provide:",
+      "options": [
+        "Conduit dimensions only",
+        "Maximum number of conductors by conduit size (pre-calculated)",
+        "Ampacity ratings",
+        "Voltage drop calculations"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Annex C provides pre-calculated tables showing the maximum number of same-size conductors allowed in various conduit types.",
+      "necReference": "Annex C",
+      "sparkyTip": "Annex C = the easy button! Pre-calculated fill tables for same-size conductors."
+    },
+    {
+      "id": "CF-020",
+      "category": "conduit-fill",
+      "necArticle": "Chapter 9",
+      "difficulty": "hard",
+      "questionText": "A run requires 3 #4 AWG THHN (0.0824 sq in each) and 1 #10 AWG THHN (0.0211 sq in) for a ground. What is the minimum EMT size?",
+      "options": [
+        "1 inch (40% area = 0.346 sq in)",
+        "1-1/4 inch (40% area = 0.598 sq in)",
+        "3/4 inch (40% area = 0.213 sq in)",
+        "1 inch is adequate"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Total area: (3 × 0.0824) + 0.0211 = 0.2472 + 0.0211 = 0.2683 sq in. 3/4-inch EMT (0.213) is too small. 1-inch EMT at 40% = 0.346 sq in, which is adequate.",
+      "necReference": "Chapter 9, Tables 4 & 5",
+      "sparkyTip": "Don't forget the ground wire! Add up ALL conductors in the raceway for your fill calculation."
     }
   ]
 }

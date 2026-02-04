@@ -2,7 +2,7 @@
 
 export type Difficulty = "easy" | "medium" | "hard";
 
-export type CategorySlug = "load-calculations" | "grounding-bonding" | "services" | "textbook-navigation" | "chapter-9-tables";
+export type CategorySlug = "load-calculations" | "grounding-bonding" | "services" | "textbook-navigation" | "chapter-9-tables" | "box-fill" | "conduit-fill";
 
 export interface Category {
   slug: CategorySlug;
@@ -55,6 +55,18 @@ export const CATEGORIES: Category[] = [
     name: "Chapter 9 Tables",
     necArticle: "Chapter 9",
     description: "Conduit fill calculations, conductor properties, and raceway dimensions",
+  },
+  {
+    slug: "box-fill",
+    name: "Box Fill",
+    necArticle: "Article 314 & 310",
+    description: "Box fill calculations, conductor counting, device sizing, and volume requirements",
+  },
+  {
+    slug: "conduit-fill",
+    name: "Conduit Fill",
+    necArticle: "Chapter 9 Tables",
+    description: "Raceway sizing, conductor area calculations, and conduit fill percentages",
   },
 ];
 

@@ -62,20 +62,11 @@ export async function POST(request: Request) {
         .set({
           xp: sql`${users.xp} + ${xpEarned}`,
           level: newLevel,
-          lastStudyDate: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, session.user.id));
-    } else {
-      // Still update last study date for incorrect answers
-      await db
-        .update(users)
-        .set({
-          lastStudyDate: new Date(),
           updatedAt: new Date(),
         })
         .where(eq(users.id, session.user.id));
     }
+    // Note: lastStudyDate and studyStreak are updated in /api/sessions when the session ends
 
     // Get updated user XP
     const [updatedUser] = await db

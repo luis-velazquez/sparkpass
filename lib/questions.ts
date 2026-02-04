@@ -68,6 +68,8 @@ export function getCategoryCounts(): Record<CategorySlug, number> {
     services: getQuestionCountByCategory("services"),
     "textbook-navigation": getQuestionCountByCategory("textbook-navigation"),
     "chapter-9-tables": getQuestionCountByCategory("chapter-9-tables"),
+    "box-fill": getQuestionCountByCategory("box-fill"),
+    "conduit-fill": getQuestionCountByCategory("conduit-fill"),
   };
 }
 

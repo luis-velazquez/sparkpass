@@ -79,6 +79,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Homepage: redirect authenticated users to dashboard
+  if (pathname === "/") {
+    if (isAuthenticated) {
+      if (!profileComplete) {
+        return NextResponse.redirect(new URL("/register/profile", request.url));
+      }
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 

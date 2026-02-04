@@ -13,6 +13,10 @@ import {
   Zap,
   Filter,
   Play,
+  Navigation,
+  Table,
+  Box,
+  CircleDot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +46,10 @@ const categoryIcons: Record<CategorySlug, typeof BookOpen> = {
   "load-calculations": BookOpen,
   "grounding-bonding": Shield,
   services: Zap,
+  "textbook-navigation": Navigation,
+  "chapter-9-tables": Table,
+  "box-fill": Box,
+  "conduit-fill": CircleDot,
 };
 
 // Map category slugs to colors
@@ -60,6 +68,26 @@ const categoryColors: Record<CategorySlug, { icon: string; bg: string; badge: st
     icon: "text-amber",
     bg: "bg-amber/10",
     badge: "bg-amber/10 text-amber",
+  },
+  "textbook-navigation": {
+    icon: "text-blue-500",
+    bg: "bg-blue-500/10",
+    badge: "bg-blue-500/10 text-blue-500",
+  },
+  "chapter-9-tables": {
+    icon: "text-orange-500",
+    bg: "bg-orange-500/10",
+    badge: "bg-orange-500/10 text-orange-500",
+  },
+  "box-fill": {
+    icon: "text-cyan-500",
+    bg: "bg-cyan-500/10",
+    badge: "bg-cyan-500/10 text-cyan-500",
+  },
+  "conduit-fill": {
+    icon: "text-rose-500",
+    bg: "bg-rose-500/10",
+    badge: "bg-rose-500/10 text-rose-500",
   },
 };
 

@@ -13,8 +13,15 @@ import {
   Bookmark,
   CheckCircle2,
   XCircle,
+  Flame,
+  RotateCcw,
+  ChevronRight,
+  Save,
+  Loader2,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { SessionTimeoutWarning } from "@/components/session-timeout-warning";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -28,7 +35,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { SparkyMessage } from "@/components/sparky";
-import { getRandomQuestions } from "@/lib/questions";
+import { getRandomQuestions, getQuestionById } from "@/lib/questions";
 import { getCategoryBySlug, type Question, type CategorySlug } from "@/types/question";
 
 // Sparky congratulation messages for correct answers
@@ -57,8 +64,31 @@ const INCORRECT_MESSAGES = [
   "That's a tough one! Here's what the NEC says about this:",
 ];
 
+// Sparky "on fire" messages for streaks of 3+
+const ON_FIRE_MESSAGES = [
+  "YOU'RE ON FIRE! 🔥 3 in a row! Keep that hot streak going!",
+  "BLAZING HOT! 🔥 You're absolutely crushing it right now!",
+  "UNSTOPPABLE! 🔥 Your knowledge is burning bright!",
+  "ELECTRIC FIRE! ⚡🔥 Nothing can stop you now!",
+  "SCORCHING STREAK! 🔥 You're lighting up this quiz!",
+];
+
+const STREAK_THRESHOLD = 3; // Number of correct answers to trigger "on fire"
+
+// Sparky messages when streak is broken
+const STREAK_BROKEN_MESSAGES = [
+  "Streak broken, but don't sweat it! Every master electrician has had setbacks. Let's build a new one! 💪",
+  "That streak had a good run! Shake it off and let's start fresh - you've got this!",
+  "No worries about the streak! What matters is you're learning. Ready to fire up a new one? 🔥",
+  "The streak may be gone, but your knowledge isn't! Let's get back on track together.",
+  "Hey, streaks are made to be broken... and rebuilt! You're still making progress!",
+];
+
 const QUESTIONS_PER_QUIZ = 60;
 const XP_PER_CORRECT_ANSWER = 25;
+const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour
+const SESSION_WARNING_MS = 5 * 60 * 1000; // 5 minutes before timeout
+const QUIZ_STORAGE_KEY = "sparkpass-quiz-progress";
 
 // Get a random message from an array
 function getRandomMessage(messages: string[]): string {
@@ -83,6 +113,7 @@ function fireConfetti() {
   });
 }
 
+
 interface QuizState {
   questions: Question[];
   currentQuestionIndex: number;
@@ -93,6 +124,19 @@ interface QuizState {
   showXpAnimation: boolean;
   sparkyMessage: string;
   showHint: boolean;
+  correctStreak: number;
+  showOnFire: boolean;
+  streakBroken: boolean;
+}
+
+interface SavedQuizProgress {
+  categorySlug: string;
+  questionIds: string[];
+  currentQuestionIndex: number;
+  answers: Record<string, number>; // Serialized Map
+  bookmarkedQuestions: string[]; // Serialized Set
+  correctStreak: number;
+  timestamp: number;
 }
 
 function createInitialState(categorySlug: CategorySlug): QuizState {
@@ -107,6 +151,9 @@ function createInitialState(categorySlug: CategorySlug): QuizState {
     showXpAnimation: false,
     sparkyMessage: "",
     showHint: false,
+    correctStreak: 0,
+    showOnFire: false,
+    streakBroken: false,
   };
 }
 
@@ -117,12 +164,17 @@ export default function QuizTakingPage() {
 
   const category = useMemo(() => getCategoryBySlug(categorySlug), [categorySlug]);
 
+  // Resume prompt state
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<SavedQuizProgress | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   // Initialize state lazily with questions
   const [quizState, setQuizState] = useState<QuizState>(() =>
     createInitialState(categorySlug)
   );
 
-  const { questions, currentQuestionIndex, selectedAnswer, bookmarkedQuestions, answers, isSubmitted, showXpAnimation, sparkyMessage } = quizState;
+  const { questions, currentQuestionIndex, selectedAnswer, bookmarkedQuestions, answers, isSubmitted, showXpAnimation, sparkyMessage, correctStreak, showOnFire, streakBroken } = quizState;
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
   const progressPercentage = totalQuestions > 0
@@ -146,6 +198,99 @@ export default function QuizTakingPage() {
       }
     };
   }, []);
+
+  // Check for saved progress on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(QUIZ_STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as SavedQuizProgress;
+        // Check if saved progress is for this category and not too old (24 hours)
+        const isValidCategory = parsed.categorySlug === categorySlug;
+        const isRecent = Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
+        const hasProgress = parsed.currentQuestionIndex > 0 || Object.keys(parsed.answers).length > 0;
+
+        if (isValidCategory && isRecent && hasProgress) {
+          setSavedProgress(parsed);
+          setShowResumePrompt(true);
+        }
+      } catch {
+        // Invalid saved state, ignore
+      }
+    }
+    setIsLoading(false);
+  }, [categorySlug]);
+
+  // Save progress to localStorage
+  const saveProgress = useCallback((state: QuizState) => {
+    const toSave: SavedQuizProgress = {
+      categorySlug,
+      questionIds: state.questions.map(q => q.id),
+      currentQuestionIndex: state.currentQuestionIndex,
+      answers: Object.fromEntries(state.answers),
+      bookmarkedQuestions: Array.from(state.bookmarkedQuestions),
+      correctStreak: state.correctStreak,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(toSave));
+  }, [categorySlug]);
+
+  // Clear saved progress
+  const clearSavedProgress = useCallback(() => {
+    localStorage.removeItem(QUIZ_STORAGE_KEY);
+  }, []);
+
+  // Handle continuing saved progress
+  const handleContinueProgress = useCallback(() => {
+    if (!savedProgress) return;
+
+    // Reload the same questions
+    const questions = savedProgress.questionIds
+      .map(id => getQuestionById(id))
+      .filter((q): q is Question => q !== undefined);
+
+    if (questions.length === 0) {
+      // Questions no longer exist, start fresh
+      handleStartFresh();
+      return;
+    }
+
+    setQuizState({
+      questions,
+      currentQuestionIndex: savedProgress.currentQuestionIndex,
+      selectedAnswer: null,
+      bookmarkedQuestions: new Set(savedProgress.bookmarkedQuestions),
+      answers: new Map(Object.entries(savedProgress.answers).map(([k, v]) => [k, v])),
+      isSubmitted: false,
+      showXpAnimation: false,
+      sparkyMessage: "",
+      showHint: false,
+      correctStreak: savedProgress.correctStreak,
+      showOnFire: savedProgress.correctStreak >= STREAK_THRESHOLD,
+      streakBroken: false,
+    });
+    setShowResumePrompt(false);
+    setSavedProgress(null);
+  }, [savedProgress]);
+
+  // Handle starting fresh
+  const handleStartFresh = useCallback(() => {
+    clearSavedProgress();
+    setQuizState(createInitialState(categorySlug));
+    setShowResumePrompt(false);
+    setSavedProgress(null);
+  }, [categorySlug, clearSavedProgress]);
+
+  // Auto-save progress when quiz state changes
+  useEffect(() => {
+    // Only save if we have questions and have made progress
+    if (!showResumePrompt && quizState.questions.length > 0) {
+      const hasProgress = quizState.currentQuestionIndex > 0 || quizState.answers.size > 0;
+      if (hasProgress) {
+        saveProgress(quizState);
+      }
+    }
+  }, [quizState.currentQuestionIndex, quizState.answers.size, quizState.correctStreak, showResumePrompt, saveProgress, quizState]);
 
   // Fetch pre-quiz XP, bookmarks, and create study session on mount
   useEffect(() => {
@@ -192,10 +337,59 @@ export default function QuizTakingPage() {
     initializeQuiz();
   }, []);
 
-  // Redirect if invalid category or no questions
-  if (!category || totalQuestions === 0) {
-    notFound();
-  }
+  // Handle session timeout - end session and navigate to results
+  const handleSessionTimeout = useCallback(async () => {
+    // Calculate XP earned from correct answers so far
+    let correctCount = 0;
+    questions.forEach((q) => {
+      if (answers.get(q.id) === q.correctAnswer) {
+        correctCount++;
+      }
+    });
+    const xpEarned = correctCount * XP_PER_CORRECT_ANSWER;
+
+    // End the study session
+    const sessionId = sessionStorage.getItem("currentSessionId");
+    if (sessionId) {
+      try {
+        await fetch("/api/sessions", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, xpEarned }),
+        });
+      } catch {
+        // Silently fail
+      }
+    }
+
+    // Navigate to results with current progress
+    const answersObject = Object.fromEntries(answers);
+    sessionStorage.setItem("quizAnswers", JSON.stringify(answersObject));
+    sessionStorage.setItem(
+      "quizQuestionIds",
+      JSON.stringify(questions.map((q) => q.id))
+    );
+    sessionStorage.setItem("quizCategory", categorySlug);
+    sessionStorage.setItem(
+      "bookmarkedQuestions",
+      JSON.stringify(Array.from(bookmarkedQuestions))
+    );
+    sessionStorage.setItem("sessionTimedOut", "true");
+    clearSavedProgress();
+    router.push(`/quiz/${categorySlug}/results`);
+  }, [questions, answers, bookmarkedQuestions, categorySlug, router, clearSavedProgress]);
+
+  // Session timeout hook - 1 hour with 5 minute warning
+  const {
+    showWarning: showTimeoutWarning,
+    remainingTime: timeoutRemainingTime,
+    dismissWarning: dismissTimeoutWarning,
+  } = useSessionTimeout({
+    timeoutMs: SESSION_TIMEOUT_MS,
+    warningMs: SESSION_WARNING_MS,
+    onTimeout: handleSessionTimeout,
+    enabled: true,
+  });
 
   const handleSelectAnswer = useCallback((answerIndex: number) => {
     setQuizState((prev) => {
@@ -291,17 +485,33 @@ export default function QuizTakingPage() {
       const newAnswers = new Map(prev.answers);
       newAnswers.set(question.id, selectedAnswer);
 
-      const message = isCorrect
-        ? getRandomMessage(CORRECT_MESSAGES)
-        : getRandomMessage(INCORRECT_MESSAGES);
+      // Update streak
+      const newStreak = isCorrect ? prev.correctStreak + 1 : 0;
+      const justHitStreak = isCorrect && newStreak >= STREAK_THRESHOLD && prev.correctStreak < STREAK_THRESHOLD;
+      const isOnFire = newStreak >= STREAK_THRESHOLD;
+      const wasOnFire = prev.correctStreak >= STREAK_THRESHOLD;
+      const streakJustBroken = !isCorrect && wasOnFire;
+
+      // Determine message based on streak
+      let message: string;
+      if (streakJustBroken) {
+        // Streak was just broken - show encouraging message
+        message = getRandomMessage(STREAK_BROKEN_MESSAGES);
+      } else if (justHitStreak) {
+        // Just hit the streak threshold - show on fire message
+        message = getRandomMessage(ON_FIRE_MESSAGES);
+      } else if (isCorrect && isOnFire) {
+        // Continuing the streak
+        message = `🔥 ${newStreak} in a row! ${getRandomMessage(CORRECT_MESSAGES)}`;
+      } else if (isCorrect) {
+        message = getRandomMessage(CORRECT_MESSAGES);
+      } else {
+        message = getRandomMessage(INCORRECT_MESSAGES);
+      }
 
       // Fire confetti for correct answers
       if (isCorrect) {
         fireConfetti();
-        // Set timeout to hide XP animation
-        xpTimeoutRef.current = setTimeout(() => {
-          setQuizState((p) => ({ ...p, showXpAnimation: false }));
-        }, 2000);
       }
 
       // Scroll to feedback section after a short delay with smooth animation
@@ -315,6 +525,9 @@ export default function QuizTakingPage() {
         isSubmitted: true,
         showXpAnimation: isCorrect,
         sparkyMessage: message,
+        correctStreak: newStreak,
+        showOnFire: isCorrect && isOnFire,
+        streakBroken: streakJustBroken,
       };
     });
   }, [quizState]);
@@ -358,6 +571,7 @@ export default function QuizTakingPage() {
         "bookmarkedQuestions",
         JSON.stringify(Array.from(bookmarkedQuestions))
       );
+      clearSavedProgress();
       router.push(`/quiz/${categorySlug}/results`);
     } else {
       // Clear any pending timeout
@@ -375,7 +589,7 @@ export default function QuizTakingPage() {
         showHint: false,
       }));
     }
-  }, [currentQuestionIndex, totalQuestions, answers, questions, bookmarkedQuestions, categorySlug, router]);
+  }, [currentQuestionIndex, totalQuestions, answers, questions, bookmarkedQuestions, categorySlug, router, clearSavedProgress]);
 
   // Bookmark handler specifically for the feedback section
   const handleBookmarkFromFeedback = useCallback(async () => {
@@ -436,13 +650,157 @@ export default function QuizTakingPage() {
     router.push("/quiz");
   }, [router]);
 
+  // Redirect if invalid category or no questions
+  if (!category || totalQuestions === 0) {
+    notFound();
+  }
+
+  // Show loading state while checking for saved progress
+  if (isLoading) {
+    return (
+      <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-amber" />
+      </main>
+    );
+  }
+
+  // Show resume prompt if there's saved progress
+  if (showResumePrompt && savedProgress) {
+    const progressPercent = Math.round(
+      (savedProgress.currentQuestionIndex / savedProgress.questionIds.length) * 100
+    );
+    const answeredCount = Object.keys(savedProgress.answers).length;
+
+    return (
+      <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full"
+        >
+          <Card>
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
+                <Save className="h-8 w-8 text-amber" />
+              </div>
+              <CardTitle className="text-xl">Welcome Back!</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-4">
+                  You have a quiz in progress.
+                </p>
+
+                <div className="bg-muted rounded-lg p-4 text-left space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Book className="h-4 w-4 text-amber" />
+                    <span className="font-medium">{category?.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>
+                      {answeredCount} of {savedProgress.questionIds.length} questions answered
+                    </span>
+                  </div>
+                  {savedProgress.correctStreak >= STREAK_THRESHOLD && (
+                    <div className="flex items-center gap-2 text-sm text-orange-500">
+                      <Flame className="h-3.5 w-3.5" />
+                      <span>{savedProgress.correctStreak} streak!</span>
+                    </div>
+                  )}
+                  {/* Progress bar */}
+                  <div className="pt-2">
+                    <div className="h-2 bg-background rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber rounded-full transition-all"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-right">
+                      {progressPercent}% complete
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={handleContinueProgress}
+                  className="bg-amber hover:bg-amber/90 w-full"
+                >
+                  <ChevronRight className="h-4 w-4 mr-2" />
+                  Continue Where I Left Off
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleStartFresh}
+                  className="w-full"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Start a New Quiz
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </main>
+    );
+  }
+
   const isBookmarked = currentQuestion
     ? bookmarkedQuestions.has(currentQuestion.id)
     : false;
   const isLastQuestion = currentQuestionIndex >= totalQuestions - 1;
 
+  // Shake animation keyframes for streak break
+  const shakeAnimation = streakBroken
+    ? {
+        x: [0, -10, 10, -10, 10, -5, 5, 0],
+        transition: { duration: 0.5 },
+      }
+    : {};
+
+  // Check if user is on fire (3+ streak)
+  const isOnFireStreak = correctStreak >= STREAK_THRESHOLD;
+
   return (
-    <main className="container mx-auto px-4 py-6 max-w-4xl">
+    <>
+      {/* Glow pulse overlay for 3+ streak */}
+      <AnimatePresence>
+        {isOnFireStreak && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 pointer-events-none z-50"
+            style={{
+              boxShadow: "inset 0 0 100px 20px rgba(139, 92, 246, 0.3)",
+            }}
+          >
+            <motion.div
+              className="absolute inset-0"
+              animate={{
+                boxShadow: [
+                  "inset 0 0 60px 10px rgba(139, 92, 246, 0.2)",
+                  "inset 0 0 100px 30px rgba(139, 92, 246, 0.4)",
+                  "inset 0 0 60px 10px rgba(139, 92, 246, 0.2)",
+                ],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.main
+        className="container mx-auto px-4 py-6 max-w-4xl"
+        animate={shakeAnimation}
+      >
       {/* Progress Bar */}
       <div className="mb-6">
         <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -494,10 +852,22 @@ export default function QuizTakingPage() {
           </Button>
         </div>
 
-        {/* Center - Question counter */}
-        <span className="text-sm font-medium text-muted-foreground">
-          {currentQuestionIndex + 1} / {totalQuestions}
-        </span>
+        {/* Center - Question counter and streak */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-muted-foreground">
+            {currentQuestionIndex + 1} / {totalQuestions}
+          </span>
+          {correctStreak >= STREAK_THRESHOLD && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-500 rounded-full text-xs font-bold border border-orange-500/30"
+            >
+              <Flame className="h-3 w-3" />
+              {correctStreak}
+            </motion.span>
+          )}
+        </div>
 
         {/* Right side - Save, Submit/Next */}
         <div className="flex items-center gap-2">
@@ -661,21 +1031,33 @@ export default function QuizTakingPage() {
                 transition={{ duration: 0.4 }}
                 className="mb-6"
               >
-                {/* XP Animation for correct answers */}
-                {showXpAnimation && isCorrectAnswer && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
-                    className="flex justify-center mb-4"
-                  >
-                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald/20 text-emerald rounded-full text-lg font-bold">
+                {/* XP and Streak badges - persist while on streak */}
+                <div className="flex justify-center gap-3 mb-4 flex-wrap">
+                  {/* XP Animation for correct answers */}
+                  {isCorrectAnswer && (
+                    <motion.span
+                      initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald/20 text-emerald rounded-full text-lg font-bold"
+                    >
                       <CheckCircle2 className="h-5 w-5" />
                       +{XP_PER_CORRECT_ANSWER} XP
-                    </span>
-                  </motion.div>
-                )}
+                    </motion.span>
+                  )}
+                  {/* Streak fire badge - persists while on streak */}
+                  {correctStreak >= STREAK_THRESHOLD && (
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0, rotate: -180 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      transition={{ duration: 0.5, type: "spring", bounce: 0.5 }}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-500 rounded-full text-lg font-bold border border-orange-500/30"
+                    >
+                      <Flame className="h-5 w-5 animate-pulse" />
+                      {correctStreak} Streak!
+                    </motion.span>
+                  )}
+                </div>
 
                 {/* Sparky Feedback Message */}
                 <Card className={`${isCorrectAnswer ? "border-emerald/50" : "border-amber/50"}`}>
@@ -768,6 +1150,14 @@ export default function QuizTakingPage() {
 
         </motion.div>
       </AnimatePresence>
-    </main>
+
+      {/* Session Timeout Warning */}
+      <SessionTimeoutWarning
+        open={showTimeoutWarning}
+        remainingTime={timeoutRemainingTime}
+        onContinue={dismissTimeoutWarning}
+      />
+    </motion.main>
+    </>
   );
 }

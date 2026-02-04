@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, Zap, Shield, ChevronRight, Navigation, Table } from "lucide-react";
+import { BookOpen, Zap, Shield, ChevronRight, Navigation, Table, Box, CircleDot } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SparkyMessage } from "@/components/sparky";
 import { CATEGORIES } from "@/types/question";
@@ -15,6 +15,8 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
   services: Zap,
   "textbook-navigation": Navigation,
   "chapter-9-tables": Table,
+  "box-fill": Box,
+  "conduit-fill": CircleDot,
 };
 
 // Map category slugs to colors
@@ -43,6 +45,16 @@ const categoryColors = {
     icon: "text-orange-500",
     bg: "bg-orange-500/10",
     border: "hover:border-orange-500/50",
+  },
+  "box-fill": {
+    icon: "text-cyan-500",
+    bg: "bg-cyan-500/10",
+    border: "hover:border-cyan-500/50",
+  },
+  "conduit-fill": {
+    icon: "text-rose-500",
+    bg: "bg-rose-500/10",
+    border: "hover:border-rose-500/50",
   },
 };
 

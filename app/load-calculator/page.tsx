@@ -377,6 +377,11 @@ export default function LoadCalculatorPage() {
 
   const hasPlayedConfetti = useRef(false);
 
+  // Scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Fire confetti when calculation is complete
   useEffect(() => {
     if (state.isComplete && !hasPlayedConfetti.current) {
