@@ -341,8 +341,6 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
                   onClick={() => handleSelectAnswer(index)}
                   disabled={isSubmitted}
                   className={optionClasses}
-                  whileHover={!isSubmitted ? { scale: 1.01 } : {}}
-                  whileTap={!isSubmitted ? { scale: 0.99 } : {}}
                 >
                   <div className="flex items-start gap-3">
                     <span

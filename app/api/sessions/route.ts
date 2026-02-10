@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { sessionType } = body;
+    const { sessionType, categorySlug } = body;
 
     if (!sessionType || !["quiz", "flashcard", "mock_exam", "daily_challenge"].includes(sessionType)) {
       return NextResponse.json(
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
       id: sessionId,
       userId: session.user.id,
       sessionType,
+      categorySlug: categorySlug || null,
       startedAt: new Date(),
       xpEarned: 0,
     });
@@ -57,7 +58,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { sessionId, xpEarned } = body;
+    const { sessionId, xpEarned, questionsAnswered, questionsCorrect } = body;
 
     if (!sessionId) {
       return NextResponse.json(
@@ -66,12 +67,14 @@ export async function PATCH(request: Request) {
       );
     }
 
-    // Update the session with end time and XP
+    // Update the session with end time, XP, and progress
     await db
       .update(studySessions)
       .set({
         endedAt: new Date(),
         xpEarned: xpEarned || 0,
+        questionsAnswered: questionsAnswered ?? null,
+        questionsCorrect: questionsCorrect ?? null,
       })
       .where(
         and(

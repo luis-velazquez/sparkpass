@@ -148,7 +148,7 @@ function CollapsibleCard({
   return (
     <Card>
       <CardHeader
-        className={`pb-3 ${isMobile ? "cursor-pointer" : ""}`}
+        className={`pb-3 ${isMobile ? "cursor-pointer pressable" : ""}`}
         onClick={() => isMobile && setIsExpanded(!isExpanded)}
       >
         <CardTitle className="text-base flex items-center justify-between">
@@ -798,7 +798,7 @@ export default function LoadCalculatorPage() {
                     <div
                       onClick={isIntermediate ? () => handleToggleScratchOff("square-footage") : undefined}
                       className={`flex justify-between items-center transition-all duration-300 rounded-md px-2 py-1 -mx-2 ${
-                        isIntermediate ? "cursor-pointer hover:bg-muted/50" : ""
+                        isIntermediate ? "cursor-pointer hover:bg-muted/50 pressable" : ""
                       } ${
                         isHighlighted
                           ? "bg-amber/20 border border-amber/40"
@@ -857,7 +857,7 @@ export default function LoadCalculatorPage() {
                       key={appliance.id}
                       onClick={isIntermediate ? () => handleToggleScratchOff(appliance.id) : undefined}
                       className={`flex justify-between items-center transition-all duration-300 rounded-md px-2 py-1 -mx-2 ${
-                        isIntermediate ? "cursor-pointer hover:bg-muted/50" : ""
+                        isIntermediate ? "cursor-pointer hover:bg-muted/50 pressable" : ""
                       } ${
                         isHighlighted
                           ? "bg-amber/20 border border-amber/40"
@@ -980,7 +980,7 @@ export default function LoadCalculatorPage() {
                     {DIFFICULTY_LEVELS.map((level) => (
                       <Card
                         key={level.id}
-                        className={`cursor-pointer hover:shadow-md transition-all ${
+                        className={`cursor-pointer hover:shadow-md transition-all pressable ${
                           level.id === "beginner"
                             ? "hover:border-emerald/50"
                             : "hover:border-amber/50"
@@ -1043,7 +1043,7 @@ export default function LoadCalculatorPage() {
                     {HOUSE_SCENARIOS.map((scenario) => (
                       <Card
                         key={scenario.id}
-                        className="cursor-pointer hover:border-amber/50 hover:shadow-md transition-all"
+                        className="cursor-pointer hover:border-amber/50 hover:shadow-md transition-all pressable"
                         onClick={() => handleSelectScenario(scenario)}
                       >
                         <CardContent className="pt-6">

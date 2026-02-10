@@ -81,6 +81,9 @@ export const studySessions = sqliteTable("study_sessions", {
   startedAt: integer("started_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
   endedAt: integer("ended_at", { mode: "timestamp" }),
   sessionType: text("session_type", { enum: sessionTypeValues }).notNull(),
+  categorySlug: text("category_slug"),
+  questionsAnswered: integer("questions_answered"),
+  questionsCorrect: integer("questions_correct"),
   xpEarned: integer("xp_earned").notNull().default(0),
 });
 
@@ -111,3 +114,18 @@ export const flashcardBookmarks = sqliteTable("flashcard_bookmarks", {
 // Type inference for FlashcardBookmark from schema
 export type FlashcardBookmark = typeof flashcardBookmarks.$inferSelect;
 export type NewFlashcardBookmark = typeof flashcardBookmarks.$inferInsert;
+
+// Quiz results table - tracks completed quiz scores by category
+export const quizResults = sqliteTable("quiz_results", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  categorySlug: text("category_slug").notNull(),
+  score: integer("score").notNull(),
+  totalQuestions: integer("total_questions").notNull(),
+  bestStreak: integer("best_streak").notNull().default(0),
+  completedAt: integer("completed_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+// Type inference for QuizResult from schema
+export type QuizResult = typeof quizResults.$inferSelect;
+export type NewQuizResult = typeof quizResults.$inferInsert;

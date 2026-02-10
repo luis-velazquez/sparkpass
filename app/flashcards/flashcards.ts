@@ -769,6 +769,189 @@ export const CHAPTER_9_TABLES_CARDS: Flashcard[] = [
   },
 ];
 
+// Voltage Drop Flashcards
+export const VOLTAGE_DROP_CARDS: Flashcard[] = [
+  {
+    id: "vd-001",
+    front: "What is the NEC recommended maximum voltage drop for a branch circuit?",
+    back: "3% of the circuit voltage.",
+    category: "voltage-drop",
+    necReference: "NEC 210.19(A) Informational Note No. 4",
+  },
+  {
+    id: "vd-002",
+    front: "What is the NEC recommended maximum TOTAL voltage drop for feeder + branch circuit combined?",
+    back: "5% of the source voltage.",
+    category: "voltage-drop",
+    necReference: "NEC 215.2(A)(2) Informational Note No. 2",
+  },
+  {
+    id: "vd-003",
+    front: "What is the DC voltage drop formula using the K-factor method?",
+    back: "VD = 2 × K × I × D / CM, where K = resistivity constant, I = current in amps, D = one-way distance in feet, CM = circular mils.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 8",
+  },
+  {
+    id: "vd-004",
+    front: "What is the K-factor value for copper conductors?",
+    back: "K = 12.9 ohms per mil-foot.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 8",
+  },
+  {
+    id: "vd-005",
+    front: "What is the K-factor value for aluminum conductors?",
+    back: "K = 21.2 ohms per mil-foot.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 8",
+  },
+  {
+    id: "vd-006",
+    front: "Why is there a factor of 2 in the voltage drop formula?",
+    back: "Because current travels out on one conductor and returns on another — the total circuit length is twice the one-way distance.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 8",
+  },
+  {
+    id: "vd-007",
+    front: "Which Chapter 9 table provides AC resistance and reactance values used for voltage drop?",
+    back: "Table 9 — AC Resistance and Reactance for 600-Volt Cables, 3-Phase, 60 Hz.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 9",
+  },
+  {
+    id: "vd-008",
+    front: "What is the AC voltage drop formula using Table 9?",
+    back: "VD = 2 × L × R × I / 1000, where L = one-way length in feet, R = effective impedance (ohms per 1000 ft from Table 9), I = current in amps.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 9",
+  },
+  {
+    id: "vd-009",
+    front: "What is 'Effective Z' in Chapter 9, Table 9?",
+    back: "The combined effect of AC resistance and reactance at a given power factor, used to simplify AC voltage drop calculations.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 9",
+  },
+  {
+    id: "vd-010",
+    front: "A 120V branch circuit has a calculated voltage drop of 3.6V. What is the percent voltage drop?",
+    back: "3.6V / 120V × 100 = 3%. This is at the NEC recommended maximum for a branch circuit.",
+    category: "voltage-drop",
+    necReference: "NEC 210.19(A) Informational Note No. 4",
+  },
+  {
+    id: "vd-011",
+    front: "A 12 AWG copper conductor has 6,530 circular mils. What is the voltage drop for a 30A load at 100 feet on a 240V circuit?",
+    back: "VD = 2 × 12.9 × 30 × 100 / 6,530 = 11.85V. Percent = 11.85 / 240 = 4.94%.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 8",
+  },
+  {
+    id: "vd-012",
+    front: "How can you reduce voltage drop on a circuit?",
+    back: "Increase conductor size (larger CM), shorten the circuit run, or reduce the load current.",
+    category: "voltage-drop",
+    necReference: "NEC 210.19(A) Informational Note No. 4",
+  },
+  {
+    id: "vd-013",
+    front: "Are the NEC voltage drop recommendations (3% and 5%) mandatory requirements?",
+    back: "No. They are informational notes (recommendations), not enforceable code requirements. However, many AHJs enforce them.",
+    category: "voltage-drop",
+    necReference: "NEC 210.19(A); 215.2(A)",
+  },
+  {
+    id: "vd-014",
+    front: "What is the circular mil area of a 10 AWG copper conductor?",
+    back: "10,380 circular mils.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 8",
+  },
+  {
+    id: "vd-015",
+    front: "To find the minimum conductor size for a given voltage drop limit, how do you rearrange the formula?",
+    back: "CM = 2 × K × I × D / VD (max allowable). Solve for CM, then select the next larger standard conductor size.",
+    category: "voltage-drop",
+    necReference: "NEC Chapter 9, Table 8",
+  },
+];
+
+// Motor Calculations Flashcards (Article 430)
+export const MOTOR_CALCULATIONS_CARDS: Flashcard[] = [
+  {
+    id: "mc-001",
+    front: "What table is used to find the Full Load Current (FLC) for sizing motor branch circuit conductors?",
+    back: "Table 430.250 (3-phase AC motors) or Table 430.248 (single-phase). Never use the motor nameplate FLA for conductor sizing.",
+    category: "motor-calculations",
+    necReference: "NEC 430.6(A)(1); Tables 430.248, 430.250",
+  },
+  {
+    id: "mc-002",
+    front: "What is the minimum ampacity for motor branch circuit conductors?",
+    back: "125% of the motor's Full Load Current (FLC) from Table 430.250 or 430.248.",
+    category: "motor-calculations",
+    necReference: "NEC 430.22(A)",
+  },
+  {
+    id: "mc-003",
+    front: "What is the maximum size inverse time circuit breaker for a standard squirrel cage motor?",
+    back: "250% of the motor FLC. If that size doesn't hold, you may go to the next standard size per 430.52(C)(1).",
+    category: "motor-calculations",
+    necReference: "NEC Table 430.52",
+  },
+  {
+    id: "mc-004",
+    front: "What is the maximum size dual-element (time-delay) fuse for motor short-circuit protection?",
+    back: "175% of motor FLC. Round up to the next standard fuse size if needed.",
+    category: "motor-calculations",
+    necReference: "NEC Table 430.52",
+  },
+  {
+    id: "mc-005",
+    front: "What is the overload protection limit for a motor with a service factor of 1.15 or greater?",
+    back: "125% of the motor nameplate FLA. Note: Overloads use nameplate amps, not Table FLC.",
+    category: "motor-calculations",
+    necReference: "NEC 430.32(A)(1)",
+  },
+  {
+    id: "mc-006",
+    front: "What is the overload protection limit for a motor with a service factor less than 1.15?",
+    back: "115% of the motor nameplate FLA.",
+    category: "motor-calculations",
+    necReference: "NEC 430.32(A)(1)",
+  },
+  {
+    id: "mc-007",
+    front: "How do you calculate minimum feeder ampacity for multiple motors?",
+    back: "125% of the largest motor FLC + 100% of the sum of all other motor FLCs.",
+    category: "motor-calculations",
+    necReference: "NEC 430.24",
+  },
+  {
+    id: "mc-008",
+    front: "How do you size the feeder overcurrent protection device for multiple motors?",
+    back: "Largest motor's branch circuit OCPD rating + sum of FLCs of all other motors.",
+    category: "motor-calculations",
+    necReference: "NEC 430.62(A)",
+  },
+  {
+    id: "mc-009",
+    front: "Where do you find locked rotor code letters and their kVA per HP values?",
+    back: "Table 430.7(B). Code letters range from A (lowest) to V (highest locked rotor current).",
+    category: "motor-calculations",
+    necReference: "NEC Table 430.7(B)",
+  },
+  {
+    id: "mc-010",
+    front: "A Design B motor uses an instantaneous trip breaker (MCP). What is the maximum setting allowed as a percentage of motor FLC?",
+    back: "1700% of the motor FLC for Design B motors when permitted by 430.52(C).",
+    category: "motor-calculations",
+    necReference: "NEC 430.52(C)(1); 430.52(C)(3)",
+  },
+];
+
 export const FLASHCARD_SETS: FlashcardSet[] = [
   {
     id: "residential-steps",
@@ -799,6 +982,18 @@ export const FLASHCARD_SETS: FlashcardSet[] = [
     name: "Chapter 9 Tables",
     description: "Chapter 9 - Conduit fill, conductor properties, and voltage drop tables.",
     cards: CHAPTER_9_TABLES_CARDS,
+  },
+  {
+    id: "voltage-drop",
+    name: "Voltage Drop",
+    description: "Voltage drop formulas, K-factors, and NEC recommendations for branch circuits and feeders.",
+    cards: VOLTAGE_DROP_CARDS,
+  },
+  {
+    id: "motor-calculations",
+    name: "Motor Calculations",
+    description: "Article 430 - Motor FLC, conductor sizing, OCPD, and overload protection.",
+    cards: MOTOR_CALCULATIONS_CARDS,
   },
 ];
 

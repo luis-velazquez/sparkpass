@@ -24,14 +24,20 @@ export async function GET() {
       .where(eq(bookmarks.userId, session.user.id))
       .orderBy(sql`${bookmarks.createdAt} DESC`);
 
-    // Enrich bookmarks with question details
+    // Enrich bookmarks with full question details
     const enrichedBookmarks = userBookmarks.map((b) => {
       const question = getQuestionById(b.questionId);
       return {
         id: b.id,
         questionId: b.questionId,
         questionText: question?.questionText || null,
+        options: question?.options || [],
+        correctAnswer: question?.correctAnswer ?? 0,
+        explanation: question?.explanation || null,
+        necReference: question?.necReference || null,
+        sparkyTip: question?.sparkyTip || null,
         category: question?.category || null,
+        difficulty: question?.difficulty || null,
         createdAt: b.createdAt?.toISOString() || null,
       };
     });

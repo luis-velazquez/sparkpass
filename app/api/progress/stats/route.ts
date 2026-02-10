@@ -83,6 +83,9 @@ export async function GET() {
       .select({
         id: studySessions.id,
         sessionType: studySessions.sessionType,
+        categorySlug: studySessions.categorySlug,
+        questionsAnswered: studySessions.questionsAnswered,
+        questionsCorrect: studySessions.questionsCorrect,
         startedAt: studySessions.startedAt,
         endedAt: studySessions.endedAt,
         xpEarned: studySessions.xpEarned,
@@ -128,6 +131,9 @@ export async function GET() {
       recentSessions: recentSessions.map((s) => ({
         id: s.id,
         sessionType: s.sessionType,
+        categorySlug: s.categorySlug || null,
+        questionsAnswered: s.questionsAnswered ?? null,
+        questionsCorrect: s.questionsCorrect ?? null,
         startedAt: s.startedAt?.toISOString() || null,
         endedAt: s.endedAt?.toISOString() || null,
         xpEarned: s.xpEarned,

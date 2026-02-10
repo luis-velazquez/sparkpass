@@ -2,7 +2,7 @@
 
 export type Difficulty = "easy" | "medium" | "hard";
 
-export type CategorySlug = "load-calculations" | "grounding-bonding" | "services" | "textbook-navigation" | "chapter-9-tables" | "box-fill" | "conduit-fill";
+export type CategorySlug = "load-calculations" | "grounding-bonding" | "services" | "textbook-navigation" | "chapter-9-tables" | "box-fill" | "conduit-fill" | "voltage-drop" | "motor-calculations" | "temperature-correction";
 
 export interface Category {
   slug: CategorySlug;
@@ -67,6 +67,24 @@ export const CATEGORIES: Category[] = [
     name: "Conduit Fill",
     necArticle: "Chapter 9 Tables",
     description: "Raceway sizing, conductor area calculations, and conduit fill percentages",
+  },
+  {
+    slug: "voltage-drop",
+    name: "Voltage Drop",
+    necArticle: "Chapter 9, Tables 8 & 9",
+    description: "Voltage drop formulas, conductor sizing for distance, and NEC recommendations",
+  },
+  {
+    slug: "motor-calculations",
+    name: "Motor Calculations",
+    necArticle: "Article 430",
+    description: "Motor FLC, conductor sizing, overload protection, and short-circuit protection",
+  },
+  {
+    slug: "temperature-correction",
+    name: "Temperature Correction",
+    necArticle: "Table 310.15(B)(1)",
+    description: "Ambient temperature correction factors, conductor derating, and ampacity adjustments",
   },
 ];
 

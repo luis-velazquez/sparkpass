@@ -19,6 +19,8 @@ import {
   Calculator,
   Bookmark,
   X,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,6 +65,9 @@ interface CategoryStat {
 interface RecentSession {
   id: string;
   sessionType: string;
+  categorySlug: string | null;
+  questionsAnswered: number | null;
+  questionsCorrect: number | null;
   startedAt: string | null;
   endedAt: string | null;
   xpEarned: number;
@@ -216,6 +221,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [savedFlashcards, setSavedFlashcards] = useState<SavedFlashcard[]>([]);
   const [savedQuestions, setSavedQuestions] = useState<SavedQuestion[]>([]);
+  const [questionsExpanded, setQuestionsExpanded] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -321,6 +327,46 @@ export default function DashboardPage() {
         <p className="text-muted-foreground mb-8">
           Let&apos;s keep the momentum going!
         </p>
+      </motion.div>
+
+      {/* Start Studying - Feature Cards */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="mb-8"
+      >
+        <h2 className="text-xl font-semibold text-foreground mb-4">
+          Start Studying
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
+            >
+              <Link href={feature.href}>
+                <Card className="h-full hover:shadow-lg transition-all cursor-pointer group hover:border-amber/50 pressable">
+                  <CardHeader className="pb-2">
+                    <div
+                      className={`w-12 h-12 rounded-lg ${feature.bgColor} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
+                    >
+                      <feature.icon className={`h-6 w-6 ${feature.color}`} />
+                    </div>
+                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </motion.div>
 
       {/* Stats Cards Row 1 - Core Stats */}
@@ -560,7 +606,7 @@ export default function DashboardPage() {
                     const stat = categoryStats.find((s) => s.slug === slug);
                     return (
                       <Link key={slug} href={`/quiz/${slug}`}>
-                        <div className="flex items-center justify-between p-2 rounded-lg bg-amber/5 hover:bg-amber/10 transition-colors cursor-pointer">
+                        <div className="flex items-center justify-between p-2 rounded-lg bg-amber/5 hover:bg-amber/10 transition-colors cursor-pointer pressable">
                           <span className="text-sm font-medium text-foreground">
                             {category?.name || slug}
                           </span>
@@ -655,7 +701,7 @@ export default function DashboardPage() {
                       ))}
                       {savedFlashcards.length > 5 && (
                         <Link href="/flashcards">
-                          <p className="text-sm text-amber hover:underline cursor-pointer">
+                          <p className="text-sm text-amber hover:underline cursor-pointer pressable">
                             +{savedFlashcards.length - 5} more flashcards
                           </p>
                         </Link>
@@ -677,61 +723,78 @@ export default function DashboardPage() {
                       <Brain className="h-4 w-4 text-purple" />
                       Quiz Questions ({savedQuestions.length})
                     </h3>
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                      {savedQuestions.slice(0, 5).map((question) => {
+                    <div className={`space-y-2 ${questionsExpanded ? "max-h-[400px]" : "max-h-[300px]"} overflow-y-auto`}>
+                      {(questionsExpanded ? savedQuestions : savedQuestions.slice(0, 5)).map((question, index) => {
                         const category = CATEGORIES.find(
                           (c) => c.slug === question.category
                         );
                         return (
-                          <div
+                          <Link
                             key={question.id}
-                            className="flex items-start justify-between p-3 rounded-lg bg-muted/50 group"
+                            href={`/review?question=${question.questionId}`}
+                            className="block"
                           >
-                            <div className="flex-1 min-w-0 mr-2">
-                              <p className="text-sm font-medium text-foreground truncate">
-                                {question.question}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {category?.name || question.category}
-                              </p>
+                            <div className="flex items-start justify-between p-3 rounded-lg bg-muted/50 group hover:bg-purple/10 hover:border-purple/30 border border-transparent transition-colors cursor-pointer pressable">
+                              <div className="flex-1 min-w-0 mr-2">
+                                <p className="text-sm font-medium text-foreground truncate group-hover:text-purple transition-colors">
+                                  {question.question}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {category?.name || question.category}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-purple group-hover:translate-x-0.5 transition-all" />
+                                <button
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    // Optimistically remove from UI
+                                    setSavedQuestions((prev) =>
+                                      prev.filter((q) => q.id !== question.id)
+                                    );
+                                    // Delete from database
+                                    try {
+                                      await fetch("/api/bookmarks", {
+                                        method: "DELETE",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ questionId: question.questionId }),
+                                      });
+                                    } catch (error) {
+                                      console.error("Failed to remove bookmark:", error);
+                                    }
+                                  }}
+                                  className="p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Remove from saved"
+                                >
+                                  <X className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+                                </button>
+                              </div>
                             </div>
-                            <button
-                              onClick={async () => {
-                                // Optimistically remove from UI
-                                setSavedQuestions((prev) =>
-                                  prev.filter((q) => q.id !== question.id)
-                                );
-                                // Delete from database
-                                try {
-                                  await fetch("/api/bookmarks", {
-                                    method: "DELETE",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ questionId: question.questionId }),
-                                  });
-                                } catch (error) {
-                                  console.error("Failed to remove bookmark:", error);
-                                }
-                              }}
-                              className="p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                              title="Remove from saved"
-                            >
-                              <X className="h-4 w-4 text-muted-foreground" />
-                            </button>
-                          </div>
+                          </Link>
                         );
                       })}
-                      {savedQuestions.length > 5 && (
-                        <Link href="/quiz">
-                          <p className="text-sm text-amber hover:underline cursor-pointer">
-                            +{savedQuestions.length - 5} more questions
-                          </p>
-                        </Link>
-                      )}
                     </div>
-                    <Link href="/quiz" className="block mt-3">
+                    {savedQuestions.length > 5 && (
+                      <button
+                        onClick={() => setQuestionsExpanded(!questionsExpanded)}
+                        className="flex items-center gap-1 text-sm text-purple hover:text-purple/80 mt-2 transition-colors"
+                      >
+                        <motion.div
+                          animate={{ rotate: questionsExpanded ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </motion.div>
+                        {questionsExpanded
+                          ? "Show less"
+                          : `+${savedQuestions.length - 5} more questions`}
+                      </button>
+                    )}
+                    <Link href="/review" className="block mt-3">
                       <Button variant="outline" size="sm" className="w-full">
                         <Brain className="h-4 w-4 mr-2" />
-                        Practice Quiz
+                        Review Questions
                       </Button>
                     </Link>
                   </div>
@@ -779,10 +842,10 @@ export default function DashboardPage() {
                     const isWeak = answered > 0 && categoryAccuracy < 70;
 
                     return (
-                      <div key={category.slug}>
+                      <Link key={category.slug} href={`/quiz/${category.slug}`} className="block group">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-foreground">
+                            <span className="text-sm font-medium text-foreground group-hover:text-amber transition-colors">
                               {category.name}
                             </span>
                             {isWeak && (
@@ -804,6 +867,7 @@ export default function DashboardPage() {
                             >
                               {answered === 0 ? "—" : `${categoryAccuracy}%`}
                             </span>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-amber group-hover:translate-x-0.5 transition-all" />
                           </div>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -824,7 +888,7 @@ export default function DashboardPage() {
                             }`}
                           />
                         </div>
-                      </div>
+                      </Link>
                     );
                   })}
                 </div>
@@ -859,42 +923,80 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {recentSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-purple-soft flex items-center justify-center">
-                          {session.sessionType === "quiz" && (
-                            <Brain className="h-5 w-5 text-purple" />
-                          )}
-                          {session.sessionType === "flashcard" && (
-                            <BookOpen className="h-5 w-5 text-emerald" />
-                          )}
-                          {session.sessionType === "mock_exam" && (
-                            <ClipboardCheck className="h-5 w-5 text-amber" />
-                          )}
-                          {session.sessionType === "daily_challenge" && (
-                            <Calendar className="h-5 w-5 text-purple" />
-                          )}
+                  {recentSessions.map((session) => {
+                    const categoryName = session.categorySlug
+                      ? CATEGORIES.find((c) => c.slug === session.categorySlug)?.name
+                      : null;
+                    const sessionHref = session.categorySlug
+                      ? `/quiz/${session.categorySlug}`
+                      : session.sessionType === "quiz"
+                      ? "/quiz"
+                      : session.sessionType === "flashcard"
+                      ? "/flashcards"
+                      : session.sessionType === "mock_exam"
+                      ? "/mock-exam"
+                      : "/quiz";
+
+                    const hasScore = session.questionsAnswered != null && session.questionsCorrect != null;
+                    const scorePercent = hasScore
+                      ? Math.round((session.questionsCorrect! / session.questionsAnswered!) * 100)
+                      : null;
+
+                    return (
+                      <Link key={session.id} href={sessionHref} className="block group">
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 group-hover:bg-muted transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-purple-soft flex items-center justify-center">
+                              {session.sessionType === "quiz" && (
+                                <Brain className="h-5 w-5 text-purple" />
+                              )}
+                              {session.sessionType === "flashcard" && (
+                                <BookOpen className="h-5 w-5 text-emerald" />
+                              )}
+                              {session.sessionType === "mock_exam" && (
+                                <ClipboardCheck className="h-5 w-5 text-amber" />
+                              )}
+                              {session.sessionType === "daily_challenge" && (
+                                <Calendar className="h-5 w-5 text-purple" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-foreground group-hover:text-amber transition-colors">
+                                {categoryName || getSessionTypeLabel(session.sessionType)}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span>{formatTimeAgo(session.startedAt)}</span>
+                                {hasScore && (
+                                  <>
+                                    <span>·</span>
+                                    <span>{session.questionsCorrect}/{session.questionsAnswered} correct</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {hasScore && scorePercent !== null ? (
+                              <span className={`text-sm font-bold ${
+                                scorePercent >= 80
+                                  ? "text-emerald"
+                                  : scorePercent >= 60
+                                  ? "text-amber"
+                                  : "text-red-500"
+                              }`}>
+                                {scorePercent}%
+                              </span>
+                            ) : session.xpEarned > 0 ? (
+                              <span className="text-sm font-medium text-amber">
+                                +{session.xpEarned} XP
+                              </span>
+                            ) : null}
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-amber group-hover:translate-x-0.5 transition-all" />
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {getSessionTypeLabel(session.sessionType)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatTimeAgo(session.startedAt)}
-                          </p>
-                        </div>
-                      </div>
-                      {session.xpEarned > 0 && (
-                        <span className="text-sm font-medium text-amber">
-                          +{session.xpEarned} XP
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -902,44 +1004,6 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      {/* Feature Cards */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.65 }}
-      >
-        <h2 className="text-xl font-semibold text-foreground mb-4">
-          Start Studying
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.65 + index * 0.1 }}
-            >
-              <Link href={feature.href}>
-                <Card className="h-full hover:shadow-lg transition-all cursor-pointer group hover:border-amber/50">
-                  <CardHeader className="pb-2">
-                    <div
-                      className={`w-12 h-12 rounded-lg ${feature.bgColor} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
-                    >
-                      <feature.icon className={`h-6 w-6 ${feature.color}`} />
-                    </div>
-                    <CardTitle className="text-lg">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
     </main>
   );
 }

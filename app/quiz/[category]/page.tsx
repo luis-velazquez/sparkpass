@@ -16,8 +16,11 @@ import {
   Flame,
   RotateCcw,
   ChevronRight,
+  ChevronDown,
   Save,
   Loader2,
+  Lightbulb,
+  Zap,
 } from "lucide-react";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { SessionTimeoutWarning } from "@/components/session-timeout-warning";
@@ -113,6 +116,60 @@ function fireConfetti() {
   });
 }
 
+// Particle burst from answer button (used during fire streaks)
+function ParticleBurst({ x, y, id }: { x: number; y: number; id: number }) {
+  const particles = useMemo(() => {
+    return Array.from({ length: 50 }, (_, i) => {
+      const angle = (i / 50) * 360 + (Math.random() * 15 - 7.5);
+      const rad = (angle * Math.PI) / 180;
+      const distance = 100 + Math.random() * 140;
+      const size = 8 + Math.random() * 14;
+      return {
+        id: i,
+        tx: Math.cos(rad) * distance,
+        ty: Math.sin(rad) * distance,
+        size,
+        color: ["#F59E0B", "#EF4444", "#F97316", "#FBBF24", "#10B981", "#FDE68A", "#FB923C"][i % 7],
+        delay: Math.random() * 0.12,
+      };
+    });
+  }, []);
+
+  return (
+    <div
+      key={id}
+      className="fixed pointer-events-none z-50"
+      style={{ left: x, top: y }}
+    >
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 1.5 }}
+          animate={{
+            x: p.tx,
+            y: p.ty,
+            opacity: 0,
+            scale: 0,
+          }}
+          transition={{
+            duration: 0.8,
+            delay: p.delay,
+            ease: "easeOut",
+          }}
+          style={{
+            position: "absolute",
+            width: p.size,
+            height: p.size,
+            borderRadius: "50%",
+            backgroundColor: p.color,
+            boxShadow: `0 0 12px 4px ${p.color}`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 
 interface QuizState {
   questions: Question[];
@@ -125,6 +182,7 @@ interface QuizState {
   sparkyMessage: string;
   showHint: boolean;
   correctStreak: number;
+  bestStreak: number;
   showOnFire: boolean;
   streakBroken: boolean;
 }
@@ -136,6 +194,7 @@ interface SavedQuizProgress {
   answers: Record<string, number>; // Serialized Map
   bookmarkedQuestions: string[]; // Serialized Set
   correctStreak: number;
+  bestStreak: number;
   timestamp: number;
 }
 
@@ -152,6 +211,7 @@ function createInitialState(categorySlug: CategorySlug): QuizState {
     sparkyMessage: "",
     showHint: false,
     correctStreak: 0,
+    bestStreak: 0,
     showOnFire: false,
     streakBroken: false,
   };
@@ -174,7 +234,7 @@ export default function QuizTakingPage() {
     createInitialState(categorySlug)
   );
 
-  const { questions, currentQuestionIndex, selectedAnswer, bookmarkedQuestions, answers, isSubmitted, showXpAnimation, sparkyMessage, correctStreak, showOnFire, streakBroken } = quizState;
+  const { questions, currentQuestionIndex, selectedAnswer, bookmarkedQuestions, answers, isSubmitted, showXpAnimation, sparkyMessage, correctStreak, bestStreak, showOnFire, streakBroken } = quizState;
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
   const progressPercentage = totalQuestions > 0
@@ -189,6 +249,10 @@ export default function QuizTakingPage() {
 
   // Ref for feedback section to scroll to
   const feedbackRef = useRef<HTMLDivElement | null>(null);
+
+  // Refs for answer button positions (particle burst)
+  const answerButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [particleBurst, setParticleBurst] = useState<{ x: number; y: number; id: number } | null>(null);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -230,6 +294,7 @@ export default function QuizTakingPage() {
       answers: Object.fromEntries(state.answers),
       bookmarkedQuestions: Array.from(state.bookmarkedQuestions),
       correctStreak: state.correctStreak,
+      bestStreak: state.bestStreak,
       timestamp: Date.now(),
     };
     localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(toSave));
@@ -266,6 +331,7 @@ export default function QuizTakingPage() {
       sparkyMessage: "",
       showHint: false,
       correctStreak: savedProgress.correctStreak,
+      bestStreak: savedProgress.bestStreak || savedProgress.correctStreak,
       showOnFire: savedProgress.correctStreak >= STREAK_THRESHOLD,
       streakBroken: false,
     });
@@ -303,7 +369,7 @@ export default function QuizTakingPage() {
           fetch("/api/sessions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionType: "quiz" }),
+            body: JSON.stringify({ sessionType: "quiz", categorySlug }),
           }),
         ]);
 
@@ -355,7 +421,7 @@ export default function QuizTakingPage() {
         await fetch("/api/sessions", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, xpEarned }),
+          body: JSON.stringify({ sessionId, xpEarned, questionsAnswered: answers.size, questionsCorrect: correctCount }),
         });
       } catch {
         // Silently fail
@@ -374,10 +440,11 @@ export default function QuizTakingPage() {
       "bookmarkedQuestions",
       JSON.stringify(Array.from(bookmarkedQuestions))
     );
+    sessionStorage.setItem("bestStreak", String(bestStreak));
     sessionStorage.setItem("sessionTimedOut", "true");
     clearSavedProgress();
     router.push(`/quiz/${categorySlug}/results`);
-  }, [questions, answers, bookmarkedQuestions, categorySlug, router, clearSavedProgress]);
+  }, [questions, answers, bookmarkedQuestions, bestStreak, categorySlug, router, clearSavedProgress]);
 
   // Session timeout hook - 1 hour with 5 minute warning
   const {
@@ -509,15 +576,30 @@ export default function QuizTakingPage() {
         message = getRandomMessage(INCORRECT_MESSAGES);
       }
 
-      // Fire confetti for correct answers
+      // Fire celebration for correct answers
       if (isCorrect) {
-        fireConfetti();
+        if (isOnFire && selectedAnswer !== null) {
+          // Particle burst from the selected answer button
+          const btn = answerButtonRefs.current[selectedAnswer];
+          if (btn) {
+            const rect = btn.getBoundingClientRect();
+            setParticleBurst({
+              x: rect.left + rect.width / 2,
+              y: rect.top + rect.height / 2,
+              id: Date.now(),
+            });
+          }
+        } else {
+          fireConfetti();
+        }
       }
 
       // Scroll to feedback section after a short delay with smooth animation
       setTimeout(() => {
         feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 500);
+
+      const newBestStreak = Math.max(prev.bestStreak, newStreak);
 
       return {
         ...prev,
@@ -526,8 +608,10 @@ export default function QuizTakingPage() {
         showXpAnimation: isCorrect,
         sparkyMessage: message,
         correctStreak: newStreak,
+        bestStreak: newBestStreak,
         showOnFire: isCorrect && isOnFire,
         streakBroken: streakJustBroken,
+        showHint: false,
       };
     });
   }, [quizState]);
@@ -552,7 +636,7 @@ export default function QuizTakingPage() {
           await fetch("/api/sessions", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionId, xpEarned }),
+            body: JSON.stringify({ sessionId, xpEarned, questionsAnswered: answers.size, questionsCorrect: correctCount }),
           });
         } catch {
           // Silently fail
@@ -571,6 +655,7 @@ export default function QuizTakingPage() {
         "bookmarkedQuestions",
         JSON.stringify(Array.from(bookmarkedQuestions))
       );
+      sessionStorage.setItem("bestStreak", String(bestStreak));
       clearSavedProgress();
       router.push(`/quiz/${categorySlug}/results`);
     } else {
@@ -588,8 +673,9 @@ export default function QuizTakingPage() {
         sparkyMessage: "",
         showHint: false,
       }));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [currentQuestionIndex, totalQuestions, answers, questions, bookmarkedQuestions, categorySlug, router, clearSavedProgress]);
+  }, [currentQuestionIndex, totalQuestions, answers, questions, bookmarkedQuestions, bestStreak, categorySlug, router, clearSavedProgress]);
 
   // Bookmark handler specifically for the feedback section
   const handleBookmarkFromFeedback = useCallback(async () => {
@@ -643,6 +729,7 @@ export default function QuizTakingPage() {
         sparkyMessage: "",
         showHint: false,
       }));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [currentQuestionIndex]);
 
@@ -765,37 +852,28 @@ export default function QuizTakingPage() {
 
   return (
     <>
-      {/* Glow pulse overlay for 3+ streak */}
+      {/* Quick green/gold flash on correct answer */}
       <AnimatePresence>
-        {isOnFireStreak && (
+        {isSubmitted && isCorrectAnswer && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0.6 }}
+            animate={{ opacity: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 pointer-events-none z-50"
-            style={{
-              boxShadow: "inset 0 0 100px 20px rgba(139, 92, 246, 0.3)",
-            }}
-          >
-            <motion.div
-              className="absolute inset-0"
-              animate={{
-                boxShadow: [
-                  "inset 0 0 60px 10px rgba(139, 92, 246, 0.2)",
-                  "inset 0 0 100px 30px rgba(139, 92, 246, 0.4)",
-                  "inset 0 0 60px 10px rgba(139, 92, 246, 0.2)",
-                ],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="fixed inset-0 pointer-events-none z-50 bg-emerald/15"
+          />
         )}
       </AnimatePresence>
+
+      {/* Particle burst from answer button during fire streak */}
+      {particleBurst && (
+        <ParticleBurst
+          key={particleBurst.id}
+          x={particleBurst.x}
+          y={particleBurst.y}
+          id={particleBurst.id}
+        />
+      )}
 
       <motion.main
         className="container mx-auto px-4 py-6 max-w-4xl"
@@ -803,79 +881,132 @@ export default function QuizTakingPage() {
       >
       {/* Progress Bar */}
       <div className="mb-6">
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div className={`h-2 bg-muted rounded-full overflow-hidden transition-shadow duration-500 ${
+          isOnFireStreak ? "shadow-[0_0_12px_3px_rgba(249,115,22,0.6)]" : ""
+        }`}>
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-amber to-amber-light rounded-full"
+            className={`h-full rounded-full transition-all duration-500 ${
+              isOnFireStreak
+                ? "bg-gradient-to-r from-orange-500 via-amber to-red-500 bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite]"
+                : "bg-gradient-to-r from-amber to-amber-light"
+            }`}
           />
         </div>
       </div>
 
       {/* Navigation Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        {/* Left side - Exit and Previous */}
-        <div className="flex items-center gap-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="default" className="gap-2">
-                <ChevronLeft className="h-4 w-4" />
-                Exit
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Exit Quiz?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to exit? Your progress will be lost and you&apos;ll need to start over.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Continue Quiz</AlertDialogCancel>
-                <AlertDialogAction onClick={handleExit}>
-                  Exit Quiz
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+      <div className="flex items-center justify-between gap-3 mb-6">
+        {/* Left - Exit */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="icon" className="md:hidden h-9 w-9">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="default" className="hidden md:inline-flex gap-2">
+              <ChevronLeft className="h-4 w-4" />
+              Exit
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Exit Quiz?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to exit? Your progress will be lost and you&apos;ll need to start over.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Continue Quiz</AlertDialogCancel>
+              <AlertDialogAction onClick={handleExit}>
+                Exit Quiz
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-          <Button
-            variant="outline"
-            size="default"
+        {/* Center - Previous chevron, question counter, streak */}
+        <div className="flex items-center gap-2">
+          <button
             onClick={handlePrevQuestion}
             disabled={currentQuestionIndex === 0}
-            className="gap-2"
+            className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
-          </Button>
-        </div>
-
-        {/* Center - Question counter and streak */}
-        <div className="flex items-center gap-3">
+          </button>
           <span className="text-sm font-medium text-muted-foreground">
             {currentQuestionIndex + 1} / {totalQuestions}
           </span>
+          <button
+            onClick={handleNextQuestion}
+            disabled={!isSubmitted}
+            className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
           {correctStreak >= STREAK_THRESHOLD && (
             <motion.span
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-500 rounded-full text-xs font-bold border border-orange-500/30"
+              key={correctStreak}
+              initial={{ opacity: 0, scale: 0.5, rotate: -15 }}
+              animate={{
+                opacity: 1,
+                scale: correctStreak >= 10 ? 1.2 : correctStreak >= 7 ? 1.1 : 1,
+                rotate: 0,
+              }}
+              transition={{ type: "spring", bounce: 0.5 }}
+              className={`inline-flex items-center gap-1 rounded-full font-bold border ${
+                correctStreak >= 10
+                  ? "px-3 py-1.5 text-sm bg-gradient-to-r from-red-500/30 via-orange-500/30 to-yellow-500/30 text-red-500 border-red-500/50 shadow-[0_0_10px_2px_rgba(239,68,68,0.3)]"
+                  : correctStreak >= 7
+                  ? "px-2.5 py-1 text-xs bg-gradient-to-r from-orange-500/25 to-red-500/25 text-orange-500 border-orange-500/40 shadow-[0_0_8px_2px_rgba(249,115,22,0.25)]"
+                  : correctStreak >= 5
+                  ? "px-2.5 py-1 text-xs bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-500 border-orange-500/30"
+                  : "px-2 py-1 text-xs bg-gradient-to-r from-orange-500/15 to-red-500/15 text-orange-500 border-orange-500/25"
+              }`}
             >
-              <Flame className="h-3 w-3" />
+              <motion.span
+                animate={correctStreak >= 7 ? {
+                  scale: [1, 1.3, 1],
+                  rotate: [0, -10, 10, 0],
+                } : correctStreak >= 5 ? {
+                  scale: [1, 1.15, 1],
+                } : {}}
+                transition={{
+                  duration: correctStreak >= 7 ? 0.8 : 1,
+                  repeat: Infinity,
+                  repeatDelay: correctStreak >= 10 ? 0.3 : 0.8,
+                }}
+              >
+                <Flame className={correctStreak >= 10 ? "h-4 w-4" : "h-3 w-3"} />
+              </motion.span>
               {correctStreak}
+              {correctStreak >= 10 && "🔥"}
             </motion.span>
           )}
         </div>
 
-        {/* Right side - Save, Submit/Next */}
+        {/* Right - Save (icon on mobile, full on desktop) + Submit/Next (desktop only) */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleToggleBookmark}
+            className={`md:hidden h-9 w-9 ${isBookmarked ? "text-amber border-amber" : ""}`}
+          >
+            {isBookmarked ? (
+              <Star className="h-4 w-4 fill-amber" />
+            ) : (
+              <StarOff className="h-4 w-4" />
+            )}
+          </Button>
           <Button
             variant="outline"
             size="default"
             onClick={handleToggleBookmark}
-            className={`gap-2 ${isBookmarked ? "text-amber border-amber" : ""}`}
+            className={`hidden md:inline-flex gap-2 ${isBookmarked ? "text-amber border-amber" : ""}`}
           >
             {isBookmarked ? (
               <Star className="h-4 w-4 fill-amber" />
@@ -885,26 +1016,29 @@ export default function QuizTakingPage() {
             {isBookmarked ? "Saved" : "Save"}
           </Button>
 
-          {!isSubmitted ? (
-            <Button
-              onClick={handleSubmitAnswer}
-              disabled={selectedAnswer === null}
-              size="default"
-              className="bg-amber hover:bg-amber/90 text-white gap-2"
-            >
-              Submit
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNextQuestion}
-              size="default"
-              className="bg-amber hover:bg-amber/90 text-white gap-2"
-            >
-              {isLastQuestion ? "See Results" : "Next"}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          )}
+          {/* Submit/Next - desktop only */}
+          <div className="hidden md:block">
+            {!isSubmitted ? (
+              <Button
+                onClick={handleSubmitAnswer}
+                disabled={selectedAnswer === null}
+                size="default"
+                className="bg-amber hover:bg-amber/90 text-white gap-2"
+              >
+                Submit
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNextQuestion}
+                size="default"
+                className="bg-amber hover:bg-amber/90 text-white gap-2"
+              >
+                {isLastQuestion ? "See Results" : "Next"}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -919,38 +1053,26 @@ export default function QuizTakingPage() {
         >
           <Card className="mb-6">
             <CardContent className="pt-6">
-              {/* Hint Badge and Difficulty */}
+              {/* Hint Button and Difficulty */}
               <div className="flex items-center gap-2 mb-4">
-                {/* Flippable Hint Card */}
-                <div
-                  className="relative h-7 cursor-pointer"
-                  style={{ perspective: "1000px" }}
+                {/* Enhanced Hint Button */}
+                <button
                   onClick={() => setQuizState(prev => ({ ...prev, showHint: !prev.showHint }))}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-all ${
+                    quizState.showHint
+                      ? "bg-amber text-white border-amber"
+                      : "bg-amber/10 text-amber border-amber/30 hover:bg-amber/20"
+                  }`}
                 >
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  Hint
                   <motion.div
-                    className="relative"
-                    animate={{ rotateY: quizState.showHint ? 180 : 0 }}
-                    transition={{ duration: 0.4 }}
-                    style={{ transformStyle: "preserve-3d" }}
+                    animate={{ rotate: quizState.showHint ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    {/* Front - Hint Button */}
-                    <span
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber/10 text-amber text-sm font-medium border border-amber/30 hover:bg-amber/20 transition-colors"
-                      style={{ backfaceVisibility: "hidden" }}
-                    >
-                      <Book className="h-3.5 w-3.5" />
-                      Hint
-                    </span>
-                    {/* Back - NEC Reference */}
-                    <span
-                      className="absolute top-0 left-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-soft text-purple text-sm font-medium"
-                      style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-                    >
-                      <Book className="h-3.5 w-3.5" />
-                      {currentQuestion.necReference}
-                    </span>
+                    <ChevronDown className="h-3.5 w-3.5" />
                   </motion.div>
-                </div>
+                </button>
                 <span className="text-xs text-muted-foreground capitalize px-2 py-0.5 rounded bg-muted">
                   {currentQuestion.difficulty}
                 </span>
@@ -960,6 +1082,59 @@ export default function QuizTakingPage() {
               <h2 className="text-lg md:text-xl font-semibold text-foreground leading-relaxed">
                 {currentQuestion.questionText}
               </h2>
+
+              {/* Expandable Hint Section - Below Question */}
+              <AnimatePresence>
+                {quizState.showHint && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-5 p-4 rounded-xl backdrop-blur-md bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 shadow-xl">
+                        {/* NEC Reference - Staggered Entry */}
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: 0.1 }}
+                          className="flex items-start gap-3"
+                        >
+                          <div className="p-2 rounded-lg bg-purple/20">
+                            <Book className="h-4 w-4 text-purple" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">NEC Reference</p>
+                            <p className="text-sm font-semibold text-purple">
+                              {currentQuestion.necReference}
+                            </p>
+                          </div>
+                        </motion.div>
+
+                        {/* Sparky Tip - Staggered Entry */}
+                        {currentQuestion.sparkyTip && (
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: 0.25 }}
+                            className="flex items-start gap-3 mt-4 pt-4 border-t border-white/20 dark:border-white/10"
+                          >
+                            <div className="p-2 rounded-lg bg-amber/20">
+                              <Zap className="h-4 w-4 text-amber" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Sparky Tip</p>
+                              <p className="text-sm text-foreground leading-relaxed">
+                                {currentQuestion.sparkyTip}
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                )}
+              </AnimatePresence>
             </CardContent>
           </Card>
 
@@ -993,11 +1168,10 @@ export default function QuizTakingPage() {
               return (
                 <motion.button
                   key={index}
+                  ref={(el) => { answerButtonRefs.current[index] = el; }}
                   onClick={() => handleSelectAnswer(index)}
                   disabled={isSubmitted}
                   className={optionClasses}
-                  whileHover={!isSubmitted ? { scale: 1.01 } : {}}
-                  whileTap={!isSubmitted ? { scale: 0.99 } : {}}
                 >
                   <div className="flex items-start gap-3">
                     <span
@@ -1018,6 +1192,30 @@ export default function QuizTakingPage() {
                 </motion.button>
               );
             })}
+          </div>
+
+          {/* Mobile Submit/Next Button - visible only on small screens */}
+          <div className="flex justify-center mb-6 md:hidden">
+            {!isSubmitted ? (
+              <Button
+                onClick={handleSubmitAnswer}
+                disabled={selectedAnswer === null}
+                size="lg"
+                className="bg-amber hover:bg-amber/90 text-white gap-2 w-full"
+              >
+                Submit
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNextQuestion}
+                size="lg"
+                className="bg-amber hover:bg-amber/90 text-white gap-2 w-full"
+              >
+                {isLastQuestion ? "See Results" : "Next Question"}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
           {/* Feedback Section - Shows after answer is submitted */}
@@ -1048,13 +1246,38 @@ export default function QuizTakingPage() {
                   {/* Streak fire badge - persists while on streak */}
                   {correctStreak >= STREAK_THRESHOLD && (
                     <motion.span
+                      key={`feedback-streak-${correctStreak}`}
                       initial={{ opacity: 0, scale: 0, rotate: -180 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      animate={{
+                        opacity: 1,
+                        scale: correctStreak >= 10 ? 1.15 : 1,
+                        rotate: 0,
+                      }}
                       transition={{ duration: 0.5, type: "spring", bounce: 0.5 }}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-500 rounded-full text-lg font-bold border border-orange-500/30"
+                      className={`inline-flex items-center gap-2 rounded-full text-lg font-bold border ${
+                        correctStreak >= 10
+                          ? "px-5 py-2.5 bg-gradient-to-r from-red-500/30 via-orange-500/30 to-yellow-500/30 text-red-500 border-red-500/50 shadow-[0_0_12px_3px_rgba(239,68,68,0.3)]"
+                          : correctStreak >= 7
+                          ? "px-4 py-2 bg-gradient-to-r from-orange-500/25 to-red-500/25 text-orange-500 border-orange-500/40 shadow-[0_0_8px_2px_rgba(249,115,22,0.25)]"
+                          : "px-4 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-500 border-orange-500/30"
+                      }`}
                     >
-                      <Flame className="h-5 w-5 animate-pulse" />
-                      {correctStreak} Streak!
+                      <motion.span
+                        animate={correctStreak >= 7 ? {
+                          scale: [1, 1.3, 1],
+                          rotate: [0, -10, 10, 0],
+                        } : {
+                          scale: [1, 1.15, 1],
+                        }}
+                        transition={{
+                          duration: correctStreak >= 7 ? 0.8 : 1,
+                          repeat: Infinity,
+                          repeatDelay: correctStreak >= 10 ? 0.3 : 0.8,
+                        }}
+                      >
+                        <Flame className="h-5 w-5" />
+                      </motion.span>
+                      {correctStreak} Streak!{correctStreak >= 10 && " 🔥"}
                     </motion.span>
                   )}
                 </div>

@@ -70,6 +70,8 @@ export function getCategoryCounts(): Record<CategorySlug, number> {
     "chapter-9-tables": getQuestionCountByCategory("chapter-9-tables"),
     "box-fill": getQuestionCountByCategory("box-fill"),
     "conduit-fill": getQuestionCountByCategory("conduit-fill"),
+    "voltage-drop": getQuestionCountByCategory("voltage-drop"),
+    "motor-calculations": getQuestionCountByCategory("motor-calculations"),
   };
 }
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
@@ -28,13 +29,15 @@ import {
 export default function FlashcardsPage() {
   const { status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [savedCards, setSavedCards] = useState<Set<string>>(new Set());
-  const [selectedSetId, setSelectedSetId] = useState<string>(
-    FLASHCARD_SETS[0]?.id ?? "all"
-  );
+  const [savedCardsLoaded, setSavedCardsLoaded] = useState(false);
+  const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
+  const navigatingToCardRef = useRef<number | null>(null);
+  const initialSetChosen = useRef(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -56,6 +59,8 @@ export default function FlashcardsPage() {
         }
       } catch (error) {
         console.error("Failed to load saved flashcards:", error);
+      } finally {
+        setSavedCardsLoaded(true);
       }
     }
     if (status === "authenticated") {
@@ -63,16 +68,75 @@ export default function FlashcardsPage() {
     }
   }, [status]);
 
+  // Set initial set after saved cards are loaded
   useEffect(() => {
-    const activeSet: FlashcardSet | undefined = FLASHCARD_SETS.find(
-      (set) => set.id === selectedSetId
-    );
-    setCards(activeSet ? activeSet.cards : FLASHCARDS);
-    setCurrentIndex(0);
-    setIsFlipped(false);
-  }, [selectedSetId]);
+    if (savedCardsLoaded && !initialSetChosen.current) {
+      initialSetChosen.current = true;
+      // Default to "saved" if there are saved cards, otherwise first set
+      if (savedCards.size > 0) {
+        setSelectedSetId("saved");
+      } else {
+        setSelectedSetId(FLASHCARD_SETS[0]?.id ?? "all");
+      }
+    }
+  }, [savedCardsLoaded, savedCards]);
 
-  if (status === "loading") {
+  // Handle query parameter for direct card navigation
+  useEffect(() => {
+    const cardParam = searchParams.get("card");
+    if (cardParam && savedCardsLoaded) {
+      // Find which set contains this card
+      const targetSet = FLASHCARD_SETS.find((set) =>
+        set.cards.some((c) => c.id === cardParam)
+      );
+
+      if (targetSet) {
+        const cardIndex = targetSet.cards.findIndex((c) => c.id === cardParam);
+        if (cardIndex !== -1) {
+          // Set the ref so the set change effect doesn't reset the index
+          navigatingToCardRef.current = cardIndex;
+          setSelectedSetId(targetSet.id);
+          setIsFlipped(false);
+        }
+      } else {
+        // Check if it's in all cards
+        const allCardsIndex = FLASHCARDS.findIndex((c) => c.id === cardParam);
+        if (allCardsIndex !== -1) {
+          navigatingToCardRef.current = allCardsIndex;
+          setSelectedSetId("all");
+          setIsFlipped(false);
+        }
+      }
+      // Clear the query param after navigation
+      router.replace("/flashcards", { scroll: false });
+    }
+  }, [searchParams, savedCardsLoaded, router]);
+
+  useEffect(() => {
+    if (selectedSetId === null) return; // Wait for initial set selection
+
+    if (selectedSetId === "saved") {
+      // Filter to only show saved cards
+      const savedCardsList = FLASHCARDS.filter((card) => savedCards.has(card.id));
+      setCards(savedCardsList);
+    } else {
+      const activeSet: FlashcardSet | undefined = FLASHCARD_SETS.find(
+        (set) => set.id === selectedSetId
+      );
+      setCards(activeSet ? activeSet.cards : FLASHCARDS);
+    }
+
+    // Check if we're navigating to a specific card via query param
+    if (navigatingToCardRef.current !== null) {
+      setCurrentIndex(navigatingToCardRef.current);
+      navigatingToCardRef.current = null;
+    } else {
+      setCurrentIndex(0);
+    }
+    setIsFlipped(false);
+  }, [selectedSetId, savedCards]);
+
+  if (status === "loading" || selectedSetId === null) {
     return (
       <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-amber" />
@@ -201,6 +265,18 @@ export default function FlashcardsPage() {
         transition={{ duration: 0.5, delay: 0.1 }}
         className="flex flex-wrap gap-2 mb-6"
       >
+        {/* Saved Cards Filter - only show if there are saved cards */}
+        {savedCards.size > 0 && (
+          <Button
+            variant={selectedSetId === "saved" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedSetId("saved")}
+            className={selectedSetId === "saved" ? "bg-amber hover:bg-amber/90" : "border-amber text-amber hover:bg-amber/10"}
+          >
+            <Star className="h-3.5 w-3.5 mr-1.5 fill-current" />
+            Saved ({savedCards.size})
+          </Button>
+        )}
         {FLASHCARD_SETS.map((set) => (
           <Button
             key={set.id}
@@ -248,7 +324,7 @@ export default function FlashcardsPage() {
           className="mb-6"
         >
           <div
-            className="relative h-[300px] md:h-[350px] cursor-pointer perspective-1000"
+            className="relative h-[300px] md:h-[350px] cursor-pointer perspective-1000 pressable"
             onClick={() => setIsFlipped(!isFlipped)}
           >
             <AnimatePresence mode="wait">
@@ -306,7 +382,19 @@ export default function FlashcardsPage() {
         </motion.div>
       ) : (
         <Card className="h-[300px] flex items-center justify-center mb-6">
-          <p className="text-muted-foreground">No flashcards available for this category.</p>
+          <div className="text-center">
+            {selectedSetId === "saved" ? (
+              <>
+                <Star className="h-12 w-12 text-amber/30 mx-auto mb-4" />
+                <p className="text-muted-foreground">No saved flashcards yet.</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Click the bookmark button on any card to save it for later.
+                </p>
+              </>
+            ) : (
+              <p className="text-muted-foreground">No flashcards available for this category.</p>
+            )}
+          </div>
         </Card>
       )}
 
@@ -379,6 +467,49 @@ export default function FlashcardsPage() {
           message="Flashcards are great for memorizing NEC references and key values! Try to recall the answer before flipping. Spaced repetition is your friend - come back daily for best results!"
         />
       </motion.div>
+
+      {/* Saved Cards List */}
+      {savedCards.size > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-8"
+        >
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Star className="h-5 w-5 text-amber fill-amber" />
+            Saved for Later ({savedCards.size})
+          </h2>
+          <div className="grid gap-2">
+            {FLASHCARDS.filter((card) => savedCards.has(card.id)).map((card) => {
+              const setName = FLASHCARD_SETS.find((s) =>
+                s.cards.some((c) => c.id === card.id)
+              )?.name;
+              return (
+                <Link
+                  key={card.id}
+                  href={`/flashcards?card=${card.id}`}
+                  className="block"
+                >
+                  <Card className="p-3 hover:border-amber/50 hover:bg-amber/5 transition-colors cursor-pointer group pressable">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-amber transition-colors">
+                          {card.front}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {setName} • {card.necReference}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-amber group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-0.5" />
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </main>
   );
 }

@@ -1,12 +1,21 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, Zap, Shield, ChevronRight, Navigation, Table, Box, CircleDot } from "lucide-react";
+import { BookOpen, Zap, Shield, ChevronRight, Navigation, Table, Box, CircleDot, TrendingDown, Cog, Thermometer } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SparkyMessage } from "@/components/sparky";
 import { CATEGORIES } from "@/types/question";
 import { getCategoryCounts } from "@/lib/questions";
+
+interface QuizResultData {
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  bestStreak: number;
+  completedAt: Date;
+}
 
 // Map category slugs to icons
 const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -17,6 +26,9 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
   "chapter-9-tables": Table,
   "box-fill": Box,
   "conduit-fill": CircleDot,
+  "voltage-drop": TrendingDown,
+  "motor-calculations": Cog,
+  "temperature-correction": Thermometer,
 };
 
 // Map category slugs to colors
@@ -56,10 +68,33 @@ const categoryColors = {
     bg: "bg-rose-500/10",
     border: "hover:border-rose-500/50",
   },
+  "voltage-drop": {
+    icon: "text-yellow-500",
+    bg: "bg-yellow-500/10",
+    border: "hover:border-yellow-500/50",
+  },
+  "motor-calculations": {
+    icon: "text-indigo-500",
+    bg: "bg-indigo-500/10",
+    border: "hover:border-indigo-500/50",
+  },
+  "temperature-correction": {
+    icon: "text-red-400",
+    bg: "bg-red-400/10",
+    border: "hover:border-red-400/50",
+  },
 };
 
 export default function QuizPage() {
   const categoryCounts = getCategoryCounts();
+  const [lastScores, setLastScores] = useState<Record<string, QuizResultData>>({});
+
+  useEffect(() => {
+    fetch("/api/quiz-results")
+      .then((res) => res.ok ? res.json() : {})
+      .then((data) => setLastScores(data))
+      .catch(() => {});
+  }, []);
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -85,6 +120,7 @@ export default function QuizPage() {
           const Icon = categoryIcons[category.slug];
           const colors = categoryColors[category.slug];
           const questionCount = categoryCounts[category.slug];
+          const lastScore = lastScores[category.slug];
 
           return (
             <motion.div
@@ -95,7 +131,7 @@ export default function QuizPage() {
             >
               <Link href={`/quiz/${category.slug}`}>
                 <Card
-                  className={`h-full hover:shadow-lg transition-all cursor-pointer group ${colors.border}`}
+                  className={`h-full hover:shadow-lg transition-all cursor-pointer group pressable ${colors.border}`}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
@@ -104,7 +140,22 @@ export default function QuizPage() {
                       >
                         <Icon className={`h-6 w-6 ${colors.icon}`} />
                       </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
+                      <div className="flex items-center gap-2">
+                        {lastScore && (
+                          <span
+                            className={`text-sm font-bold px-2 py-0.5 rounded ${
+                              lastScore.percentage >= 80
+                                ? "bg-emerald/20 text-emerald"
+                                : lastScore.percentage >= 60
+                                ? "bg-amber/20 text-amber"
+                                : "bg-red-500/20 text-red-500"
+                            }`}
+                          >
+                            {lastScore.percentage}%
+                          </span>
+                        )}
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
+                      </div>
                     </div>
                     <CardTitle className="text-lg">{category.name}</CardTitle>
                   </CardHeader>

@@ -2,8 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, Zap, LogOut, Loader2 } from "lucide-react";
+import {
+  Menu,
+  Zap,
+  LogOut,
+  Loader2,
+  LayoutDashboard,
+  BookOpen,
+  Layers,
+  ClipboardCheck,
+  Calculator,
+  Mail,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -13,16 +25,18 @@ import {
 } from "@/components/ui/sheet";
 
 const navLinks = [
-  { href: "/quiz", label: "Quiz" },
-  { href: "/flashcards", label: "Flashcards" },
-  { href: "/mock-exam", label: "Mock Exam" },
-  { href: "/load-calculator", label: "Load Calculator" },
-  { href: "/contact", label: "Contact" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/quiz", label: "Quiz", icon: BookOpen },
+  { href: "/flashcards", label: "Flashcards", icon: Layers },
+  { href: "/mock-exam", label: "Mock Exam", icon: ClipboardCheck },
+  { href: "/load-calculator", label: "Load Calculator", icon: Calculator },
+  { href: "/contact", label: "Contact", icon: Mail },
 ];
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { data: session, status } = useSession();
+  const pathname = usePathname();
 
   const closeSheet = () => setOpen(false);
 
@@ -41,16 +55,26 @@ export function MobileNav() {
         </SheetTitle>
 
         <nav className="flex flex-col gap-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={closeSheet}
-              className="flex items-center px-4 py-3 text-foreground hover:bg-muted rounded-lg transition-colors min-h-[44px]"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={closeSheet}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] ${
+                  isActive
+                    ? "bg-amber/10 text-amber font-medium border-l-3 border-amber"
+                    : "text-foreground hover:bg-muted"
+                }`}
+              >
+                <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? "text-amber" : "text-muted-foreground"}`} />
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-border">

@@ -36,6 +36,20 @@
       "when": 1770130188562,
       "tag": "0004_previous_ikaris",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1770438887288,
+      "tag": "0005_tiny_susan_delgado",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1770537600000,
+      "tag": "0006_add_category_to_sessions",
+      "breakpoints": true
     }
   ]
 }

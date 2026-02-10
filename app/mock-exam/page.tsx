@@ -15,6 +15,15 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet";
 import { SparkyMessage } from "@/components/sparky";
 
 interface ExamOption {
@@ -127,7 +136,7 @@ export default function MockExamPage() {
             transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
           >
             <Card
-              className={`h-full cursor-pointer transition-all hover:shadow-lg ${
+              className={`h-full cursor-pointer transition-all hover:shadow-lg pressable ${
                 selectedExam === exam.id ? "ring-2 ring-amber" : ""
               } ${exam.difficulty === "challenging" ? "border-red-500/30" : ""}`}
               onClick={() => setSelectedExam(exam.id)}
@@ -167,39 +176,54 @@ export default function MockExamPage() {
         ))}
       </div>
 
-      {/* Selected Exam Details */}
-      {selectedExam && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8"
-        >
-          <Card className="bg-amber/5 border-amber/30">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    Ready to start{" "}
-                    {EXAM_OPTIONS.find((e) => e.id === selectedExam)?.title}?
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Once you begin, the timer will start. You can pause but not go back to previous questions.
-                  </p>
+      {/* Bottom Sheet for Exam Confirmation */}
+      <Sheet open={!!selectedExam} onOpenChange={(open) => !open && setSelectedExam(null)}>
+        <SheetContent side="bottom" showCloseButton={false} className="rounded-t-2xl md:max-w-lg md:left-1/2 md:-translate-x-1/2 md:right-auto md:rounded-2xl md:bottom-4">
+          {selectedExam && (() => {
+            const exam = EXAM_OPTIONS.find((e) => e.id === selectedExam);
+            if (!exam) return null;
+            return (
+              <>
+                <SheetHeader className="text-center">
+                  <div className={`w-14 h-14 rounded-xl ${exam.bgColor} flex items-center justify-center mx-auto`}>
+                    <exam.icon className={`h-7 w-7 ${exam.color}`} />
+                  </div>
+                  <SheetTitle className="text-xl">{exam.title}</SheetTitle>
+                  <SheetDescription>{exam.description}</SheetDescription>
+                </SheetHeader>
+                <div className="flex items-center justify-center gap-6 py-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <BookOpen className="h-4 w-4" />
+                    <span>{exam.questionCount} questions</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>{exam.timeLimit} min</span>
+                  </div>
                 </div>
-                <Button
-                  size="lg"
-                  className="bg-amber hover:bg-amber-dark text-white"
-                  onClick={() => handleStartExam(selectedExam)}
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Start Exam
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+                <p className="text-xs text-center text-muted-foreground px-4">
+                  Once you begin, the timer will start. You can pause but not go back to previous questions.
+                </p>
+                <SheetFooter className="flex-col gap-2 pb-6">
+                  <Button
+                    size="lg"
+                    className="bg-amber hover:bg-amber-dark text-white w-full"
+                    onClick={() => handleStartExam(selectedExam)}
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Start Exam
+                  </Button>
+                  <SheetClose asChild>
+                    <Button variant="outline" size="lg" className="w-full">
+                      Cancel
+                    </Button>
+                  </SheetClose>
+                </SheetFooter>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
 
       {/* Exam Tips */}
       <motion.div

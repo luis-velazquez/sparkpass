@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Zap } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
+import { DesktopNav } from "@/components/layout/DesktopNav";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -48,38 +49,7 @@ export default function RootLayout({
             <Logo />
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                href="/quiz"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Quiz
-              </Link>
-              <Link
-                href="/flashcards"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Flashcards
-              </Link>
-              <Link
-                href="/mock-exam"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Mock Exam
-              </Link>
-              <Link
-                href="/load-calculator"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Load Calculator
-              </Link>
-              <Link
-                href="/contact"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Contact
-              </Link>
-            </nav>
+            <DesktopNav />
 
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-2">

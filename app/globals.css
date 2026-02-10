@@ -225,3 +225,42 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Apple-style press interaction for all interactive elements.
+   Usage: Add the "pressable" class to any element that should
+   scale up on press (cards, links, divs with onClick, etc.).
+   Buttons and [role="button"] get this automatically.
+
+   - Pointer devices (mouse): scale(1.06) on active
+   - Touch devices: subtle opacity change to avoid scroll glitch */
+.pressable,
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  transition: transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 150ms ease;
+}
+
+/* Pointer devices (mouse/trackpad) - full scale effect */
+@media (hover: hover) and (pointer: fine) {
+  .pressable:active,
+  button:not(:disabled):active,
+  [role="button"]:not(:disabled):active {
+    transform: scale(1.06);
+    transition: transform 100ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+}
+
+/* Touch devices - subtle opacity instead of scale to avoid scroll glitch */
+@media (hover: none) and (pointer: coarse) {
+  .pressable:active,
+  button:not(:disabled):active,
+  [role="button"]:not(:disabled):active {
+    opacity: 0.8;
+    transition: opacity 100ms ease;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

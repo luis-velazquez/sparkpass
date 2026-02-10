@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import confetti from "canvas-confetti";
+import { AnimatePresence } from "framer-motion";
 import {
   Trophy,
   Star,
@@ -15,6 +15,7 @@ import {
   Book,
   CheckCircle2,
   XCircle,
+  Flame,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,21 +54,117 @@ function getRandomMessage(messages: string[]): string {
   return messages[Math.floor(Math.random() * messages.length)];
 }
 
-function fireConfetti() {
-  // Fire from left side
-  confetti({
-    particleCount: 100,
-    spread: 70,
-    origin: { x: 0, y: 0.6 },
-    colors: ["#F59E0B", "#10B981", "#8B5CF6", "#FFFBEB"],
-  });
-  // Fire from right side
-  confetti({
-    particleCount: 100,
-    spread: 70,
-    origin: { x: 1, y: 0.6 },
-    colors: ["#F59E0B", "#10B981", "#8B5CF6", "#FFFBEB"],
-  });
+// Fire particle component with physics-based movement
+function FireParticle({ delay, startX, size }: { delay: number; startX: number; size: "sm" | "md" | "lg" }) {
+  const sizeClasses = { sm: "text-2xl", md: "text-4xl", lg: "text-5xl" };
+  const duration = size === "lg" ? 3 : size === "md" ? 2.5 : 2;
+
+  // Generate random physics-based curve control points
+  const swayAmount = 30 + Math.random() * 40;
+  const swayDirection = Math.random() > 0.5 ? 1 : -1;
+
+  return (
+    <motion.div
+      className={`absolute ${sizeClasses[size]} pointer-events-none`}
+      style={{ filter: "drop-shadow(0 0 8px rgba(255, 150, 0, 0.8))" }}
+      initial={{
+        bottom: -50,
+        left: `${startX}%`,
+        opacity: 1,
+        scale: size === "lg" ? 1.2 : size === "md" ? 1 : 0.8,
+        rotate: 0,
+      }}
+      animate={{
+        bottom: "110%",
+        opacity: [1, 1, 0.9, 0.7, 0],
+        scale: [1, 1.4, 1.2, 0.9, 0.6],
+        x: [
+          0,
+          swayDirection * swayAmount * 0.3,
+          swayDirection * -swayAmount * 0.5,
+          swayDirection * swayAmount * 0.8,
+          swayDirection * -swayAmount * 0.2,
+        ],
+        rotate: [0, swayDirection * 10, swayDirection * -15, swayDirection * 20, 0],
+      }}
+      transition={{
+        duration,
+        delay,
+        ease: [0.25, 0.46, 0.45, 0.94], // Custom physics-like easing
+      }}
+    >
+      🔥
+    </motion.div>
+  );
+}
+
+// Orange screen glow overlay
+function FireGlow({ show }: { show: boolean }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          className="fixed inset-0 pointer-events-none z-40"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              boxShadow: "inset 0 0 150px 50px rgba(255, 100, 0, 0.3)",
+            }}
+            animate={{
+              boxShadow: [
+                "inset 0 0 100px 30px rgba(255, 100, 0, 0.2)",
+                "inset 0 0 180px 60px rgba(255, 120, 0, 0.4)",
+                "inset 0 0 120px 40px rgba(255, 80, 0, 0.25)",
+                "inset 0 0 160px 55px rgba(255, 100, 0, 0.35)",
+                "inset 0 0 100px 30px rgba(255, 100, 0, 0.2)",
+              ],
+            }}
+            transition={{
+              duration: 2,
+              repeat: 1,
+              ease: "easeInOut",
+            }}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// Fire animation overlay component
+function FireAnimation({ show }: { show: boolean }) {
+  // Create varied fire particles with different sizes
+  const fireParticles = Array.from({ length: 25 }, (_, i) => ({
+    id: `fire-${i}`,
+    delay: i * 0.08,
+    startX: 2 + (i * 3.8) + (Math.random() * 2 - 1),
+    size: i % 5 === 0 ? "lg" : i % 3 === 0 ? "md" : "sm" as "sm" | "md" | "lg",
+  }));
+
+  return (
+    <>
+      <FireGlow show={show} />
+      <AnimatePresence>
+        {show && (
+          <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+            {fireParticles.map((particle) => (
+              <FireParticle
+                key={particle.id}
+                delay={particle.delay}
+                startX={particle.startX}
+                size={particle.size}
+              />
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
+    </>
+  );
 }
 
 interface QuizResultData {
@@ -75,6 +172,7 @@ interface QuizResultData {
   questionIds: string[];
   categorySlug: CategorySlug;
   bookmarkedQuestions: string[];
+  bestStreak: number;
 }
 
 interface IncorrectQuestion {
@@ -94,6 +192,7 @@ export default function QuizResultsPage() {
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpInfo, setLevelUpInfo] = useState<{ newLevel: number; newTitle: string; message: string } | null>(null);
   const [previousUserXP, setPreviousUserXP] = useState<number | null>(null);
+  const [showFireAnimation, setShowFireAnimation] = useState(false);
 
   const category = useMemo(() => getCategoryBySlug(categorySlug), [categorySlug]);
 
@@ -104,6 +203,7 @@ export default function QuizResultsPage() {
     const storedCategorySlug = sessionStorage.getItem("quizCategory");
     const bookmarkedStr = sessionStorage.getItem("bookmarkedQuestions");
     const preQuizXPStr = sessionStorage.getItem("preQuizXP");
+    const bestStreakStr = sessionStorage.getItem("bestStreak");
 
     if (!answersStr || !questionIdsStr || storedCategorySlug !== categorySlug) {
       // No quiz data found or category mismatch - redirect to quiz selection
@@ -121,6 +221,7 @@ export default function QuizResultsPage() {
       questionIds: JSON.parse(questionIdsStr),
       categorySlug: storedCategorySlug as CategorySlug,
       bookmarkedQuestions: bookmarkedStr ? JSON.parse(bookmarkedStr) : [],
+      bestStreak: bestStreakStr ? parseInt(bestStreakStr, 10) : 0,
     };
 
     setResultData(data);
@@ -161,9 +262,9 @@ export default function QuizResultsPage() {
     };
   }, [resultData]);
 
-  // Set Sparky message, fire confetti, and check for level-up
+  // Set Sparky message, fire animation, save result, and check for level-up
   useEffect(() => {
-    if (!results) return;
+    if (!results || !resultData) return;
 
     let messages: string[];
     if (results.percentage >= 90) {
@@ -176,15 +277,27 @@ export default function QuizResultsPage() {
 
     setSparkyMessage(getRandomMessage(messages));
 
-    // Fire confetti for scores 80%+
+    // Fire animation for passing scores (80%+)
     if (results.percentage >= 80) {
       setTimeout(() => {
-        fireConfetti();
+        setShowFireAnimation(true);
       }, 300);
     }
 
     // Trigger XP animation
     setShowXpAnimation(true);
+
+    // Save quiz result to database
+    fetch("/api/quiz-results", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        categorySlug: resultData.categorySlug,
+        score: results.correctCount,
+        totalQuestions: results.totalQuestions,
+        bestStreak: resultData.bestStreak,
+      }),
+    }).catch((err) => console.error("Failed to save quiz result:", err));
 
     // Check for level-up if we have previous XP
     if (previousUserXP !== null) {
@@ -203,7 +316,7 @@ export default function QuizResultsPage() {
         }, 2000);
       }
     }
-  }, [results, previousUserXP]);
+  }, [results, resultData, previousUserXP]);
 
   const toggleQuestionExpand = (questionId: string) => {
     setExpandedQuestions((prev) => {
@@ -223,6 +336,7 @@ export default function QuizResultsPage() {
     sessionStorage.removeItem("quizQuestionIds");
     sessionStorage.removeItem("quizCategory");
     sessionStorage.removeItem("bookmarkedQuestions");
+    sessionStorage.removeItem("bestStreak");
     router.push(`/quiz/${categorySlug}`);
   };
 
@@ -232,6 +346,7 @@ export default function QuizResultsPage() {
     sessionStorage.removeItem("quizQuestionIds");
     sessionStorage.removeItem("quizCategory");
     sessionStorage.removeItem("bookmarkedQuestions");
+    sessionStorage.removeItem("bestStreak");
     router.push("/quiz");
   };
 
@@ -281,6 +396,9 @@ export default function QuizResultsPage() {
 
   return (
     <main className="container mx-auto px-4 py-6 max-w-4xl">
+      {/* Fire Animation for passing scores */}
+      <FireAnimation show={showFireAnimation} />
+
       {/* Header */}
       <div className="text-center mb-8">
         <motion.div
@@ -361,6 +479,21 @@ export default function QuizResultsPage() {
                   <p className="text-muted-foreground mt-2">
                     Total: <span className="font-bold text-foreground">{results.totalXP} XP</span>
                   </p>
+                </motion.div>
+              )}
+
+              {/* Best Streak Display */}
+              {resultData.bestStreak >= 2 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0, rotate: -180 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ delay: 0.9, type: "spring", bounce: 0.5 }}
+                  className="mt-4"
+                >
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/20 text-orange-500 rounded-full text-lg font-bold">
+                    <Flame className="h-5 w-5" />
+                    Best Streak: {resultData.bestStreak} 🔥
+                  </span>
                 </motion.div>
               )}
             </div>
