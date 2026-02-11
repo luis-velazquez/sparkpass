@@ -1,4 +1,4 @@
-// Question Types for SparkPass Quiz System
+// Question Types for SparkyPass Quiz System
 
 export type Difficulty = "easy" | "medium" | "hard";
 

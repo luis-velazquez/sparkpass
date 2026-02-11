@@ -14,6 +14,7 @@ export async function GET() {
     const [user] = await db
       .select({
         name: users.name,
+        username: users.username,
         xp: users.xp,
         level: users.level,
         studyStreak: users.studyStreak,
@@ -29,6 +30,7 @@ export async function GET() {
 
     return NextResponse.json({
       name: user.name,
+      username: user.username,
       xp: user.xp,
       level: user.level,
       studyStreak: user.studyStreak,

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Zap, Mail, Loader2, CheckCircle, AlertCircle } from "lucide-react";
@@ -14,7 +15,7 @@ const sparkyTips = [
   "Fun fact: A Master Electrician must have at least 12,000 hours of practical experience in Texas!",
   "Did you know? Article 250 on Grounding & Bonding is one of the most tested areas on the exam.",
   "Pro tip: Load calculations in Article 220 appear frequently on the Master exam.",
-  "Remember: The texas Master Electrician exam has a 26% pass rate - but with SparkPass, you'll beat those odds!",
+  "Remember: The texas Master Electrician exam has a 26% pass rate - but with SparkyPass, you'll beat those odds!",
 ];
 
 function VerifyEmailContent() {
@@ -58,9 +59,19 @@ function VerifyEmailContent() {
         }
 
         setVerificationSuccess(true);
-        // Redirect to dashboard after a short delay
+
+        // Auto-login using the verification token, then redirect
+        const signInResult = await signIn("credentials", {
+          verificationToken: verificationToken,
+          redirect: false,
+        });
+
         setTimeout(() => {
-          router.push("/dashboard");
+          if (signInResult?.ok) {
+            router.push("/register/profile");
+          } else {
+            router.push("/login");
+          }
         }, 2000);
       } catch {
         setVerificationError("Something went wrong. Please try again.");
@@ -148,7 +159,7 @@ function VerifyEmailContent() {
                     Your email has been verified successfully!
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Redirecting to your dashboard...
+                    Signing you in...
                   </p>
                 </div>
               )}

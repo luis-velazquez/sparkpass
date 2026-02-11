@@ -49,6 +49,7 @@ interface SavedQuestion {
 
 interface UserData {
   name: string;
+  username: string | null;
   xp: number;
   level: number;
   studyStreak: number;
@@ -190,6 +191,8 @@ function getSessionTypeLabel(type: string): string {
       return "Mock Exam";
     case "daily_challenge":
       return "Daily Challenge";
+    case "load_calculator":
+      return "Load Calculator";
     default:
       return type;
   }
@@ -279,7 +282,7 @@ export default function DashboardPage() {
     );
   }
 
-  const name = userData?.name || session?.user?.name || "Electrician";
+  const displayName = userData?.username || userData?.name || session?.user?.name || "Electrician";
   const xp = progressStats?.xp ?? userData?.xp ?? 0;
   const level = progressStats?.level ?? userData?.level ?? 1;
   const studyStreak = progressStats?.studyStreak ?? userData?.studyStreak ?? 0;
@@ -322,7 +325,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.5 }}
       >
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Welcome back, <span className="text-amber">{name}</span>!
+          Welcome back, <span className="text-amber">{displayName}</span>!
         </h1>
         <p className="text-muted-foreground mb-8">
           Let&apos;s keep the momentum going!
@@ -924,10 +927,15 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {recentSessions.map((session) => {
-                    const categoryName = session.categorySlug
-                      ? CATEGORIES.find((c) => c.slug === session.categorySlug)?.name
-                      : null;
-                    const sessionHref = session.categorySlug
+                    const isLoadCalc = session.sessionType === "load_calculator";
+                    const categoryName = isLoadCalc
+                      ? (session.categorySlug === "commercial" ? "Commercial Load Calc" : "Residential Load Calc")
+                      : session.categorySlug
+                        ? CATEGORIES.find((c) => c.slug === session.categorySlug)?.name
+                        : null;
+                    const sessionHref = isLoadCalc
+                      ? (session.categorySlug === "commercial" ? "/load-calculator/commercial" : "/load-calculator")
+                      : session.categorySlug
                       ? `/quiz/${session.categorySlug}`
                       : session.sessionType === "quiz"
                       ? "/quiz"
@@ -958,6 +966,9 @@ export default function DashboardPage() {
                               )}
                               {session.sessionType === "daily_challenge" && (
                                 <Calendar className="h-5 w-5 text-purple" />
+                              )}
+                              {session.sessionType === "load_calculator" && (
+                                <Calculator className="h-5 w-5 text-amber" />
                               )}
                             </div>
                             <div>

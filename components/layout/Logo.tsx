@@ -11,7 +11,7 @@ export function Logo() {
   return (
     <Link href={href} className="flex items-center gap-2">
       <Zap className="h-8 w-8 text-amber" />
-      <span className="text-xl font-bold text-foreground">SparkPass</span>
+      <span className="text-xl font-bold text-foreground">SparkyPass</span>
     </Link>
   );
 }

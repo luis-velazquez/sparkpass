@@ -1,4 +1,4 @@
-// Database connection for SparkPass
+// Database connection for SparkyPass
 // Uses better-sqlite3 for local development
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";

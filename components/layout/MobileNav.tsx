@@ -15,6 +15,8 @@ import {
   ClipboardCheck,
   Calculator,
   Mail,
+  ChevronDown,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,8 +35,14 @@ const navLinks = [
   { href: "/contact", label: "Contact", icon: Mail },
 ];
 
+const calcSubLinks = [
+  { href: "/load-calculator", label: "Residential", icon: Calculator },
+  { href: "/load-calculator/commercial", label: "Commercial", icon: Building2 },
+];
+
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [calcExpanded, setCalcExpanded] = useState(false);
   const { data: session, status } = useSession();
   const pathname = usePathname();
 
@@ -51,13 +59,55 @@ export function MobileNav() {
       <SheetContent side="right" className="w-[280px] sm:w-[320px]">
         <SheetTitle className="flex items-center gap-2 mb-6">
           <Zap className="h-6 w-6 text-amber" />
-          <span className="font-bold">SparkPass</span>
+          <span className="font-bold">SparkyPass</span>
         </SheetTitle>
 
         <nav className="flex flex-col gap-1">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
+
+            if (link.href === "/load-calculator") {
+              return (
+                <div key={link.href}>
+                  <button
+                    onClick={() => setCalcExpanded(!calcExpanded)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] w-full ${
+                      isActive
+                        ? "bg-amber/10 text-amber font-medium border-l-3 border-amber"
+                        : "text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? "text-amber" : "text-muted-foreground"}`} />
+                    <span className="flex-1 text-left">{link.label}</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${calcExpanded ? "rotate-180" : ""}`} />
+                  </button>
+                  {calcExpanded && (
+                    <div className="ml-4 mt-1 flex flex-col gap-1">
+                      {calcSubLinks.map((sub) => {
+                        const SubIcon = sub.icon;
+                        const subActive = pathname === sub.href;
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            onClick={closeSheet}
+                            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors min-h-[40px] ${
+                              subActive
+                                ? "bg-amber/10 text-amber font-medium"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            }`}
+                          >
+                            <SubIcon className={`h-4 w-4 flex-shrink-0 ${subActive ? "text-amber" : "text-muted-foreground"}`} />
+                            {sub.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
 
             return (
               <Link

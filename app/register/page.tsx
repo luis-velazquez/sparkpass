@@ -104,7 +104,7 @@ export default function RegisterPage() {
             </Link>
             <CardTitle className="text-2xl font-bold">Create Your Account</CardTitle>
             <p className="text-muted-foreground">
-              Join SparkPass and start your journey to becoming a Master Electrician
+              Join SparkyPass and start your journey to becoming a Master Electrician
             </p>
           </CardHeader>
           <CardContent className="space-y-6">

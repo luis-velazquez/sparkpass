@@ -93,6 +93,17 @@ export default function BookmarkReviewResultsPage() {
     message: string;
   } | null>(null);
   const [previousUserXP, setPreviousUserXP] = useState<number | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+
+  // Fetch username for share text
+  useEffect(() => {
+    fetch("/api/user")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.username) setUsername(data.username);
+      })
+      .catch(() => {});
+  }, []);
 
   // Load quiz data from sessionStorage
   useEffect(() => {
@@ -225,12 +236,13 @@ export default function BookmarkReviewResultsPage() {
   const handleShare = async () => {
     if (!results) return;
 
-    const shareText = `I just scored ${results.percentage}% (${results.correctCount}/${results.totalQuestions}) on my SparkPass bookmark review session! 🎉⚡`;
+    const usernameTag = username ? ` @${username}` : "";
+    const shareText = `I scored ${results.percentage}% on my SparkyPass bookmark review session!${usernameTag} 🎉⚡`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "My SparkPass Review Score",
+          title: "My SparkyPass Review Score",
           text: shareText,
         });
       } catch {

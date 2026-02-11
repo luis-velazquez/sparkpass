@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SparkyMessage } from "@/components/sparky";
-import { cn } from "@/lib/utils";
+
 
 // US States list
 const US_STATES = [
@@ -41,14 +41,44 @@ const US_STATES = [
   "West Virginia", "Wisconsin", "Wyoming"
 ];
 
+function autoFormatDate(raw: string, prev: string): string {
+  // Strip non-digits and slashes
+  const digits = raw.replace(/[^\d]/g, "");
+  // If user is deleting, don't auto-format
+  if (raw.length < prev.length) return raw;
+  // Build formatted string: MM/DD/YYYY
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+}
+
+function parseDateInput(val: string): Date | undefined {
+  const match = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!match) return undefined;
+  const [, mm, dd, yyyy] = match;
+  const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  // Verify the date components round-trip (catches invalid dates like 02/31)
+  if (
+    date.getFullYear() === Number(yyyy) &&
+    date.getMonth() === Number(mm) - 1 &&
+    date.getDate() === Number(dd)
+  ) {
+    return date;
+  }
+  return undefined;
+}
+
 export default function ProfileCompletionPage() {
   const router = useRouter();
   const { data: session, status, update } = useSession();
 
+  const [username, setUsername] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
+  const [dobInput, setDobInput] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("Texas");
   const [targetExamDate, setTargetExamDate] = useState<Date | undefined>(undefined);
+  const [examInput, setExamInput] = useState("");
   const [newsletterOptedIn, setNewsletterOptedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState("");
@@ -85,6 +115,20 @@ export default function ProfileCompletionPage() {
     setFormError("");
 
     // Validation
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) {
+      setFormError("Please enter a username");
+      return;
+    }
+    if (trimmedUsername.length < 3 || trimmedUsername.length > 30) {
+      setFormError("Username must be between 3 and 30 characters");
+      return;
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
+      setFormError("Username can only contain letters, numbers, underscores, and hyphens");
+      return;
+    }
+
     if (!dateOfBirth) {
       setFormError("Please enter your date of birth");
       return;
@@ -129,6 +173,7 @@ export default function ProfileCompletionPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          username: trimmedUsername,
           dateOfBirth: dateOfBirth.toISOString(),
           city: city.trim(),
           state,
@@ -190,39 +235,73 @@ export default function ProfileCompletionPage() {
 
             {/* Profile Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Username */}
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Choose a username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={isLoading}
+                  autoComplete="username"
+                  maxLength={30}
+                />
+                <p className="text-xs text-muted-foreground">
+                  3-30 characters. Letters, numbers, underscores, and hyphens only.
+                </p>
+              </div>
+
               {/* Date of Birth */}
               <div className="space-y-2">
                 <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="dateOfBirth"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dateOfBirth && "text-muted-foreground"
-                      )}
-                      disabled={isLoading}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateOfBirth ? format(dateOfBirth, "MM/dd/yyyy") : "Select your date of birth"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateOfBirth}
-                      onSelect={setDateOfBirth}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1920-01-01")
-                      }
-                      defaultMonth={dateOfBirth || new Date(1990, 0)}
-                      captionLayout="dropdown"
-                      fromYear={1920}
-                      toYear={new Date().getFullYear()}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="flex gap-2">
+                  <Input
+                    id="dateOfBirth"
+                    type="text"
+                    placeholder="MM/DD/YYYY"
+                    value={dobInput}
+                    onChange={(e) => {
+                      const val = autoFormatDate(e.target.value, dobInput);
+                      setDobInput(val);
+                      setDateOfBirth(parseDateInput(val));
+                    }}
+                    maxLength={10}
+                    disabled={isLoading}
+                    autoComplete="bday"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0"
+                        disabled={isLoading}
+                        type="button"
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateOfBirth}
+                        onSelect={(date) => {
+                          setDateOfBirth(date);
+                          setDobInput(date ? format(date, "MM/dd/yyyy") : "");
+                        }}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1920-01-01")
+                        }
+                        defaultMonth={dateOfBirth || new Date(1990, 0)}
+                        captionLayout="dropdown"
+                        fromYear={1920}
+                        toYear={new Date().getFullYear()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
 
               {/* City */}
@@ -259,33 +338,46 @@ export default function ProfileCompletionPage() {
               {/* Target Exam Date */}
               <div className="space-y-2">
                 <Label htmlFor="targetExamDate">Target Exam Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="targetExamDate"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !targetExamDate && "text-muted-foreground"
-                      )}
-                      disabled={isLoading}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {targetExamDate
-                        ? format(targetExamDate, "MMMM d, yyyy")
-                        : "Select your target exam date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={targetExamDate}
-                      onSelect={setTargetExamDate}
-                      disabled={(date) => date < new Date()}
-                      defaultMonth={targetExamDate || new Date()}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="flex gap-2">
+                  <Input
+                    id="targetExamDate"
+                    type="text"
+                    placeholder="MM/DD/YYYY"
+                    value={examInput}
+                    onChange={(e) => {
+                      const val = autoFormatDate(e.target.value, examInput);
+                      setExamInput(val);
+                      setTargetExamDate(parseDateInput(val));
+                    }}
+                    maxLength={10}
+                    disabled={isLoading}
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0"
+                        disabled={isLoading}
+                        type="button"
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={targetExamDate}
+                        onSelect={(date) => {
+                          setTargetExamDate(date);
+                          setExamInput(date ? format(date, "MM/dd/yyyy") : "");
+                        }}
+                        disabled={(date) => date < new Date()}
+                        defaultMonth={targetExamDate || new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   We&apos;ll help you create a study plan based on your target date
                 </p>

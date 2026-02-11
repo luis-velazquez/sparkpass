@@ -1,4 +1,4 @@
-// NextAuth.js type extensions for SparkPass
+// NextAuth.js type extensions for SparkyPass
 import "next-auth";
 import "next-auth/jwt";
 

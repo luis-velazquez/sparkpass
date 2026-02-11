@@ -1,4 +1,4 @@
-// Level system configuration for SparkPass
+// Level system configuration for SparkyPass
 // XP thresholds from SP-020: 1:0, 2:500, 3:1000, 4:2000, 5:3500, 6:5500, 7:8000, 8:11000, 9:15000, 10:20000
 
 // XP reward constants

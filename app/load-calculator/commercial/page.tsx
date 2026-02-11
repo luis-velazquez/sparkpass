@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import confetti from "canvas-confetti";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,6 @@ import {
   ChevronDown,
   RotateCcw,
   Save,
-  Home,
   Zap,
   CheckCircle2,
   XCircle,
@@ -23,36 +22,41 @@ import {
   Trophy,
   ArrowRight,
   Plus,
+  Store,
+  UtensilsCrossed,
+  Building2,
+  Warehouse,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SparkyMessage } from "@/components/sparky";
-import { MiniCalculator } from "./mini-calculator";
+import { MiniCalculator } from "../mini-calculator";
 import {
-  HOUSE_SCENARIOS,
-  CALCULATION_STEPS,
-  SPARKY_MESSAGES,
+  COMMERCIAL_SCENARIOS,
+  COMMERCIAL_CALCULATION_STEPS,
+  COMMERCIAL_SPARKY_MESSAGES,
+  COMMERCIAL_QUICK_REFERENCE,
+  COMMERCIAL_TOTAL_VA_STEPS,
+  COMMERCIAL_STEP_EQUIPMENT_MAP,
   getRandomMessage,
-  getAccountedApplianceIds,
-  getFilteredSteps,
-  TOTAL_VA_COMPONENT_STEPS,
-  QUICK_REFERENCE_ITEMS,
-  isQuickRefCovered,
-  STEP_APPLIANCE_MAP,
-  MOTOR_CONVERSION_STEPS,
-  DIFFICULTY_LEVELS,
-  getDwellingConductorSize,
+  getEquipmentDisplayItems,
+  getAccountedEquipmentIds,
+  getKitchenEquipmentIds,
+  getMotorIds,
+  isCommercialQuickRefCovered,
+  getConductorSize,
   getGECSize,
-  conductorCodeToLabel,
-  type HouseScenario,
-  type CalculationStep,
+  getServiceAmps,
+  DIFFICULTY_LEVELS,
+  type CommercialScenario,
+  type CommercialCalculationStep,
   type DifficultyLevel,
-} from "./calculator-data";
+} from "../commercial-calculator-data";
 
 interface CalculatorState {
   difficulty: DifficultyLevel | null;
-  selectedScenario: HouseScenario | null;
+  selectedScenario: CommercialScenario | null;
   currentStepIndex: number;
   answers: Record<string, number>;
   userInput: string;
@@ -60,7 +64,7 @@ interface CalculatorState {
   lastAnswerCorrect: boolean | null;
   sparkyMessage: string;
   isComplete: boolean;
-  manualScratchedOff: Set<string>; // For intermediate mode manual tracking
+  manualScratchedOff: Set<string>;
 }
 
 interface SavedProgress {
@@ -73,8 +77,8 @@ interface SavedProgress {
 
 // Helper to get hint text (handles both string and function hints)
 function getHintText(
-  step: CalculationStep,
-  scenario: HouseScenario | null,
+  step: CommercialCalculationStep,
+  scenario: CommercialScenario | null,
   answers: Record<string, number>
 ): string {
   if (typeof step.hint === "function") {
@@ -85,13 +89,11 @@ function getHintText(
 
 // Fire confetti celebration
 function fireConfetti() {
-  // Fire from left side
   confetti({
     particleCount: 100,
     spread: 70,
     origin: { x: 0.1, y: 0.6 },
   });
-  // Fire from right side
   confetti({
     particleCount: 100,
     spread: 70,
@@ -101,16 +103,9 @@ function fireConfetti() {
 
 // Format number with commas for display
 function formatNumberWithCommas(value: string): string {
-  // Remove all non-numeric characters except decimal point
   const cleaned = value.replace(/[^\d.]/g, "");
-
-  // Split by decimal point
   const parts = cleaned.split(".");
-
-  // Format the integer part with commas
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-  // Rejoin with decimal if present
   return parts.length > 1 ? `${parts[0]}.${parts[1]}` : parts[0];
 }
 
@@ -156,7 +151,6 @@ function CollapsibleCard({
             <span className={iconColor}>{icon}</span>
             {title}
           </span>
-          {/* Only show chevron on mobile */}
           {isMobile && (
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -184,9 +178,28 @@ function CollapsibleCard({
   );
 }
 
-const STORAGE_KEY = "sparkypass-load-calculator";
+// Map scenario IDs to icons
+const SCENARIO_ICONS: Record<string, React.ReactNode> = {
+  retail: <Store className="h-5 w-5 text-amber" />,
+  restaurant: <UtensilsCrossed className="h-5 w-5 text-amber" />,
+  office: <Building2 className="h-5 w-5 text-amber" />,
+  warehouse: <Warehouse className="h-5 w-5 text-amber" />,
+};
 
-export default function LoadCalculatorPage() {
+// Category labels and order
+const CATEGORY_LABELS: Record<string, string> = {
+  building: "Building Info",
+  outlets: "Outlet Loads",
+  kitchen: "Kitchen Equipment",
+  hvac: "HVAC",
+  motors: "Other Motors",
+};
+
+const CATEGORY_ORDER = ["building", "outlets", "kitchen", "hvac", "motors"];
+
+const STORAGE_KEY = "sparkypass-commercial-load-calculator";
+
+export default function CommercialLoadCalculatorPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const sessionIdRef = useRef<string | null>(null);
@@ -199,7 +212,7 @@ export default function LoadCalculatorPage() {
     userInput: "",
     showHint: false,
     lastAnswerCorrect: null,
-    sparkyMessage: SPARKY_MESSAGES.welcome,
+    sparkyMessage: COMMERCIAL_SPARKY_MESSAGES.welcome,
     isComplete: false,
     manualScratchedOff: new Set(),
   });
@@ -208,12 +221,6 @@ export default function LoadCalculatorPage() {
   const [savedProgress, setSavedProgress] = useState<SavedProgress | null>(null);
 
   const hasPlayedConfetti = useRef(false);
-
-  // Filter steps based on selected scenario's equipment
-  const activeSteps = useMemo(() =>
-    state.selectedScenario ? getFilteredSteps(state.selectedScenario) : CALCULATION_STEPS,
-    [state.selectedScenario]
-  );
 
   // Scroll to top when page loads
   useEffect(() => {
@@ -226,7 +233,6 @@ export default function LoadCalculatorPage() {
       hasPlayedConfetti.current = true;
       fireConfetti();
     }
-    // Reset flag when starting over
     if (!state.isComplete) {
       hasPlayedConfetti.current = false;
     }
@@ -243,11 +249,9 @@ export default function LoadCalculatorPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as SavedProgress;
-        // Validate saved data
         if (parsed.scenarioId && parsed.difficulty) {
-          const scenario = HOUSE_SCENARIOS.find(s => s.id === parsed.scenarioId);
+          const scenario = COMMERCIAL_SCENARIOS.find(s => s.id === parsed.scenarioId);
           if (scenario) {
-            // Store saved progress and show the resume prompt
             setSavedProgress(parsed);
             setShowResumePrompt(true);
           }
@@ -262,9 +266,8 @@ export default function LoadCalculatorPage() {
   const handleContinueProgress = useCallback(() => {
     if (!savedProgress) return;
 
-    const scenario = HOUSE_SCENARIOS.find(s => s.id === savedProgress.scenarioId);
+    const scenario = COMMERCIAL_SCENARIOS.find(s => s.id === savedProgress.scenarioId);
     if (scenario) {
-      const steps = getFilteredSteps(scenario);
       setState(prev => ({
         ...prev,
         difficulty: savedProgress.difficulty,
@@ -273,8 +276,8 @@ export default function LoadCalculatorPage() {
         answers: savedProgress.answers || {},
         isComplete: savedProgress.isComplete || false,
         sparkyMessage: savedProgress.isComplete
-          ? SPARKY_MESSAGES.complete
-          : steps[savedProgress.currentStepIndex || 0]?.sparkyPrompt || prev.sparkyMessage,
+          ? COMMERCIAL_SPARKY_MESSAGES.complete
+          : COMMERCIAL_CALCULATION_STEPS[savedProgress.currentStepIndex || 0]?.sparkyPrompt || prev.sparkyMessage,
       }));
     }
     setShowResumePrompt(false);
@@ -302,18 +305,17 @@ export default function LoadCalculatorPage() {
     }
   }, []);
 
-  // Handle scenario selection
   // Handle difficulty selection
   const handleSelectDifficulty = useCallback((difficulty: DifficultyLevel) => {
     setState(prev => ({
       ...prev,
       difficulty,
-      sparkyMessage: SPARKY_MESSAGES.selectScenario,
+      sparkyMessage: COMMERCIAL_SPARKY_MESSAGES.selectScenario,
     }));
   }, []);
 
-  const handleSelectScenario = useCallback((scenario: HouseScenario) => {
-    const steps = getFilteredSteps(scenario);
+  // Handle scenario selection
+  const handleSelectScenario = useCallback((scenario: CommercialScenario) => {
     const newState: CalculatorState = {
       difficulty: state.difficulty,
       selectedScenario: scenario,
@@ -322,7 +324,7 @@ export default function LoadCalculatorPage() {
       userInput: "",
       showHint: false,
       lastAnswerCorrect: null,
-      sparkyMessage: steps[0].sparkyPrompt,
+      sparkyMessage: COMMERCIAL_CALCULATION_STEPS[0].sparkyPrompt,
       isComplete: false,
       manualScratchedOff: new Set(),
     };
@@ -334,7 +336,7 @@ export default function LoadCalculatorPage() {
       fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionType: "load_calculator" }),
+        body: JSON.stringify({ sessionType: "load_calculator", categorySlug: "commercial" }),
       })
         .then(res => res.json())
         .then(data => { sessionIdRef.current = data.sessionId; })
@@ -343,13 +345,13 @@ export default function LoadCalculatorPage() {
   }, [saveProgress, state.difficulty, session?.user]);
 
   // Toggle manual scratch-off for intermediate mode
-  const handleToggleScratchOff = useCallback((applianceId: string) => {
+  const handleToggleScratchOff = useCallback((equipmentId: string) => {
     setState(prev => {
       const newSet = new Set(prev.manualScratchedOff);
-      if (newSet.has(applianceId)) {
-        newSet.delete(applianceId);
+      if (newSet.has(equipmentId)) {
+        newSet.delete(equipmentId);
       } else {
-        newSet.add(applianceId);
+        newSet.add(equipmentId);
       }
       return { ...prev, manualScratchedOff: newSet };
     });
@@ -359,10 +361,8 @@ export default function LoadCalculatorPage() {
   const handleSubmitAnswer = useCallback(() => {
     if (!state.selectedScenario || state.isComplete) return;
 
-    const currentStep = activeSteps[state.currentStepIndex];
-    const userAnswer = currentStep.parseInput
-      ? currentStep.parseInput(state.userInput)
-      : parseFormattedNumber(state.userInput);
+    const currentStep = COMMERCIAL_CALCULATION_STEPS[state.currentStepIndex];
+    const userAnswer = parseFormattedNumber(state.userInput);
 
     if (isNaN(userAnswer)) {
       setState(prev => ({
@@ -375,23 +375,16 @@ export default function LoadCalculatorPage() {
     const expectedAnswer = currentStep.expectedAnswer?.(state.selectedScenario, state.answers) ?? 0;
     const isCorrect = currentStep.validateAnswer?.(userAnswer, expectedAnswer) ?? false;
 
-    const answerToStore = currentStep.storedAnswer
-      ? currentStep.storedAnswer(state.selectedScenario, state.answers, userAnswer)
-      : userAnswer;
-    const newAnswers = { ...state.answers, [currentStep.id]: answerToStore };
-    const isLastStep = state.currentStepIndex === activeSteps.length - 1;
+    const newAnswers = { ...state.answers, [currentStep.id]: userAnswer };
+    const isLastStep = state.currentStepIndex === COMMERCIAL_CALCULATION_STEPS.length - 1;
 
     if (isCorrect) {
-      const storedNote = answerToStore !== userAnswer
-        ? ` That rounds up to a ${answerToStore.toLocaleString()}A standard service size.`
-        : "";
-
       if (isLastStep) {
         const completeState: CalculatorState = {
           ...state,
           answers: newAnswers,
           lastAnswerCorrect: true,
-          sparkyMessage: `${getRandomMessage(SPARKY_MESSAGES.correct)}${storedNote} ${SPARKY_MESSAGES.complete}`,
+          sparkyMessage: COMMERCIAL_SPARKY_MESSAGES.complete,
           isComplete: true,
           userInput: "",
           showHint: false,
@@ -406,14 +399,14 @@ export default function LoadCalculatorPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               sessionId: sessionIdRef.current,
-              questionsAnswered: activeSteps.length,
-              questionsCorrect: activeSteps.length,
+              questionsAnswered: COMMERCIAL_CALCULATION_STEPS.length,
+              questionsCorrect: COMMERCIAL_CALCULATION_STEPS.length,
             }),
           }).catch(() => {});
           sessionIdRef.current = null;
         }
       } else {
-        const nextStep = activeSteps[state.currentStepIndex + 1];
+        const nextStep = COMMERCIAL_CALCULATION_STEPS[state.currentStepIndex + 1];
         const newState: CalculatorState = {
           ...state,
           currentStepIndex: state.currentStepIndex + 1,
@@ -421,7 +414,7 @@ export default function LoadCalculatorPage() {
           userInput: "",
           showHint: false,
           lastAnswerCorrect: true,
-          sparkyMessage: `${getRandomMessage(SPARKY_MESSAGES.correct)}${storedNote} ${nextStep.sparkyPrompt}`,
+          sparkyMessage: `${getRandomMessage(COMMERCIAL_SPARKY_MESSAGES.correct)} ${nextStep.sparkyPrompt}`,
         };
         setState(newState);
         saveProgress(newState);
@@ -430,11 +423,11 @@ export default function LoadCalculatorPage() {
       setState(prev => ({
         ...prev,
         lastAnswerCorrect: false,
-        sparkyMessage: `${getRandomMessage(SPARKY_MESSAGES.incorrect)} The correct answer is ${expectedAnswer.toLocaleString()}. Check the hint for details!`,
+        sparkyMessage: `${getRandomMessage(COMMERCIAL_SPARKY_MESSAGES.incorrect)} The correct answer is ${expectedAnswer.toLocaleString()}. Check the hint for details!`,
         showHint: true,
       }));
     }
-  }, [state, saveProgress, activeSteps]);
+  }, [state, saveProgress]);
 
   // Handle trying again after incorrect answer
   const handleTryAgain = useCallback(() => {
@@ -442,14 +435,14 @@ export default function LoadCalculatorPage() {
       ...prev,
       userInput: "",
       lastAnswerCorrect: null,
-      sparkyMessage: activeSteps[prev.currentStepIndex].sparkyPrompt,
+      sparkyMessage: COMMERCIAL_CALCULATION_STEPS[prev.currentStepIndex].sparkyPrompt,
     }));
-  }, [activeSteps]);
+  }, []);
 
   // Handle going to previous step
   const handlePreviousStep = useCallback(() => {
     if (state.currentStepIndex > 0) {
-      const prevStep = activeSteps[state.currentStepIndex - 1];
+      const prevStep = COMMERCIAL_CALCULATION_STEPS[state.currentStepIndex - 1];
       const newState: CalculatorState = {
         ...state,
         currentStepIndex: state.currentStepIndex - 1,
@@ -460,7 +453,7 @@ export default function LoadCalculatorPage() {
       };
       setState(newState);
     }
-  }, [state, activeSteps]);
+  }, [state]);
 
   // Reset calculator
   const handleReset = useCallback(() => {
@@ -473,26 +466,25 @@ export default function LoadCalculatorPage() {
       userInput: "",
       showHint: false,
       lastAnswerCorrect: null,
-      sparkyMessage: SPARKY_MESSAGES.welcome,
+      sparkyMessage: COMMERCIAL_SPARKY_MESSAGES.welcome,
       isComplete: false,
       manualScratchedOff: new Set(),
     });
   }, []);
 
-  // Compute completion results for display
+  // Compute completion results
   const getCompletionResults = useCallback(() => {
     if (!state.isComplete || !state.selectedScenario) return null;
-    const serviceAmps = state.answers["service-amps"] || 0;
-    const copperSize = getDwellingConductorSize(serviceAmps);
-    const gec = getGECSize(copperSize);
+    const totalVA = state.answers["total-va"] || 0;
+    const amps = getServiceAmps(totalVA, state.selectedScenario.voltage, state.selectedScenario.phases);
+    const conductor = getConductorSize(amps);
+    const gec = getGECSize(conductor.size);
     return {
-      serviceAmps,
-      conductorSize: copperSize,
+      serviceAmps: state.answers["service-conductor"] || conductor.ampacity,
+      conductorSize: conductor.size,
       gecSize: gec,
     };
   }, [state.isComplete, state.selectedScenario, state.answers]);
-
-  const completionResults = getCompletionResults();
 
   if (status === "loading") {
     return (
@@ -504,10 +496,9 @@ export default function LoadCalculatorPage() {
 
   // Show resume prompt if there's saved progress
   if (showResumePrompt && savedProgress) {
-    const savedScenario = HOUSE_SCENARIOS.find(s => s.id === savedProgress.scenarioId);
-    const resumeSteps = savedScenario ? getFilteredSteps(savedScenario) : CALCULATION_STEPS;
+    const savedScenario = COMMERCIAL_SCENARIOS.find(s => s.id === savedProgress.scenarioId);
     const progressPercent = Math.round(
-      ((savedProgress.currentStepIndex + (savedProgress.isComplete ? 1 : 0)) / resumeSteps.length) * 100
+      ((savedProgress.currentStepIndex + (savedProgress.isComplete ? 1 : 0)) / COMMERCIAL_CALCULATION_STEPS.length) * 100
     );
 
     return (
@@ -533,7 +524,7 @@ export default function LoadCalculatorPage() {
                 {savedScenario && (
                   <div className="bg-muted rounded-lg p-4 text-left space-y-2">
                     <div className="flex items-center gap-2">
-                      <Home className="h-4 w-4 text-amber" />
+                      {SCENARIO_ICONS[savedScenario.id] || <Building2 className="h-4 w-4 text-amber" />}
                       <span className="font-medium">{savedScenario.name}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -547,10 +538,9 @@ export default function LoadCalculatorPage() {
                       <span>
                         {savedProgress.isComplete
                           ? "Completed"
-                          : `Step ${savedProgress.currentStepIndex + 1} of ${resumeSteps.length}`}
+                          : `Step ${savedProgress.currentStepIndex + 1} of ${COMMERCIAL_CALCULATION_STEPS.length}`}
                       </span>
                     </div>
-                    {/* Progress bar */}
                     <div className="pt-2">
                       <div className="h-2 bg-background rounded-full overflow-hidden">
                         <div
@@ -590,10 +580,12 @@ export default function LoadCalculatorPage() {
     );
   }
 
-  const currentStep = state.selectedScenario ? activeSteps[state.currentStepIndex] : null;
+  const currentStep = state.selectedScenario ? COMMERCIAL_CALCULATION_STEPS[state.currentStepIndex] : null;
   const progress = state.selectedScenario
-    ? ((state.currentStepIndex + (state.isComplete ? 1 : 0)) / activeSteps.length) * 100
+    ? ((state.currentStepIndex + (state.isComplete ? 1 : 0)) / COMMERCIAL_CALCULATION_STEPS.length) * 100
     : 0;
+
+  const completionResults = getCompletionResults();
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -616,7 +608,7 @@ export default function LoadCalculatorPage() {
               </h1>
             </button>
             <p className="text-muted-foreground">
-              Based on the Standard Method — 2023 NEC Article 220 Part III
+              Learn commercial service load calculations step by step with Sparky!
             </p>
           </div>
           {state.selectedScenario && (
@@ -639,7 +631,7 @@ export default function LoadCalculatorPage() {
         >
           <div className="flex justify-between text-sm text-muted-foreground mb-2">
             <span>
-              Step {state.currentStepIndex + 1} of {activeSteps.length}
+              Step {state.currentStepIndex + 1} of {COMMERCIAL_CALCULATION_STEPS.length}
             </span>
             <span>{Math.round(progress)}% Complete</span>
           </div>
@@ -666,175 +658,144 @@ export default function LoadCalculatorPage() {
           {state.selectedScenario && (
             <CollapsibleCard
               title={`${state.selectedScenario.name} Equipment`}
-              icon={<Home className="h-4 w-4" />}
+              icon={SCENARIO_ICONS[state.selectedScenario.id] || <Building2 className="h-4 w-4" />}
               iconColor="text-amber"
               defaultExpanded={true}
             >
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1 text-sm">
                 {state.difficulty === "intermediate" && (
                   <p className="text-xs text-muted-foreground italic pb-1 border-b mb-2">
                     Click items to mark as accounted for
                   </p>
                 )}
                 {(() => {
+                  const items = getEquipmentDisplayItems(state.selectedScenario!);
                   const isBeginner = state.difficulty === "beginner";
                   const isIntermediate = state.difficulty === "intermediate";
-                  const accountedIds = getAccountedApplianceIds(state.currentStepIndex - 1, activeSteps);
-                  const isAccountedFor = isBeginner && accountedIds.has("square-footage");
-                  const isManuallyScratchedOff = isIntermediate && state.manualScratchedOff.has("square-footage");
-                  const currentStepId = activeSteps[state.currentStepIndex]?.id;
-                  const currentStepAppliances = currentStepId ? STEP_APPLIANCE_MAP[currentStepId] || [] : [];
-                  const isHighlighted = isBeginner && !isAccountedFor && currentStepAppliances.includes("square-footage");
+                  const accountedIds = isBeginner
+                    ? getAccountedEquipmentIds(state.currentStepIndex - 1, state.selectedScenario!)
+                    : new Set<string>();
+                  const currentStepId = COMMERCIAL_CALCULATION_STEPS[state.currentStepIndex]?.id;
 
-                  return (
-                    <div
-                      onClick={isIntermediate ? () => handleToggleScratchOff("square-footage") : undefined}
-                      className={`flex justify-between items-center transition-all duration-300 rounded-md px-2 py-1 -mx-2 ${
-                        isIntermediate ? "cursor-pointer hover:bg-muted/50 pressable" : ""
-                      } ${
-                        isHighlighted
-                          ? "bg-amber/20 border border-amber/40"
-                          : isAccountedFor || isManuallyScratchedOff
-                          ? "text-muted-foreground/50"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      <span className={`truncate mr-2 flex items-center gap-2 ${
-                        isAccountedFor || isManuallyScratchedOff ? "line-through" : ""
-                      } ${isHighlighted ? "text-amber font-medium" : ""}`}>
-                        {(isAccountedFor || isManuallyScratchedOff) && (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald flex-shrink-0" />
-                        )}
-                        {isHighlighted && (
-                          <Plus className="h-3 w-3 text-amber flex-shrink-0" />
-                        )}
-                        Square Footage
-                      </span>
-                      <span className={`font-mono whitespace-nowrap ${
-                        isHighlighted
-                          ? "text-amber font-semibold"
-                          : isAccountedFor || isManuallyScratchedOff
-                          ? "text-muted-foreground/50 line-through"
-                          : "text-foreground"
-                      }`}>
-                        {state.selectedScenario!.squareFootage.toLocaleString()} sq ft
-                      </span>
-                    </div>
-                  );
+                  // Get current step equipment for highlighting
+                  const currentStepEquipment = new Set<string>();
+                  if (currentStepId && isBeginner) {
+                    const staticIds = COMMERCIAL_STEP_EQUIPMENT_MAP[currentStepId] || [];
+                    staticIds.forEach(id => currentStepEquipment.add(id));
+                    if (currentStepId === "kitchen-demand") {
+                      getKitchenEquipmentIds(state.selectedScenario!).forEach(id => currentStepEquipment.add(id));
+                    }
+                    if (currentStepId === "largest-motor-25") {
+                      getMotorIds(state.selectedScenario!).forEach(id => currentStepEquipment.add(id));
+                      // Also highlight A/C motor during motor step
+                      if (state.selectedScenario!.acMotor) currentStepEquipment.add("ac-motor");
+                    }
+                  }
+
+                  // Group items by category
+                  const grouped: Record<string, typeof items> = {};
+                  items.forEach(item => {
+                    if (!grouped[item.category]) grouped[item.category] = [];
+                    grouped[item.category].push(item);
+                  });
+
+                  return CATEGORY_ORDER.map(cat => {
+                    const catItems = grouped[cat];
+                    if (!catItems || catItems.length === 0) return null;
+
+                    return (
+                      <div key={cat}>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2 mb-1">
+                          {CATEGORY_LABELS[cat]}
+                        </p>
+                        {catItems.map(item => {
+                          const isAccountedFor = isBeginner && accountedIds.has(item.id);
+                          const isManuallyScratchedOff = isIntermediate && state.manualScratchedOff.has(item.id);
+                          const isHighlighted = isBeginner && !isAccountedFor && currentStepEquipment.has(item.id);
+
+                          return (
+                            <div
+                              key={item.id}
+                              onClick={isIntermediate ? () => handleToggleScratchOff(item.id) : undefined}
+                              className={`flex justify-between items-center transition-all duration-300 rounded-md px-2 py-0.5 -mx-2 ${
+                                isIntermediate ? "cursor-pointer hover:bg-muted/50 pressable" : ""
+                              } ${
+                                isHighlighted
+                                  ? "bg-amber/20 border border-amber/40"
+                                  : isAccountedFor || isManuallyScratchedOff
+                                  ? "text-muted-foreground/50"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              <span className={`truncate mr-2 flex items-center gap-1.5 ${
+                                isAccountedFor || isManuallyScratchedOff ? "line-through" : ""
+                              } ${isHighlighted ? "text-amber font-medium" : ""}`}>
+                                {(isAccountedFor || isManuallyScratchedOff) && (
+                                  <CheckCircle2 className="h-3 w-3 text-emerald flex-shrink-0" />
+                                )}
+                                {isHighlighted && (
+                                  <Plus className="h-3 w-3 text-amber flex-shrink-0" />
+                                )}
+                                {item.name}
+                              </span>
+                              <span className={`font-mono whitespace-nowrap text-xs ${
+                                isHighlighted
+                                  ? "text-amber font-semibold"
+                                  : isAccountedFor || isManuallyScratchedOff
+                                  ? "text-muted-foreground/50 line-through"
+                                  : "text-foreground"
+                              }`}>
+                                {item.value}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  });
                 })()}
-                {state.selectedScenario.appliances.map((appliance) => {
+              </div>
+            </CollapsibleCard>
+          )}
+
+          {/* Quick Reference */}
+          {state.selectedScenario && (
+            <CollapsibleCard
+              title="Quick Reference"
+              icon={<BookOpen className="h-4 w-4" />}
+              iconColor="text-purple"
+              defaultExpanded={false}
+            >
+              <div className="space-y-3 text-sm">
+                {COMMERCIAL_QUICK_REFERENCE.map((item) => {
                   const isBeginner = state.difficulty === "beginner";
-                  const isIntermediate = state.difficulty === "intermediate";
-                  const accountedIds = getAccountedApplianceIds(state.currentStepIndex - 1, activeSteps);
-                  const isAccountedFor = isBeginner && accountedIds.has(appliance.id);
-                  const isManuallyScratchedOff = isIntermediate && state.manualScratchedOff.has(appliance.id);
-                  const currentStepId = activeSteps[state.currentStepIndex]?.id;
-
-                  // Check if this is a motor and if it's been converted
-                  const isMotor = appliance.isMotor && appliance.horsepower;
-                  const motorConversionStepId = Object.entries(MOTOR_CONVERSION_STEPS).find(
-                    ([, appId]) => appId === appliance.id
-                  )?.[0];
-                  const convertedWatts = motorConversionStepId ? state.answers[motorConversionStepId] : undefined;
-                  const hasBeenConverted = convertedWatts !== undefined && convertedWatts > 0;
-
-                  // Temporarily unscratch converted motors during largest-motor-25 step
-                  const isMotorUnscratch = currentStepId === "largest-motor-25" && isMotor && hasBeenConverted;
-                  const effectiveAccountedFor = isAccountedFor && !isMotorUnscratch;
-
-                  // Highlight appliances relevant to the current step (beginner only)
-                  const currentStepAppliances = currentStepId ? STEP_APPLIANCE_MAP[currentStepId] || [] : [];
-                  // Also highlight motors during their conversion step
-                  const isMotorConversionStep = motorConversionStepId === currentStepId;
-                  const isHighlighted = isBeginner && !effectiveAccountedFor && (currentStepAppliances.includes(appliance.id) || isMotorConversionStep || isMotorUnscratch);
+                  const isCovered = isBeginner && isCommercialQuickRefCovered(item.id, state.currentStepIndex);
 
                   return (
                     <div
-                      key={appliance.id}
-                      onClick={isIntermediate ? () => handleToggleScratchOff(appliance.id) : undefined}
-                      className={`flex justify-between items-center transition-all duration-300 rounded-md px-2 py-1 -mx-2 ${
-                        isIntermediate ? "cursor-pointer hover:bg-muted/50 pressable" : ""
-                      } ${
-                        isHighlighted
-                          ? "bg-amber/20 border border-amber/40"
-                          : effectiveAccountedFor || isManuallyScratchedOff
-                          ? "text-muted-foreground/50"
-                          : "text-muted-foreground"
+                      key={item.id}
+                      className={`transition-all duration-300 ${
+                        isCovered ? "opacity-50" : ""
                       }`}
                     >
-                      <span className={`truncate mr-2 flex items-center gap-2 ${
-                        effectiveAccountedFor || isManuallyScratchedOff ? "line-through" : ""
-                      } ${isHighlighted ? "text-amber font-medium" : ""}`}>
-                        {(effectiveAccountedFor || isManuallyScratchedOff) && (
+                      <p className={`font-medium flex items-center gap-2 ${
+                        isCovered ? "text-muted-foreground line-through" : "text-foreground"
+                      }`}>
+                        {isCovered && (
                           <CheckCircle2 className="h-3.5 w-3.5 text-emerald flex-shrink-0" />
                         )}
-                        {isHighlighted && (
-                          <Plus className="h-3 w-3 text-amber flex-shrink-0" />
-                        )}
-                        {appliance.name}
-                      </span>
-                      <span className={`font-mono whitespace-nowrap flex items-center gap-1 ${
-                        isHighlighted
-                          ? "text-amber font-semibold"
-                          : effectiveAccountedFor || isManuallyScratchedOff
-                          ? "text-muted-foreground/50 line-through"
-                          : "text-foreground"
+                        {item.label}
+                      </p>
+                      <p className={`${
+                        isCovered ? "text-muted-foreground/50 line-through" : "text-muted-foreground"
                       }`}>
-                        {isMotor ? (
-                          hasBeenConverted ? (
-                            <span className="text-emerald font-semibold">= {convertedWatts.toLocaleString()}W</span>
-                          ) : (
-                            <span>{appliance.horsepower} HP</span>
-                          )
-                        ) : (
-                          <span>{appliance.watts.toLocaleString()}W</span>
-                        )}
-                      </span>
+                        {item.value}
+                      </p>
                     </div>
                   );
                 })}
               </div>
             </CollapsibleCard>
-          )}
-
-          {/* Quick Reference - only show after scenario is selected */}
-          {state.selectedScenario && (
-          <CollapsibleCard
-            title="Quick Reference"
-            icon={<BookOpen className="h-4 w-4" />}
-            iconColor="text-purple"
-            defaultExpanded={false}
-          >
-            <div className="space-y-3 text-sm">
-              {QUICK_REFERENCE_ITEMS.map((item) => {
-                const isBeginner = state.difficulty === "beginner";
-                const isCovered = isBeginner && state.selectedScenario && isQuickRefCovered(item.id, state.currentStepIndex, activeSteps);
-
-                return (
-                  <div
-                    key={item.id}
-                    className={`transition-all duration-300 ${
-                      isCovered ? "opacity-50" : ""
-                    }`}
-                  >
-                    <p className={`font-medium flex items-center gap-2 ${
-                      isCovered ? "text-muted-foreground line-through" : "text-foreground"
-                    }`}>
-                      {isCovered && (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald flex-shrink-0" />
-                      )}
-                      {item.label}
-                    </p>
-                    <p className={`${
-                      isCovered ? "text-muted-foreground/50 line-through" : "text-muted-foreground"
-                    }`}>
-                      {item.value}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </CollapsibleCard>
           )}
         </motion.div>
 
@@ -861,7 +822,6 @@ export default function LoadCalculatorPage() {
                 />
               </div>
 
-              {/* Scenario Selection */}
               {/* Difficulty Selection */}
               {!state.difficulty && !state.selectedScenario && (
                 <motion.div
@@ -939,8 +899,8 @@ export default function LoadCalculatorPage() {
                       {state.difficulty === "beginner" ? "Beginner" : "Intermediate"}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    {HOUSE_SCENARIOS.map((scenario) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {COMMERCIAL_SCENARIOS.map((scenario) => (
                       <Card
                         key={scenario.id}
                         className="cursor-pointer hover:border-amber/50 hover:shadow-md transition-all pressable"
@@ -949,12 +909,12 @@ export default function LoadCalculatorPage() {
                         <CardContent className="pt-6">
                           <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-lg bg-amber/10 flex items-center justify-center">
-                              <Home className="h-5 w-5 text-amber" />
+                              {SCENARIO_ICONS[scenario.id] || <Building2 className="h-5 w-5 text-amber" />}
                             </div>
                             <div>
                               <h3 className="font-semibold">{scenario.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                {scenario.squareFootage.toLocaleString()} sq ft
+                                {scenario.squareFootage.toLocaleString()} sq ft — {scenario.phases === 3 ? `${scenario.voltage}V 3Ø` : `${scenario.voltage}V 1Ø`}
                               </p>
                             </div>
                           </div>
@@ -962,7 +922,10 @@ export default function LoadCalculatorPage() {
                             {scenario.description}
                           </p>
                           <p className="text-xs text-amber mt-2">
-                            {scenario.appliances.length} appliances
+                            {scenario.kitchenEquipment.length > 0
+                              ? `${scenario.kitchenEquipment.length} kitchen items`
+                              : `${scenario.receptacles} receptacles`}
+                            {scenario.otherMotors.length > 0 && ` + ${scenario.otherMotors.length + (scenario.acMotor ? 1 : 0)} motors`}
                           </p>
                         </CardContent>
                       </Card>
@@ -992,34 +955,32 @@ export default function LoadCalculatorPage() {
 
                   {/* Answer Input */}
                   <div className="space-y-3">
-                    <label className="text-sm font-medium">Your Answer (VA or Amps)</label>
+                    <label className="text-sm font-medium">
+                      Your Answer
+                      {currentStep.id === "gec-size"
+                        ? " (AWG: use 10 for 1/0, 20 for 2/0, 30 for 3/0)"
+                        : currentStep.id === "service-conductor"
+                        ? " (Ampacity from table)"
+                        : " (VA)"}
+                    </label>
                     <div className="flex gap-3">
                       <Input
                         type="text"
-                        inputMode={currentStep?.parseInput ? "text" : "numeric"}
-                        placeholder={currentStep?.parseInput ? "Enter wire size (e.g., 1/0)..." : "Enter your calculation..."}
+                        inputMode="numeric"
+                        placeholder="Enter your calculation..."
                         value={state.userInput}
                         onChange={(e) => {
-                          if (currentStep?.parseInput) {
-                            setState(prev => ({ ...prev, userInput: e.target.value }));
-                          } else {
-                            const formatted = formatNumberWithCommas(e.target.value);
-                            setState(prev => ({ ...prev, userInput: formatted }));
-                          }
+                          const formatted = formatNumberWithCommas(e.target.value);
+                          setState(prev => ({ ...prev, userInput: formatted }));
                         }}
                         onKeyDown={(e) => {
-                          // Allow: backspace, delete, tab, escape, enter, decimal point
                           const allowedKeys = ["Backspace", "Delete", "Tab", "Escape", "Enter", ".", "ArrowLeft", "ArrowRight", "Home", "End"];
-                          // Allow "/" for conductor size input (e.g., 1/0, 2/0)
-                          if (currentStep?.parseInput) allowedKeys.push("/");
-                          // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
                           if (allowedKeys.includes(e.key) || (e.ctrlKey || e.metaKey)) {
                             if (e.key === "Enter" && state.lastAnswerCorrect !== false) {
                               handleSubmitAnswer();
                             }
                             return;
                           }
-                          // Block non-numeric keys
                           if (!/^\d$/.test(e.key)) {
                             e.preventDefault();
                           }
@@ -1116,7 +1077,7 @@ export default function LoadCalculatorPage() {
                       Previous
                     </Button>
                     <span className="text-sm text-muted-foreground self-center">
-                      Step {state.currentStepIndex + 1} / {activeSteps.length}
+                      Step {state.currentStepIndex + 1} / {COMMERCIAL_CALCULATION_STEPS.length}
                     </span>
                   </div>
                 </motion.div>
@@ -1158,7 +1119,7 @@ export default function LoadCalculatorPage() {
                     You calculated a <span className="text-amber font-semibold">{completionResults.serviceAmps}A</span> service
                     with <span className="text-emerald font-semibold">{completionResults.conductorSize}</span> conductors
                     and <span className="text-purple font-semibold">{completionResults.gecSize} AWG</span> GEC
-                    for this {state.selectedScenario?.squareFootage.toLocaleString()} sq ft home.
+                    for this {state.selectedScenario?.squareFootage.toLocaleString()} sq ft {state.selectedScenario?.name.toLowerCase()}.
                   </p>
                   <div className="flex justify-center gap-4">
                     <Button variant="outline" onClick={handleReset}>
@@ -1189,16 +1150,34 @@ export default function LoadCalculatorPage() {
             >
               {Object.keys(state.answers).length > 0 ? (
                 <div className="space-y-2 text-sm">
-                  {activeSteps.map((step) => {
-                    // Skip motor conversion steps - they show on the equipment card instead
-                    if (step.id in MOTOR_CONVERSION_STEPS) return null;
-
+                  {COMMERCIAL_CALCULATION_STEPS.map((step) => {
                     const answer = state.answers[step.id];
                     if (answer === undefined) return null;
 
                     const isBeginner = state.difficulty === "beginner";
-                    const currentStepId = activeSteps[state.currentStepIndex]?.id;
-                    const isHighlighted = isBeginner && currentStepId === "total-va" && TOTAL_VA_COMPONENT_STEPS.includes(step.id);
+                    const currentStepId = COMMERCIAL_CALCULATION_STEPS[state.currentStepIndex]?.id;
+                    const isHighlighted = isBeginner && currentStepId === "total-va" && COMMERCIAL_TOTAL_VA_STEPS.includes(step.id);
+
+                    // Format the value appropriately based on step type
+                    let displayValue: string;
+                    if (step.id === "service-conductor") {
+                      const totalVA = state.answers["total-va"] || 0;
+                      const amps = state.selectedScenario
+                        ? getServiceAmps(totalVA, state.selectedScenario.voltage, state.selectedScenario.phases)
+                        : totalVA / 240;
+                      const conductor = getConductorSize(amps);
+                      displayValue = `${conductor.size} AWG (${answer}A)`;
+                    } else if (step.id === "gec-size") {
+                      const gecVal = answer;
+                      let gecLabel: string;
+                      if (gecVal === 10) gecLabel = "1/0";
+                      else if (gecVal === 20) gecLabel = "2/0";
+                      else if (gecVal === 30) gecLabel = "3/0";
+                      else gecLabel = `${gecVal}`;
+                      displayValue = `${gecLabel} AWG`;
+                    } else {
+                      displayValue = `${answer.toLocaleString()} VA`;
+                    }
 
                     return (
                       <div
@@ -1213,29 +1192,12 @@ export default function LoadCalculatorPage() {
                           isHighlighted ? "text-amber font-medium" : "text-muted-foreground"
                         }`}>
                           {isHighlighted && <Plus className="h-3 w-3 flex-shrink-0" />}
-                          {step.title}
+                          {step.title.replace(/ \(.*\)/, "")}
                         </span>
-                        <span className={`font-mono whitespace-nowrap ${
+                        <span className={`font-mono whitespace-nowrap text-xs ${
                           isHighlighted ? "text-amber font-semibold" : "text-foreground"
                         }`}>
-                          {(() => {
-                            if (step.id === "service-conductor") {
-                              const sizeLabel = conductorCodeToLabel(answer);
-                              return `${sizeLabel} AWG/kcmil`;
-                            }
-                            if (step.id === "gec-size") {
-                              let gecLabel: string;
-                              if (answer === 10) gecLabel = "1/0";
-                              else if (answer === 20) gecLabel = "2/0";
-                              else if (answer === 30) gecLabel = "3/0";
-                              else gecLabel = `${answer}`;
-                              return `${gecLabel} AWG`;
-                            }
-                            if (step.id === "service-amps") {
-                              return `${answer.toLocaleString()}A`;
-                            }
-                            return `${answer.toLocaleString()} VA`;
-                          })()}
+                          {displayValue}
                         </span>
                       </div>
                     );

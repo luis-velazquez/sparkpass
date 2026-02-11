@@ -1,4 +1,4 @@
-// Database Schema for SparkPass
+// Database Schema for SparkyPass
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 // Auth provider enum values
@@ -13,6 +13,7 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash"),
   authProvider: text("auth_provider", { enum: authProviderValues }).notNull().default("email"),
   emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
+  username: text("username").unique(),
   city: text("city"),
   state: text("state"),
   dateOfBirth: integer("date_of_birth", { mode: "timestamp" }),
@@ -57,7 +58,7 @@ export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type NewPasswordResetToken = typeof passwordResetTokens.$inferInsert;
 
 // Session type enum values
-export const sessionTypeValues = ["quiz", "flashcard", "mock_exam", "daily_challenge"] as const;
+export const sessionTypeValues = ["quiz", "flashcard", "mock_exam", "daily_challenge", "load_calculator"] as const;
 export type SessionType = (typeof sessionTypeValues)[number];
 
 // User progress table - tracks individual question attempts

@@ -22,9 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SparkPass | Texas Master Electrician Exam Prep",
+  title: "SparkyPass | Texas Master Electrician Exam Prep",
   description:
-    "Pass your Texas Master Electrician exam with SparkPass. Interactive quizzes, flashcards, and personalized study plans with Sparky your mentor.",
+    "Pass your Texas Master Electrician exam with SparkyPass. Interactive quizzes, flashcards, and personalized study plans with Sparky your mentor.",
 };
 
 export default function RootLayout({
@@ -72,7 +72,7 @@ export default function RootLayout({
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-amber" />
-                <span className="font-semibold">SparkPass</span>
+                <span className="font-semibold">SparkyPass</span>
               </div>
               <nav className="flex gap-6 text-sm text-muted-foreground">
                 <Link href="/contact" className="hover:text-foreground">
@@ -86,7 +86,7 @@ export default function RootLayout({
                 </Link>
               </nav>
               <p className="text-sm text-muted-foreground">
-                &copy; {new Date().getFullYear()} SparkPass. All rights
+                &copy; {new Date().getFullYear()} SparkyPass. All rights
                 reserved.
               </p>
             </div>

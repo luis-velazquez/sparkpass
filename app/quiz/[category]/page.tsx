@@ -91,7 +91,7 @@ const QUESTIONS_PER_QUIZ = 60;
 const XP_PER_CORRECT_ANSWER = 25;
 const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour
 const SESSION_WARNING_MS = 5 * 60 * 1000; // 5 minutes before timeout
-const QUIZ_STORAGE_KEY = "sparkpass-quiz-progress";
+const QUIZ_STORAGE_KEY = "sparkypass-quiz-progress";
 
 // Get a random message from an array
 function getRandomMessage(messages: string[]): string {

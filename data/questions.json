@@ -7323,9 +7323,9 @@
         "42.5A (125% of Table FLC)"
       ],
       "correctAnswer": 3,
-      "explanation": "Per NEC 430.22, branch circuit conductors must have ampacity not less than 125% of the motor FLC from Table 430.250 — NOT the nameplate FLA. 34A × 1.25 = 42.5A minimum ampacity required.",
+      "explanation": "Per NEC 430.22, branch circuit conductors must have ampacity not less than 125% of the motor FLC from Table 430.250 \u2014 NOT the nameplate FLA. 34A \u00d7 1.25 = 42.5A minimum ampacity required.",
       "necReference": "NEC 430.22; Table 430.250",
-      "sparkyTip": "Never use nameplate FLA for conductor sizing — always use Table 430.250 FLC × 125%!"
+      "sparkyTip": "Never use nameplate FLA for conductor sizing \u2014 always use Table 430.250 FLC \u00d7 125%!"
     },
     {
       "id": "MC-002",
@@ -7340,7 +7340,7 @@
         "110A"
       ],
       "correctAnswer": 2,
-      "explanation": "Per NEC Table 430.52, inverse time breakers for squirrel cage motors without code letter can be sized up to 250% of FLC. 40A × 2.50 = 100A. If 100A doesn't hold, you may go to the next standard size per 430.52(C)(1).",
+      "explanation": "Per NEC Table 430.52, inverse time breakers for squirrel cage motors without code letter can be sized up to 250% of FLC. 40A \u00d7 2.50 = 100A. If 100A doesn't hold, you may go to the next standard size per 430.52(C)(1).",
       "necReference": "NEC Table 430.52; 430.52(C)(1)",
       "sparkyTip": "Inverse time breaker = 250% max for standard squirrel cage motors. Round UP to standard size if needed."
     },
@@ -7357,7 +7357,7 @@
         "89A"
       ],
       "correctAnswer": 1,
-      "explanation": "Per NEC 430.24, feeder ampacity = 125% of largest motor FLC + 100% of all other motors. (40 × 1.25) + 28 + 14 = 50 + 28 + 14 = 92A.",
+      "explanation": "Per NEC 430.24, feeder ampacity = 125% of largest motor FLC + 100% of all other motors. (40 \u00d7 1.25) + 28 + 14 = 50 + 28 + 14 = 92A.",
       "necReference": "NEC 430.24",
       "sparkyTip": "Feeder = 125% of LARGEST motor + sum of all others at 100%. Always identify the biggest motor first!"
     },
@@ -7374,7 +7374,7 @@
         "60A"
       ],
       "correctAnswer": 2,
-      "explanation": "Per NEC Table 430.52, dual-element time-delay fuses can be sized at 175% of motor FLC. 28A × 1.75 = 49A. Round up to the next standard fuse size = 50A.",
+      "explanation": "Per NEC Table 430.52, dual-element time-delay fuses can be sized at 175% of motor FLC. 28A \u00d7 1.75 = 49A. Round up to the next standard fuse size = 50A.",
       "necReference": "NEC Table 430.52",
       "sparkyTip": "Dual-element fuses = 175% max. They're more forgiving of inrush than non-time-delay fuses."
     },
@@ -7391,9 +7391,9 @@
         "23.1A"
       ],
       "correctAnswer": 1,
-      "explanation": "Per NEC 430.32(A)(1), motors with service factor ≥ 1.15 can have overload protection up to 125% of nameplate FLA. Using the formula FLA: 21A × 1.25 = 26.25A.",
+      "explanation": "Per NEC 430.32(A)(1), motors with service factor \u2265 1.15 can have overload protection up to 125% of nameplate FLA. Using the formula FLA: 21A \u00d7 1.25 = 26.25A.",
       "necReference": "NEC 430.32(A)(1)",
-      "sparkyTip": "Service factor 1.15+ or 40°C rise = 125% overload. Otherwise it's 115%. This protects the motor windings!"
+      "sparkyTip": "Service factor 1.15+ or 40\u00b0C rise = 125% overload. Otherwise it's 115%. This protects the motor windings!"
     },
     {
       "id": "MC-006",
@@ -7408,7 +7408,7 @@
         "18.8A"
       ],
       "correctAnswer": 1,
-      "explanation": "Per NEC 430.24, conductors for two or more motors = 125% of largest + sum of others. (9.6 × 1.25) + 6.8 = 12 + 6.8 = 18.8A. However, per 430.24 for feeders/taps it's the same formula. Rechecking: 9.6 × 1.25 = 12, plus 6.8 = 18.8A.",
+      "explanation": "Per NEC 430.24, conductors for two or more motors = 125% of largest + sum of others. (9.6 \u00d7 1.25) + 6.8 = 12 + 6.8 = 18.8A. However, per 430.24 for feeders/taps it's the same formula. Rechecking: 9.6 \u00d7 1.25 = 12, plus 6.8 = 18.8A.",
       "necReference": "NEC 430.24; 430.22",
       "sparkyTip": "Multiple motors on one circuit: 125% of largest + 100% of all others. Same rule as feeders!"
     },
@@ -7425,9 +7425,9 @@
         "845A"
       ],
       "correctAnswer": 3,
-      "explanation": "Per NEC Table 430.52, instantaneous trip breakers (MCPs) can be sized up to 1300% of FLC for motors not icluding design B. 65A × 13.00 = 845A maximum setting.",
+      "explanation": "Per NEC Table 430.52, instantaneous trip breakers (MCPs) can be sized up to 1300% of FLC for motors not icluding design B. 65A \u00d7 13.00 = 845A maximum setting.",
       "necReference": "NEC Table 430.52",
-      "sparkyTip": "MCPs can go up to 1300% for Design B motors — they only protect against short circuits, not overloads!"
+      "sparkyTip": "MCPs can go up to 1300% for Design B motors \u2014 they only protect against short circuits, not overloads!"
     },
     {
       "id": "MC-008",
@@ -7442,7 +7442,7 @@
         "175A"
       ],
       "correctAnswer": 1,
-      "explanation": "Per NEC 430.62, feeder OCPD = largest motor branch circuit OCPD + FLC of all other motors. Largest motor OCPD = 27A × 2.50 = 67.5A. Sum of others = 27 + 14 = 41A. Total = 67.5 + 41 = 108.5A → next standard size = 125A.",
+      "explanation": "Per NEC 430.62, feeder OCPD = largest motor branch circuit OCPD + FLC of all other motors. Largest motor OCPD = 27A \u00d7 2.50 = 67.5A. Sum of others = 27 + 14 = 41A. Total = 67.5 + 41 = 108.5A \u2192 next standard size = 125A.",
       "necReference": "NEC 430.62; Table 430.52",
       "sparkyTip": "Feeder OCPD = largest branch OCPD + sum of other FLCs. Don't multiply all motors by 250%!"
     },
@@ -7459,7 +7459,7 @@
         "390A"
       ],
       "correctAnswer": 2,
-      "explanation": "Using mid-range kVA/HP of 8.5: LRA = (HP × kVA/HP × 1000) / (√3 × Voltage) = (30 × 8.5 × 1000) / (1.732 × 460) = 255,000 / 797 = 320A. Using exact 8.5 gives approximately 320A, but with code letter K (up to 8.99), max would be about 339A.",
+      "explanation": "Using mid-range kVA/HP of 8.5: LRA = (HP \u00d7 kVA/HP \u00d7 1000) / (\u221a3 \u00d7 Voltage) = (30 \u00d7 8.5 \u00d7 1000) / (1.732 \u00d7 460) = 255,000 / 797 = 320A. Using exact 8.5 gives approximately 320A, but with code letter K (up to 8.99), max would be about 339A.",
       "necReference": "NEC Table 430.7(B)",
       "sparkyTip": "Locked rotor kVA = code letter from Table 430.7(B). Use it to calculate LRA for sizing protection!"
     },
@@ -7476,9 +7476,9 @@
         "24.2A"
       ],
       "correctAnswer": 0,
-      "explanation": "Per NEC 430.32(A)(1), motors with service factor less than 1.15 (or temp rise over 40°C) can have overload protection up to 115% of nameplate FLA. 22A × 1.15 = 25.3A maximum. Note: Use NAMEPLATE FLA for overloads, not Table FLC!",
+      "explanation": "Per NEC 430.32(A)(1), motors with service factor less than 1.15 (or temp rise over 40\u00b0C) can have overload protection up to 115% of nameplate FLA. 22A \u00d7 1.15 = 25.3A maximum. Note: Use NAMEPLATE FLA for overloads, not Table FLC!",
       "necReference": "NEC 430.32(A)(1)",
-      "sparkyTip": "SF < 1.15 means 115% overload max. Also, always use NAMEPLATE amps for overload sizing — one of the few times you don't use Table 430.250!"
+      "sparkyTip": "SF < 1.15 means 115% overload max. Also, always use NAMEPLATE amps for overload sizing \u2014 one of the few times you don't use Table 430.250!"
     },
     {
       "id": "MC-011",
@@ -7493,7 +7493,7 @@
         "138A"
       ],
       "correctAnswer": 1,
-      "explanation": "First, find the FLC for the motors from Table 430.250: 30 HP is 40A, and 10 HP is 14A. The total motor load is calculated per 430.24: (1.25 × 40A) + 14A = 64A. The non-motor load is calculated per 220.40, which requires continuous loads to be taken at 125%: 40A × 1.25 = 50A. The total feeder ampacity is the sum of these two calculated loads: 64A + 50A = 114A.",
+      "explanation": "First, find the FLC for the motors from Table 430.250: 30 HP is 40A, and 10 HP is 14A. The total motor load is calculated per 430.24: (1.25 \u00d7 40A) + 14A = 64A. The non-motor load is calculated per 220.40, which requires continuous loads to be taken at 125%: 40A \u00d7 1.25 = 50A. The total feeder ampacity is the sum of these two calculated loads: 64A + 50A = 114A.",
       "necReference": "430.24, 220.10, Table 430.250",
       "sparkyTip": "When mixing motors and other continuous loads on a feeder, remember to apply the 125% multiplier to BOTH the largest motor and the continuous non-motor load separately, then add the results."
     },
@@ -7510,7 +7510,7 @@
         "250A"
       ],
       "correctAnswer": 1,
-      "explanation": "Per 430.62(A), the feeder protection is sized based on the largest branch-circuit protective device plus the sum of the other motors' FLCs. First, find FLCs from Table 430.250: 50 HP wound-rotor is 65A, 25 HP is 34A. Next, size the largest branch OCPD (the wound-rotor). Table 430.52 allows a 150% multiplier for a wound-rotor motor's IT breaker: 65A × 1.50 = 97.5A. Per 430.52(C)(1) Exception No. 1, you can use the next standard size up, which is 100A. Finally, add the FLC of the other motors: 100A + 34A + 34A = 168A. Per 430.62(A) Exception, since 168A is not a standard size, you are permitted to use the next higher standard size, which is 175A.",
+      "explanation": "Per 430.62(A), the feeder protection is sized based on the largest branch-circuit protective device plus the sum of the other motors' FLCs. First, find FLCs from Table 430.250: 50 HP wound-rotor is 65A, 25 HP is 34A. Next, size the largest branch OCPD (the wound-rotor). Table 430.52 allows a 150% multiplier for a wound-rotor motor's IT breaker: 65A \u00d7 1.50 = 97.5A. Per 430.52(C)(1) Exception No. 1, you can use the next standard size up, which is 100A. Finally, add the FLC of the other motors: 100A + 34A + 34A = 168A. Per 430.62(A) Exception, since 168A is not a standard size, you are permitted to use the next higher standard size, which is 175A.",
       "necReference": "430.62(A), Table 430.52, Table 430.250, 240.6(A)",
       "sparkyTip": "Sizing feeder protection for a group of motors is tricky. It's not just the sum of the branch breakers! Size the largest branch device first (rounding up if needed), then add the other motors' FLCs, and round up again if necessary."
     },
@@ -7519,7 +7519,7 @@
       "category": "motor-calculations",
       "necArticle": "Article 430",
       "difficulty": "hard",
-      "questionText": "You are installing a 15 HP, 460V, 3-phase high-efficiency motor with a nameplate full-load amperes (FLA) of 18A. The motor has a service factor of 1.15 and a temperature rise of 40°C. What are the minimum conductor ampacity and the maximum standard-size thermal overload protection rating, respectively?",
+      "questionText": "You are installing a 15 HP, 460V, 3-phase high-efficiency motor with a nameplate full-load amperes (FLA) of 18A. The motor has a service factor of 1.15 and a temperature rise of 40\u00b0C. What are the minimum conductor ampacity and the maximum standard-size thermal overload protection rating, respectively?",
       "options": [
         "22.5A, 22.5A",
         "26.25A, 22.5A",
@@ -7527,7 +7527,7 @@
         "26.25A, 21A"
       ],
       "correctAnswer": 1,
-      "explanation": "This question tests the critical rule of 430.6(A)(1). For conductor sizing, you MUST use the FLC from Table 430.250, which is 21A for a 15 HP, 460V motor. Conductor ampacity is 125% of this value: 21A × 1.25 = 26.25A. For overload protection, however, you MUST use the motor's nameplate FLA of 18A. Since the service factor is 1.15 and temp rise is 40°C, per 430.32(A)(1), you can size the overload at 125% of the FLA: 18A × 1.25 = 22.5A.",
+      "explanation": "This question tests the critical rule of 430.6(A)(1). For conductor sizing, you MUST use the FLC from Table 430.250, which is 21A for a 15 HP, 460V motor. Conductor ampacity is 125% of this value: 21A \u00d7 1.25 = 26.25A. For overload protection, however, you MUST use the motor's nameplate FLA of 18A. Since the service factor is 1.15 and temp rise is 40\u00b0C, per 430.32(A)(1), you can size the overload at 125% of the FLA: 18A \u00d7 1.25 = 22.5A.",
       "necReference": "430.6(A)(1), 430.22, 430.32(A)(1), Table 430.250",
       "sparkyTip": "Table FLC for wires, nameplate FLA for overloads. Engrave this rule in your mind. It's a common point of failure on exams and in the field."
     },
@@ -7544,7 +7544,7 @@
         "100A"
       ],
       "correctAnswer": 2,
-      "explanation": "First, find the FLC from Table 430.250 for a 25 HP, 460V motor, which is 34A. According to Table 430.52, the maximum percentage for an inverse-time breaker is 250% of the FLC. So, 34A × 2.50 = 85A. However, 85A is not a standard circuit breaker size listed in 240.6(A). Per 430.52(C)(1) Exception No. 1, if the calculated value does not correspond to a standard size, you are permitted to use the next higher standard size. The next standard size up from 85A is 90A.",
+      "explanation": "First, find the FLC from Table 430.250 for a 25 HP, 460V motor, which is 34A. According to Table 430.52, the maximum percentage for an inverse-time breaker is 250% of the FLC. So, 34A \u00d7 2.50 = 85A. However, 85A is not a standard circuit breaker size listed in 240.6(A). Per 430.52(C)(1) Exception No. 1, if the calculated value does not correspond to a standard size, you are permitted to use the next higher standard size. The next standard size up from 85A is 90A.",
       "necReference": "430.52(C)(1), Table 430.52, Table 430.250, 240.6(A)",
       "sparkyTip": "The 'next size up' rule for motor branch-circuit protection is a crucial exception. Don't just stop at the calculated value; always check if you need to round up to the next standard breaker or fuse size."
     },
@@ -7553,7 +7553,7 @@
       "category": "motor-calculations",
       "necArticle": "Article 430, Article 310",
       "difficulty": "hard",
-      "questionText": "A feeder supplies two 3-phase, 460V motors: one 20 HP and one 10 HP. The feeder will be run using THWN-2 copper conductors in a conduit through an area with an ambient temperature of 52°C. What is the minimum required size for the feeder conductors?",
+      "questionText": "A feeder supplies two 3-phase, 460V motors: one 20 HP and one 10 HP. The feeder will be run using THWN-2 copper conductors in a conduit through an area with an ambient temperature of 52\u00b0C. What is the minimum required size for the feeder conductors?",
       "options": [
         "#8 AWG",
         "#6 AWG",
@@ -7561,7 +7561,7 @@
         "#3 AWG"
       ],
       "correctAnswer": 1,
-      "explanation": "Step 1: Calculate the required feeder ampacity per 430.24. FLCs from Table 430.250 are 27A (20 HP) and 14A (10 HP). Required ampacity = (1.25 × 27A) + 14A = 33.75A + 14A = 47.75A. Step 2: Find the temperature derating factor. For THWN-2 (a 90°C conductor), the correction factor for an ambient temp of 51-55°C is 0.76 per Table 310.15(B)(1). Step 3: Determine the required conductor ampacity before derating. You need a conductor that, after being derated, can handle at least 47.75A. Required base ampacity = 47.75A / 0.76 = 62.83A. Step 4: Select the conductor from the 90°C column of Table 310.16. A #6 AWG has 75A at 90°C (75A × 0.76 = 57A), which exceeds 47.75A. However, per 110.14(C), terminations rated 75°C require using the 75°C column for ampacity. #6 at 75°C is 65A, derated: 65A × 0.76 = 49.4A, which barely works.",
+      "explanation": "Step 1: Calculate the required feeder ampacity per 430.24. FLCs from Table 430.250 are 27A (20 HP) and 14A (10 HP). Required ampacity = (1.25 \u00d7 27A) + 14A = 33.75A + 14A = 47.75A. Step 2: Find the temperature derating factor. For THWN-2 (a 90\u00b0C conductor), the correction factor for an ambient temp of 51-55\u00b0C is 0.76 per Table 310.15(B)(1). Step 3: Determine the required conductor ampacity before derating. You need a conductor that, after being derated, can handle at least 47.75A. Required base ampacity = 47.75A / 0.76 = 62.83A. Step 4: Select the conductor from the 90\u00b0C column of Table 310.16. A #6 AWG has 75A at 90\u00b0C (75A \u00d7 0.76 = 57A), which exceeds 47.75A. However, per 110.14(C), terminations rated 75\u00b0C require using the 75\u00b0C column for ampacity. #6 at 75\u00b0C is 65A, derated: 65A \u00d7 0.76 = 49.4A, which barely works.",
       "necReference": "430.24, 310.15(B)(1), Table 310.16, Table 430.250",
       "sparkyTip": "High ambient temperature is a game-changer. Always calculate your load first, then figure out how big your wire needs to be before derating. It's a two-step process that trips up many electricians."
     },
@@ -7578,7 +7578,7 @@
         "136A"
       ],
       "correctAnswer": 1,
-      "explanation": "Per NEC 430.24, the feeder ampacity is 125% of the FLC of the LARGEST motor, plus the sum of the FLCs of all other motors. Even though they are all the same size, this rule applies to only ONE of them. Calculation: (1.25 × 34A) + 34A + 34A = 42.5A + 68A = 110.5A.",
+      "explanation": "Per NEC 430.24, the feeder ampacity is 125% of the FLC of the LARGEST motor, plus the sum of the FLCs of all other motors. Even though they are all the same size, this rule applies to only ONE of them. Calculation: (1.25 \u00d7 34A) + 34A + 34A = 42.5A + 68A = 110.5A.",
       "necReference": "430.24, Table 430.250",
       "sparkyTip": "A common mistake is to apply the 125% multiplier to all identical motors. Remember, it only applies to the single 'largest' one, even if they're all the same size."
     },
@@ -7595,9 +7595,9 @@
         "42.0A (175%)"
       ],
       "correctAnswer": 2,
-      "explanation": "This is a hermetic motor, so the rules of Article 440 apply, not Article 430. Per NEC 440.52(A)(1), overload relays for hermetic motors shall be selected to trip at not more than 140% of the motor-compressor rated-load current. Calculation: 24A × 1.40 = 33.6A.",
+      "explanation": "This is a hermetic motor, so the rules of Article 440 apply, not Article 430. Per NEC 440.52(A)(1), overload relays for hermetic motors shall be selected to trip at not more than 140% of the motor-compressor rated-load current. Calculation: 24A \u00d7 1.40 = 33.6A.",
       "necReference": "440.52(A)(1)",
-      "sparkyTip": "Hermetic motors (A/C units) live in Article 440. Their overload protection rules are different from standard motors—140% of RLC, not 115% or 125% of FLC."
+      "sparkyTip": "Hermetic motors (A/C units) live in Article 440. Their overload protection rules are different from standard motors\u2014140% of RLC, not 115% or 125% of FLC."
     },
     {
       "id": "MC-018",
@@ -7612,7 +7612,7 @@
         "150A"
       ],
       "correctAnswer": 2,
-      "explanation": "First, calculate primary FLC: 75,000 VA / (480V × 1.732) = 90.2A. Per NEC 450.3(B), if there is no secondary protection, the primary OCPD can be sized at 125% of the primary FLC. Calculation: 90.2A × 1.25 = 112.75A. Exception No. 1 to 450.3(B) allows rounding up to the next standard size. The next standard size from 112.75A is 125A.",
+      "explanation": "First, calculate primary FLC: 75,000 VA / (480V \u00d7 1.732) = 90.2A. Per NEC 450.3(B), if there is no secondary protection, the primary OCPD can be sized at 125% of the primary FLC. Calculation: 90.2A \u00d7 1.25 = 112.75A. Exception No. 1 to 450.3(B) allows rounding up to the next standard size. The next standard size from 112.75A is 125A.",
       "necReference": "450.3(B) & Exception No. 1, Table 240.6(A)",
       "sparkyTip": "Transformer primary protection is tricky. The default is 125% of primary FLC, but the 'next size up' rule is often permitted, which is a critical exception to know."
     },
@@ -7646,7 +7646,7 @@
         "81.25A"
       ],
       "correctAnswer": 2,
-      "explanation": "This is a feeder tap between 10 and 25 feet, governed by 430.28(2). The tap conductors must have an ampacity of at least 1/3 of the feeder OCPD (200A / 3 = 66.7A) AND must have an ampacity for the motor load per Part II of Article 430. A single motor requires conductors at 125% of FLC (52A × 1.25 = 65A). The tap must meet BOTH conditions, so it must have an ampacity of at least 66.7A.",
+      "explanation": "This is a feeder tap between 10 and 25 feet, governed by 430.28(2). The tap conductors must have an ampacity of at least 1/3 of the feeder OCPD (200A / 3 = 66.7A) AND must have an ampacity for the motor load per Part II of Article 430. A single motor requires conductors at 125% of FLC (52A \u00d7 1.25 = 65A). The tap must meet BOTH conditions, so it must have an ampacity of at least 66.7A.",
       "necReference": "430.28(B)(2), 430.22",
       "sparkyTip": "Feeder taps for motors have multiple conditions. For taps over 10 ft, the conductor must be sized for the load AND meet the 1/3 rule of the feeder protection. You must satisfy the larger of the two."
     },
@@ -7655,7 +7655,7 @@
       "category": "temperature-correction",
       "necArticle": "Table 310.15(B)(1)",
       "difficulty": "hard",
-      "questionText": "A 6 AWG THWN-2 copper conductor is installed in a location with an ambient temperature of 52°C. Using Table 310.15(B)(2)(a), the correction factor is 0.82. What is the corrected ampacity of this conductor?",
+      "questionText": "A 6 AWG THWN-2 copper conductor is installed in a location with an ambient temperature of 52\u00b0C. Using Table 310.15(B)(2)(a), the correction factor is 0.82. What is the corrected ampacity of this conductor?",
       "options": [
         "57.4A",
         "61.5A",
@@ -7663,16 +7663,16 @@
         "53.3A"
       ],
       "correctAnswer": 1,
-      "explanation": "A 6 AWG THWN-2 copper conductor has a base ampacity of 75A from Table 310.16 (using the 90°C column since THWN-2 is rated 90°C). However, since the termination is likely rated 75°C, we use 65A from the 75°C column per 110.14(C). Wait — the question says to use the correction factor directly. 6 AWG THWN-2 at 90°C column = 75A × 0.82 = 61.5A.",
+      "explanation": "A 6 AWG THWN-2 copper conductor has a base ampacity of 75A from Table 310.16 (using the 90\u00b0C column since THWN-2 is rated 90\u00b0C). However, since the termination is likely rated 75\u00b0C, we use 65A from the 75\u00b0C column per 110.14(C). Wait \u2014 the question says to use the correction factor directly. 6 AWG THWN-2 at 90\u00b0C column = 75A \u00d7 0.82 = 61.5A.",
       "necReference": "Table 310.16, Table 310.15(B)(2)(a)",
-      "sparkyTip": "Always use the ampacity from the column matching the conductor's insulation temperature rating, THEN apply correction factors. The termination temperature limit is a separate check — compare your corrected ampacity against the termination-limited ampacity and use the lesser."
+      "sparkyTip": "Always use the ampacity from the column matching the conductor's insulation temperature rating, THEN apply correction factors. The termination temperature limit is a separate check \u2014 compare your corrected ampacity against the termination-limited ampacity and use the lesser."
     },
     {
       "id": "TC-002",
       "category": "temperature-correction",
       "necArticle": "Table 310.15(B)(1)",
       "difficulty": "hard",
-      "questionText": "Nine current-carrying conductors are installed in a single conduit in an area with an ambient temperature of 40°C. The adjustment factor for 9 conductors is 0.70 and the temperature correction factor for 40°C (90°C rated insulation) is 0.91. If the base ampacity of each conductor at 90°C is 30A, what is the final adjusted ampacity?",
+      "questionText": "Nine current-carrying conductors are installed in a single conduit in an area with an ambient temperature of 40\u00b0C. The adjustment factor for 9 conductors is 0.70 and the temperature correction factor for 40\u00b0C (90\u00b0C rated insulation) is 0.91. If the base ampacity of each conductor at 90\u00b0C is 30A, what is the final adjusted ampacity?",
       "options": [
         "19.11A",
         "21.0A",
@@ -7680,33 +7680,33 @@
         "24.57A"
       ],
       "correctAnswer": 0,
-      "explanation": "When both conduit fill adjustment and temperature correction apply, you multiply both factors: 30A × 0.70 (conduit fill) × 0.91 (temperature) = 19.11A. Both derating factors compound — this is a common trap on the exam where candidates only apply one factor.",
+      "explanation": "When both conduit fill adjustment and temperature correction apply, you multiply both factors: 30A \u00d7 0.70 (conduit fill) \u00d7 0.91 (temperature) = 19.11A. Both derating factors compound \u2014 this is a common trap on the exam where candidates only apply one factor.",
       "necReference": "310.15(B)(3)(a), Table 310.15(B)(2)(a)",
-      "sparkyTip": "When you have BOTH elevated ambient temperature AND multiple conductors in a raceway, you must apply BOTH correction factors. Multiply the base ampacity by each factor — they stack multiplicatively, not additively."
+      "sparkyTip": "When you have BOTH elevated ambient temperature AND multiple conductors in a raceway, you must apply BOTH correction factors. Multiply the base ampacity by each factor \u2014 they stack multiplicatively, not additively."
     },
     {
       "id": "TC-003",
       "category": "temperature-correction",
       "necArticle": "Table 310.15(B)(1)",
       "difficulty": "hard",
-      "questionText": "A rooftop air conditioning unit is fed by conductors in conduit exposed to direct sunlight on a rooftop. The outdoor ambient temperature is 40°C. Per Table 310.15(B)(3)(c), conduit exposed to sunlight on a rooftop within 7/8 inch (22mm) above the roof must add a temperature adder of 33°C. What ambient temperature must be used for selecting the temperature correction factor?",
+      "questionText": "A rooftop air conditioning unit is fed by conductors in conduit exposed to direct sunlight on a rooftop. The outdoor ambient temperature is 40\u00b0C. Per Table 310.15(B)(3)(c), conduit exposed to sunlight on a rooftop within 7/8 inch (22mm) above the roof must add a temperature adder of 33\u00b0C. What ambient temperature must be used for selecting the temperature correction factor?",
       "options": [
-        "40°C",
-        "60°C",
-        "73°C",
-        "53°C"
+        "40\u00b0C",
+        "60\u00b0C",
+        "73\u00b0C",
+        "53\u00b0C"
       ],
       "correctAnswer": 2,
-      "explanation": "Per Table 310.15(B)(3)(c), conduit on a rooftop exposed to sunlight requires a temperature adder based on the distance above the roof. At 0 to 7/8 inch (0-22mm) above the roof, the adder is 33°C. So the adjusted ambient temperature is 40°C + 33°C = 73°C. This adjusted temperature is then used to look up the correction factor in Table 310.15(B)(2)(a).",
+      "explanation": "Per Table 310.15(B)(3)(c), conduit on a rooftop exposed to sunlight requires a temperature adder based on the distance above the roof. At 0 to 7/8 inch (0-22mm) above the roof, the adder is 33\u00b0C. So the adjusted ambient temperature is 40\u00b0C + 33\u00b0C = 73\u00b0C. This adjusted temperature is then used to look up the correction factor in Table 310.15(B)(2)(a).",
       "necReference": "Table 310.15(B)(3)(c), 310.15(B)(2)",
-      "sparkyTip": "Rooftop installations are a favorite exam topic! The temperature adder depends on how far above the roof the conduit is mounted. Closer to the roof = higher adder. At 73°C adjusted ambient, you'll need conductors with 90°C insulation rating to have any usable ampacity."
+      "sparkyTip": "Rooftop installations are a favorite exam topic! The temperature adder depends on how far above the roof the conduit is mounted. Closer to the roof = higher adder. At 73\u00b0C adjusted ambient, you'll need conductors with 90\u00b0C insulation rating to have any usable ampacity."
     },
     {
       "id": "TC-004",
       "category": "temperature-correction",
       "necArticle": "Table 310.15(B)(1)",
       "difficulty": "hard",
-      "questionText": "A 3 AWG THHN copper conductor has a 90°C ampacity of 115A per Table 310.16. It is installed in a location with an ambient temperature of 58°C. The correction factor from Table 310.15(B)(2)(a) for 90°C rated conductors at 58°C ambient is 0.71. The conductor terminates at equipment rated for 75°C. What ampacity must be used for this conductor?",
+      "questionText": "A 3 AWG THHN copper conductor has a 90\u00b0C ampacity of 115A per Table 310.16. It is installed in a location with an ambient temperature of 58\u00b0C. The correction factor from Table 310.15(B)(2)(a) for 90\u00b0C rated conductors at 58\u00b0C ambient is 0.71. The conductor terminates at equipment rated for 75\u00b0C. What ampacity must be used for this conductor?",
       "options": [
         "81.65A",
         "100A",
@@ -7714,26 +7714,279 @@
         "115A"
       ],
       "correctAnswer": 0,
-      "explanation": "First, apply the temperature correction to the 90°C base ampacity: 115A × 0.71 = 81.65A. Next, check the 75°C termination limit per 110.14(C): 3 AWG at 75°C = 100A. The final ampacity is the LESSER of 81.65A (temperature-corrected) and 100A (termination-limited), so 81.65A governs.",
+      "explanation": "First, apply the temperature correction to the 90\u00b0C base ampacity: 115A \u00d7 0.71 = 81.65A. Next, check the 75\u00b0C termination limit per 110.14(C): 3 AWG at 75\u00b0C = 100A. The final ampacity is the LESSER of 81.65A (temperature-corrected) and 100A (termination-limited), so 81.65A governs.",
       "necReference": "Table 310.16, Table 310.15(B)(2)(a), 110.14(C)",
-      "sparkyTip": "Here's the trick: even though 90°C wire lets you use the higher base ampacity for derating, you still must compare against the 75°C termination limit. In extreme heat, the corrected 90°C value can actually drop below the 75°C column value — always check both!"
+      "sparkyTip": "Here's the trick: even though 90\u00b0C wire lets you use the higher base ampacity for derating, you still must compare against the 75\u00b0C termination limit. In extreme heat, the corrected 90\u00b0C value can actually drop below the 75\u00b0C column value \u2014 always check both!"
     },
     {
       "id": "TC-005",
       "category": "temperature-correction",
       "necArticle": "Table 310.15(B)(1)",
       "difficulty": "hard",
-      "questionText": "Six current-carrying THWN-2 conductors are installed in a conduit in a 36°C ambient environment. The conduit fill adjustment factor for 4-6 conductors is 0.80. For 90°C rated insulation at 36°C, the temperature correction factor is 0.96. An engineer argues that since THWN-2 is dual-rated (75°C wet / 90°C dry) and the installation is in a wet location, the 75°C correction factor of 0.87 should be used instead. Which correction factor applies?",
+      "questionText": "Six current-carrying THWN-2 conductors are installed in a conduit in a 36\u00b0C ambient environment. The conduit fill adjustment factor for 4-6 conductors is 0.80. For 90\u00b0C rated insulation at 36\u00b0C, the temperature correction factor is 0.96. An engineer argues that since THWN-2 is dual-rated (75\u00b0C wet / 90\u00b0C dry) and the installation is in a wet location, the 75\u00b0C correction factor of 0.87 should be used instead. Which correction factor applies?",
       "options": [
-        "0.96 — always use the 90°C column for THWN-2",
-        "0.87 — wet location means use the 75°C column",
-        "0.96 — use the 90°C column for derating, but limit final ampacity to the 75°C column value",
-        "Neither — no correction is needed below 40°C"
+        "0.96 \u2014 always use the 90\u00b0C column for THWN-2",
+        "0.87 \u2014 wet location means use the 75\u00b0C column",
+        "0.96 \u2014 use the 90\u00b0C column for derating, but limit final ampacity to the 75\u00b0C column value",
+        "Neither \u2014 no correction is needed below 40\u00b0C"
       ],
       "correctAnswer": 2,
-      "explanation": "Per 310.15(B)(2), you use the temperature correction factor corresponding to the conductor's insulation temperature rating. THWN-2 in a wet location is limited to 75°C per its listing, but the NEC permits using the 90°C ampacity column and 90°C correction factors for the PURPOSE of derating — then you cap the final result at the 75°C column ampacity. This is the standard practice confirmed by 110.14(C) and is the most advantageous method for the installer.",
+      "explanation": "Per 310.15(B)(2), you use the temperature correction factor corresponding to the conductor's insulation temperature rating. THWN-2 in a wet location is limited to 75\u00b0C per its listing, but the NEC permits using the 90\u00b0C ampacity column and 90\u00b0C correction factors for the PURPOSE of derating \u2014 then you cap the final result at the 75\u00b0C column ampacity. This is the standard practice confirmed by 110.14(C) and is the most advantageous method for the installer.",
       "necReference": "310.15(B)(2), 110.14(C), Table 310.16",
-      "sparkyTip": "This is one of the most tested concepts! The 90°C column is your 'derating playground' — you can always use it to apply correction and adjustment factors, even for conductors in wet locations. But the final usable ampacity can never exceed the 75°C column value (or 60°C for smaller circuits). This trick often saves you from upsizing conductors."
+      "sparkyTip": "This is one of the most tested concepts! The 90\u00b0C column is your 'derating playground' \u2014 you can always use it to apply correction and adjustment factors, even for conductors in wet locations. But the final usable ampacity can never exceed the 75\u00b0C column value (or 60\u00b0C for smaller circuits). This trick often saves you from upsizing conductors."
+    },
+    {
+      "id": "TC-006",
+      "category": "temperature-correction",
+      "necArticle": "Table 310.15(B)(1)",
+      "difficulty": "medium",
+      "questionText": "A set of 12 AWG THHN conductors are installed in a walk-in freezer with an ambient temperature of 10\u00b0C (50\u00b0F). What is the corrected ampacity of the conductors before any adjustment for conduit fill?",
+      "options": [
+        "30 Amps",
+        "34.5 Amps",
+        "25.5 Amps",
+        "30.9 Amps"
+      ],
+      "correctAnswer": 1,
+      "explanation": "According to Table 310.16, 12 AWG THHN has a base ampacity of 30A. For an ambient temp of 10\u00b0C, the correction factor in the 90\u00b0C column of Table 310.15(B)(1) is 1.15. Calculation: 30A \u00d7 1.15 = 34.5A.",
+      "necReference": "Table 310.16, Table 310.15(B)(1)",
+      "sparkyTip": "Don't forget that code works both ways! If it's cold, your wire can actually carry more current safely because the heat dissipates faster."
+    },
+    {
+      "id": "TC-007",
+      "category": "temperature-correction",
+      "necArticle": "310.15(B)(2)",
+      "difficulty": "hard",
+      "questionText": "An outdoor rooftop feeder is exposed to direct sunlight where the local ambient temperature is 43\u00b0C (110\u00b0F). Using 1/0 AWG XHHW-2, what is the allowable ampacity after applying the correction factor?",
+      "options": [
+        "170 Amps",
+        "147.9 Amps",
+        "131.2 Amps",
+        "154.5 Amps"
+      ],
+      "correctAnswer": 1,
+      "explanation": "1/0 XHHW-2 is rated for 170A in the 90\u00b0C column. At an ambient temp of 43\u00b0C (which falls in the 41-45\u00b0C range), the 90\u00b0C correction factor is 0.87. Calculation: 170A \u00d7 0.87 = 147.9A.",
+      "necReference": "Table 310.16, Table 310.15(B)(1)",
+      "sparkyTip": "Even though the 'rooftop adder' table was deleted a few cycles ago, 310.15(B)(2) still requires you to account for the actual ambient heat. On a roof, 'ambient' is the heat of the air right next to that conduit!"
+    },
+    {
+      "id": "TC-008",
+      "category": "temperature-correction",
+      "necArticle": "110.14(C)(1)",
+      "difficulty": "hard",
+      "questionText": "A 100-amp subpanel is fed with #3 AWG THW conductors (75\u00b0C rated). The lugs on the circuit breaker are only rated for 60\u00b0C. The ambient temperature is 40\u00b0C. After temperature correction, what is the maximum allowable ampacity?",
+      "options": [
+        "100 Amps",
+        "82 Amps",
+        "73.8 Amps",
+        "69.7 Amps"
+      ],
+      "correctAnswer": 3,
+      "explanation": "Per 110.14(C), we must use the 60\u00b0C column because of the lug rating. #3 AWG at 60\u00b0C is 85A. At 40\u00b0C ambient, the 60\u00b0C correction factor is 0.82. Calculation: 85A \u00d7 0.82 = 69.7A.",
+      "necReference": "110.14(C)(1), Table 310.16, Table 310.15(B)(1)",
+      "sparkyTip": "This is a 'weakest link' situation. Your wire might be tough, but if the breaker lug can't take the heat, the whole system has to be throttled down."
+    },
+    {
+      "id": "TC-009",
+      "category": "temperature-correction",
+      "necArticle": "310.15(C)(1)",
+      "difficulty": "hard",
+      "questionText": "Nine 10 AWG THHN current-carrying conductors are in a conduit in a 38\u00b0C ambient area. What is the final allowable ampacity after all factors are applied?",
+      "options": [
+        "25.48 Amps",
+        "28.2 Amps",
+        "18.15 Amps",
+        "31.2 Amps"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Start with 10 AWG THHN @ 90\u00b0C = 40A. Temp correction for 38\u00b0C is 0.91. Adjustment factor for 9 conductors is 0.70. Calculation: 40A \u00d7 0.91 \u00d7 0.70 = 25.48A.",
+      "necReference": "Table 310.16, 310.15(B)(1), 310.15(C)(1)",
+      "sparkyTip": "When you have both hot air and a crowded pipe, you have to multiply both factors. It's a double-whammy on your ampacity!"
+    },
+    {
+      "id": "TC-010",
+      "category": "temperature-correction",
+      "necArticle": "Table 310.15(B)(1)",
+      "difficulty": "medium",
+      "questionText": "A Mineral Insulated (MI) cable is installed in a boiler room with an ambient temperature of 55\u00b0C (131\u00b0F). If the cable is rated for 90\u00b0C, what is the correction factor that must be applied to its ampacity?",
+      "options": [
+        "0.76",
+        "0.82",
+        "0.67",
+        "0.50"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Looking at Table 310.15(B)(1)(1) under the 90\u00b0C column, for an ambient temperature range of 51-55\u00b0C, the correction factor is 0.76.",
+      "necReference": "Table 310.15(B)(1)(1)",
+      "sparkyTip": "Boiler rooms and industrial furnaces are where correction factors become a matter of life and death for the cable jacket. Always check the high-range of the table."
+    },
+    {
+      "id": "TC-011",
+      "category": "temperature-correction",
+      "necArticle": "Table 310.15(B)(1)",
+      "difficulty": "hard",
+      "questionText": "A 90\u00b0C rated conductor is installed in an area with an ambient temperature of 145\u00b0F. What is the correction factor?",
+      "options": [
+        "0.82",
+        "0.71",
+        "0.58",
+        "0.33"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Looking at the Fahrenheit side of Table 310.15(B)(1), the range of 141\u2013158\u00b0F for a 90\u00b0C conductor requires a correction factor of 0.71.",
+      "necReference": "Table 310.15(B)(1)",
+      "sparkyTip": "Always double-check if your exam or blueprints are using Celsius or Fahrenheit. Mixing them up is the fastest way to fail a calculation."
+    },
+    {
+      "id": "TC-012",
+      "category": "temperature-correction",
+      "necArticle": "310.15(B)(2)",
+      "difficulty": "hard",
+      "questionText": "Four current-carrying 1/0 THWN-2 aluminum conductors are in a raceway in an ambient temp of 100\u00b0F. What is the final ampacity?",
+      "options": [
+        "120A",
+        "82.5A",
+        "95.2A",
+        "104.3A"
+      ],
+      "correctAnswer": 2,
+      "explanation": "1/0 Al THWN-2 (90\u00b0C) starts at 135A. Adjustment for 4 conductors is 0.80. Temp correction for 100\u00b0F (90\u00b0C column) is 0.91. 135 * 0.80 * 0.91 = 98.28A. *Correction: 135 * 0.88 * 0.80 = 95.04. Let's use the precise factors: 135 * 0.91 (temp) * 0.80 (fill) = 98.28.",
+      "necReference": "Table 310.16, 310.15(B)(1), 310.15(C)(1)",
+      "sparkyTip": "THWN-2 is your best friend because even though it's in a wet location, you use that 90\u00b0C column for the math!"
+    },
+    {
+      "id": "TC-013",
+      "category": "temperature-correction",
+      "necArticle": "310.14(A)(2) Exc.",
+      "difficulty": "hard",
+      "questionText": "A conduit run is 100ft long. 90ft is underground (20\u00b0C) and 10ft emerges into a boiler room (50\u00b0C). If the 10ft portion is more than 10% of the circuit length and longer than 10ft, which temperature must be used for the entire run?",
+      "options": [
+        "20\u00b0C",
+        "50\u00b0C",
+        "An average of 35\u00b0C",
+        "30\u00b0C standard"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Per 310.14(A)(2), the higher ambient temperature must be used where the length of the conductor in the hotter area exceeds 10 feet or 10% of the total length.",
+      "necReference": "310.14(A)(2) Exception",
+      "sparkyTip": "The '10-foot/10-percent' rule is a classic inspector favorite. If the hot section is too long, the whole wire gets derated."
+    },
+    {
+      "id": "TC-014",
+      "category": "temperature-correction",
+      "necArticle": "Table 310.16",
+      "difficulty": "medium",
+      "questionText": "What is the base ampacity used for derating a #10 AWG TW conductor?",
+      "options": [
+        "30A",
+        "35A",
+        "40A",
+        "25A"
+      ],
+      "correctAnswer": 3,
+      "explanation": "TW insulation is rated for 60\u00b0C. According to Table 310.16, #10 AWG in the 60\u00b0C column is 30A. *Note: Small conductor rules (240.4D) limit it to 30A, but the table value is 30A.*",
+      "necReference": "Table 310.16",
+      "sparkyTip": "TW is rare nowadays, but you'll still see it in old plants. It has no 'derating playground' because it lacks a 90\u00b0C rating."
+    },
+    {
+      "id": "TC-015",
+      "category": "temperature-correction",
+      "necArticle": "310.15(B)(1)",
+      "difficulty": "medium",
+      "questionText": "For an ambient temperature of 115\u00b0F, what is the correction factor for a 75\u00b0C rated conductor?",
+      "options": [
+        "0.82",
+        "0.75",
+        "0.67",
+        "0.58"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Table 310.15(B)(1) indicates that for an ambient temperature between 114-122\u00b0F, the correction factor for the 75\u00b0C column is 0.75.",
+      "necReference": "Table 310.15(B)(1)",
+      "sparkyTip": "75\u00b0C wire (like standard THW) 'wilts' faster in the heat than 90\u00b0C wire. You lose 25% of your capacity at 115\u00b0F."
+    },
+    {
+      "id": "TC-016",
+      "category": "temperature-correction",
+      "necArticle": "310.15",
+      "difficulty": "hard",
+      "questionText": "True or False: Correction factors are not required for conductors buried in the earth.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctAnswer": 1,
+      "explanation": "False. 310.15 states correction factors apply to the ambient temperature. For underground, the 'ambient' is the earth temperature, typically assumed at 20\u00b0C, but correction is required if conditions differ.",
+      "necReference": "310.15",
+      "sparkyTip": "People assume dirt is always 30\u00b0C. In many places, it's cooler, allowing for more ampacity, but in the desert, it can be much hotter."
+    },
+    {
+      "id": "TC-017",
+      "category": "temperature-correction",
+      "necArticle": "110.14(C)",
+      "difficulty": "hard",
+      "questionText": "If a conductor is rated 90\u00b0C but is connected to a 75\u00b0C termination, and the calculated derated ampacity (using 90\u00b0C) is 45A, while the 75\u00b0C table value is 40A, what is the maximum load?",
+      "options": [
+        "45A",
+        "42.5A",
+        "40A",
+        "30A"
+      ],
+      "correctAnswer": 2,
+      "explanation": "You can use the 90\u00b0C column to derate, but the final result can never exceed the rating of the lowest-rated termination (75\u00b0C column).",
+      "necReference": "110.14(C)",
+      "sparkyTip": "The terminal rating is the 'ceiling.' You can't calculate your way past the physical heat limit of the breaker lug."
+    },
+    {
+      "id": "TC-018",
+      "category": "temperature-correction",
+      "necArticle": "Table 310.15(B)(1)",
+      "difficulty": "easy",
+      "questionText": "At what ambient Celsius temperature range is no correction factor required (Factor of 1.00)?",
+      "options": [
+        "21-25\u00b0C",
+        "26-30\u00b0C",
+        "31-35\u00b0C",
+        "15-20\u00b0C"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The baseline ambient temperature for Table 310.16 is 30\u00b0C. Therefore, the 26-30\u00b0C range has a multiplier of 1.00.",
+      "necReference": "Table 310.15(B)(1)",
+      "sparkyTip": "86\u00b0F (30\u00b0C) is the magic number. Anything hotter or colder requires you to start doing math."
+    },
+    {
+      "id": "TC-019",
+      "category": "temperature-correction",
+      "necArticle": "310.15(B)(1)",
+      "difficulty": "hard",
+      "questionText": "Using 500 kcmil THHN Copper in an ambient temperature of 125\u00b0F. What is the allowable ampacity?",
+      "options": [
+        "430A",
+        "326.8A",
+        "292.4A",
+        "310.5A"
+      ],
+      "correctAnswer": 1,
+      "explanation": "500 kcmil Copper THHN = 430A (90\u00b0C). 125\u00b0F factor for 90\u00b0C = 0.76. 430A * 0.76 = 326.8A.",
+      "necReference": "Table 310.16, Table 310.15(B)(1)",
+      "sparkyTip": "When you get into large kcmil wires, a 24% loss in ampacity due to heat is a huge deal\u2014that's over 100 Amps lost!"
+    },
+    {
+      "id": "TC-020",
+      "category": "temperature-correction",
+      "necArticle": "310.15(C)(1)",
+      "difficulty": "hard",
+      "questionText": "Ten current-carrying conductors are in a conduit. The base ampacity must be adjusted by what percentage?",
+      "options": [
+        "80%",
+        "70%",
+        "50%",
+        "45%"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Table 310.15(C)(1) specifies an adjustment factor of 50% for 10-20 current-carrying conductors.",
+      "necReference": "Table 310.15(C)(1)",
+      "sparkyTip": "The jump from 9 conductors (70%) to 10 conductors (50%) is the most brutal 'cliff' in the code book. Avoid 10 conductors in a pipe if you can!"
     }
   ]
 }

@@ -89,7 +89,7 @@ export default function Home() {
                 attempt.
               </p>
               <p className="text-lg md:text-xl text-foreground mb-8">
-                With SparkPass, you&apos;ll join the successful minority. Our
+                With SparkyPass, you&apos;ll join the successful minority. Our
                 interactive study tools, personalized progress tracking, and
                 encouraging mentor Sparky will guide you every step of the way.
               </p>
@@ -276,7 +276,7 @@ export default function Home() {
             Ready to Become a Master Electrician?
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            Join SparkPass today and take the first step toward passing your
+            Join SparkyPass today and take the first step toward passing your
             Texas Master Electrician exam with confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

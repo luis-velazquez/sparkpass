@@ -39,15 +39,22 @@ export async function POST(request: Request) {
       .set({ emailVerified: true, updatedAt: new Date() })
       .where(eq(users.id, verificationRecord.userId));
 
-    // Delete the used verification token
+    // Set a short expiry on the token (60s) so it can be used for auto-login
+    const autoLoginExpiry = new Date();
+    autoLoginExpiry.setSeconds(autoLoginExpiry.getSeconds() + 60);
     await db
-      .delete(verificationTokens)
+      .update(verificationTokens)
+      .set({ expiresAt: autoLoginExpiry })
       .where(eq(verificationTokens.id, verificationRecord.id));
 
-    // Log verification success (MVP - would send confirmation email in production)
-    console.log(`[EMAIL VERIFICATION] User ${verificationRecord.userId} verified their email`);
+    // Get user email for the frontend
+    const [verifiedUser] = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, verificationRecord.userId))
+      .limit(1);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, email: verifiedUser?.email });
   } catch (error) {
     console.error("Email verification error:", error);
     return NextResponse.json(

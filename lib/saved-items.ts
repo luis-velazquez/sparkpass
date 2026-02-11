@@ -1,7 +1,7 @@
 // Saved items storage utility for flashcards and quiz questions
 
-const SAVED_FLASHCARDS_KEY = "sparkpass-saved-flashcards";
-const SAVED_QUESTIONS_KEY = "sparkpass-saved-questions";
+const SAVED_FLASHCARDS_KEY = "sparkypass-saved-flashcards";
+const SAVED_QUESTIONS_KEY = "sparkypass-saved-questions";
 
 export interface SavedFlashcard {
   id: string;

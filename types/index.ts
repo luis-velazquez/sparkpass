@@ -1,4 +1,4 @@
-// SparkPass Type Definitions
+// SparkyPass Type Definitions
 
 // Re-export database types for convenience
 export {

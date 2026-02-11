@@ -248,14 +248,14 @@ Message:
 ${stripHtmlTags(message.trim())}
 
 ============================
-This message was sent via the SparkPass contact form.
+This message was sent via the SparkyPass contact form.
 `.trim();
 
     // Log email (MVP - console.log instead of actual sending)
     console.log("=".repeat(60));
     console.log("[CONTACT FORM] Email would be sent:");
     console.log(`To: ${contactEmail}`);
-    console.log(`Subject: SparkPass Contact: ${stripHtmlTags(name.trim())}`);
+    console.log(`Subject: SparkyPass Contact: ${stripHtmlTags(name.trim())}`);
     console.log("");
     console.log(emailContent);
     console.log("=".repeat(60));

@@ -15,6 +15,7 @@ export async function GET() {
       .select({
         name: users.name,
         email: users.email,
+        username: users.username,
         city: users.city,
         state: users.state,
         dateOfBirth: users.dateOfBirth,
@@ -35,6 +36,7 @@ export async function GET() {
     return NextResponse.json({
       name: user.name,
       email: user.email,
+      username: user.username,
       city: user.city,
       state: user.state,
       dateOfBirth: user.dateOfBirth?.toISOString() || null,
@@ -124,7 +126,45 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { dateOfBirth, city, state, targetExamDate, newsletterOptedIn } = body;
+    const { username, dateOfBirth, city, state, targetExamDate, newsletterOptedIn } = body;
+
+    // Validate username
+    if (!username || typeof username !== "string" || username.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Username is required" },
+        { status: 400 }
+      );
+    }
+
+    const trimmedUsername = username.trim();
+
+    if (trimmedUsername.length < 3 || trimmedUsername.length > 30) {
+      return NextResponse.json(
+        { error: "Username must be between 3 and 30 characters" },
+        { status: 400 }
+      );
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
+      return NextResponse.json(
+        { error: "Username can only contain letters, numbers, underscores, and hyphens" },
+        { status: 400 }
+      );
+    }
+
+    // Check username uniqueness
+    const [existingUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.username, trimmedUsername))
+      .limit(1);
+
+    if (existingUser && existingUser.id !== session.user.id) {
+      return NextResponse.json(
+        { error: "Username is already taken" },
+        { status: 409 }
+      );
+    }
 
     // Validate required fields
     if (!dateOfBirth) {
@@ -197,6 +237,7 @@ export async function POST(request: Request) {
     await db
       .update(users)
       .set({
+        username: trimmedUsername,
         dateOfBirth: dob,
         city: city.trim(),
         state: state.trim(),

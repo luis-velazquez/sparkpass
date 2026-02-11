@@ -193,8 +193,19 @@ export default function QuizResultsPage() {
   const [levelUpInfo, setLevelUpInfo] = useState<{ newLevel: number; newTitle: string; message: string } | null>(null);
   const [previousUserXP, setPreviousUserXP] = useState<number | null>(null);
   const [showFireAnimation, setShowFireAnimation] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
 
   const category = useMemo(() => getCategoryBySlug(categorySlug), [categorySlug]);
+
+  // Fetch username for share text
+  useEffect(() => {
+    fetch("/api/user")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.username) setUsername(data.username);
+      })
+      .catch(() => {});
+  }, []);
 
   // Load quiz data from sessionStorage and fetch user XP
   useEffect(() => {
@@ -353,12 +364,13 @@ export default function QuizResultsPage() {
   const handleShare = async () => {
     if (!results || !category) return;
 
-    const shareText = `I just scored ${results.percentage}% (${results.correctCount}/${results.totalQuestions}) on the ${category.name} quiz in SparkPass! 🎉⚡`;
+    const usernameTag = username ? ` @${username}` : "";
+    const shareText = `I scored ${results.percentage}% on the ${category.name} quiz in SparkyPass!${usernameTag} 🎉⚡`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "My SparkPass Quiz Score",
+          title: "My SparkyPass Quiz Score",
           text: shareText,
         });
       } catch {

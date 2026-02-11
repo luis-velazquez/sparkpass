@@ -77,8 +77,12 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
-    // Send password reset email via Resend
-    await sendPasswordResetEmail(user.email, user.name, resetUrl);
+    // Send password reset email via Resend (non-blocking — don't fail if email fails)
+    try {
+      await sendPasswordResetEmail(user.email, user.name, resetUrl);
+    } catch (emailError) {
+      console.error("Failed to send password reset email:", emailError);
+    }
 
     if (process.env.NODE_ENV === "development") {
       console.log(`[DEV] Reset URL: ${resetUrl}`);

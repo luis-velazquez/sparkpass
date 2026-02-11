@@ -1,6 +1,42 @@
 // Dwelling Unit Load Calculator Data
 // Based on NEC Article 220 - Standard Method for Dwelling Units
-// Key references: Table 220.42 (lighting demand), Table 430.248 (motor FLC), 220.50 (largest motor +25%)
+// Key references: Table 220.45 (lighting demand), Table 430.248 (motor FLC), 220.50 (largest motor +25%)
+
+// Import conductor/GEC sizing from commercial calculator data
+import {
+  getConductorSize,
+  getGECSize,
+  CONDUCTOR_TABLE,
+} from "./commercial-calculator-data";
+export { getConductorSize, getGECSize, CONDUCTOR_TABLE };
+
+// ─── NEC Table 310.12: Single-Phase Dwelling Services and Feeders (120/240V) ──
+// Maps service rating amps directly to conductor size (83% already factored in)
+interface DwellingConductorEntry {
+  serviceRatingAmps: number;
+  copper: string;
+  aluminum: string;
+}
+
+export const DWELLING_CONDUCTOR_TABLE: DwellingConductorEntry[] = [
+  { serviceRatingAmps: 100, copper: "4",   aluminum: "2" },
+  { serviceRatingAmps: 110, copper: "3",   aluminum: "1" },
+  { serviceRatingAmps: 125, copper: "2",   aluminum: "1/0" },
+  { serviceRatingAmps: 150, copper: "1",   aluminum: "2/0" },
+  { serviceRatingAmps: 175, copper: "1/0", aluminum: "3/0" },
+  { serviceRatingAmps: 200, copper: "2/0", aluminum: "4/0" },
+  { serviceRatingAmps: 225, copper: "3/0", aluminum: "250" },
+  { serviceRatingAmps: 250, copper: "4/0", aluminum: "300" },
+  { serviceRatingAmps: 300, copper: "250", aluminum: "350" },
+  { serviceRatingAmps: 350, copper: "350", aluminum: "500" },
+  { serviceRatingAmps: 400, copper: "400", aluminum: "600" },
+];
+
+// Look up copper conductor size for a dwelling unit service rating
+export function getDwellingConductorSize(serviceAmps: number): string {
+  const entry = DWELLING_CONDUCTOR_TABLE.find(e => e.serviceRatingAmps >= serviceAmps);
+  return entry ? entry.copper : DWELLING_CONDUCTOR_TABLE[DWELLING_CONDUCTOR_TABLE.length - 1].copper;
+}
 
 export type DifficultyLevel = "beginner" | "intermediate";
 
@@ -127,6 +163,9 @@ export interface CalculationStep {
   formula?: string;
   expectedAnswer?: (scenario: HouseScenario, previousAnswers: Record<string, number>) => number;
   validateAnswer?: (userAnswer: number, expected: number) => boolean;
+  storedAnswer?: (scenario: HouseScenario, previousAnswers: Record<string, number>, userAnswer: number) => number;
+  parseInput?: (input: string) => number;
+  shouldShow?: (scenario: HouseScenario) => boolean;
 }
 
 // IDs of appliances considered "fixed" (fastened in place) per NEC 220.53
@@ -164,6 +203,8 @@ export const STEP_APPLIANCE_MAP: Record<string, string[]> = {
   "largest-motor-25": [],
   "total-va": [],
   "service-amps": [],
+  "service-conductor": [],
+  "gec-size": [],
 };
 
 // Mapping of motor conversion step IDs to their appliance IDs
@@ -174,11 +215,11 @@ export const MOTOR_CONVERSION_STEPS: Record<string, string> = {
 };
 
 // Get all appliance IDs that have been accounted for up to and including a given step index
-export function getAccountedApplianceIds(stepIndex: number): Set<string> {
+export function getAccountedApplianceIds(stepIndex: number, steps: CalculationStep[] = CALCULATION_STEPS): Set<string> {
   const accountedIds = new Set<string>();
 
   for (let i = 0; i <= stepIndex; i++) {
-    const stepId = CALCULATION_STEPS[i]?.id;
+    const stepId = steps[i]?.id;
     if (stepId && STEP_APPLIANCE_MAP[stepId]) {
       STEP_APPLIANCE_MAP[stepId].forEach(id => accountedIds.add(id));
     }
@@ -200,24 +241,41 @@ export const TOTAL_VA_COMPONENT_STEPS = [
 // Quick Reference items and when they're covered (step ID that completes coverage)
 export const QUICK_REFERENCE_ITEMS = [
   { id: "motor-flc", label: "Motor FLC", value: "Table 430.248: HP → Amps (115V or 230V column)", coveredAfterStep: "convert-pool-pump" },
-  { id: "general-lighting", label: "General Lighting", value: "3 VA/sq ft (220.12(J))", coveredAfterStep: "general-lighting" },
+  { id: "general-lighting", label: "General Lighting", value: "3 VA/sq ft (220.41)", coveredAfterStep: "general-lighting" },
   { id: "small-appliance", label: "Small Appliance + Laundry", value: "2 circuits @ 1,500 VA + 1 laundry @ 1,500 VA (220.52)", coveredAfterStep: "small-appliance-laundry" },
-  { id: "lighting-demand", label: "Lighting Demand", value: "First 3kVA: 100% | Remainder: 35% (Table 220.42)", coveredAfterStep: "lighting-demand" },
+  { id: "lighting-demand", label: "Lighting Demand", value: "First 3kVA: 100% | 3,001–120kVA: 35% | Over 120kVA: 25% (Table 220.45)", coveredAfterStep: "lighting-demand" },
   { id: "hvac", label: "HVAC", value: "Larger of heating OR cooling (220.60)", coveredAfterStep: "hvac" },
   { id: "fixed-appliances", label: "Fixed Appliances", value: "75% demand if 4+ appliances (220.53)", coveredAfterStep: "fixed-appliances" },
   { id: "dryer", label: "Dryer", value: "5,000 VA minimum (220.54)", coveredAfterStep: "dryer" },
-  { id: "range", label: "Range/Cooking", value: "Table 220.55: 8 kW for ≤12 kW range", coveredAfterStep: "range" },
+  { id: "range", label: "Range/Cooking", value: "Table 220.55: Col A/B (<8¾ kW) = 80%, Col C (≥8¾ kW) = 8 kW", coveredAfterStep: "range" },
   { id: "largest-motor", label: "Largest Motor", value: "Add 25% to largest motor (220.50)", coveredAfterStep: "largest-motor-25" },
   { id: "service-sizing", label: "Service Sizing", value: "Total VA ÷ Voltage (Table 310.12)", coveredAfterStep: "service-amps" },
+  { id: "conductor", label: "Conductor Sizing", value: "Table 310.12(A): Copper conductor ampacity", coveredAfterStep: "service-conductor" },
+  { id: "gec", label: "GEC Sizing", value: "Table 250.66: Based on service conductor size", coveredAfterStep: "gec-size" },
 ];
 
 // Check if a quick reference item has been covered based on current step
-export function isQuickRefCovered(itemId: string, currentStepIndex: number): boolean {
+export function isQuickRefCovered(itemId: string, currentStepIndex: number, steps: CalculationStep[] = CALCULATION_STEPS): boolean {
   const item = QUICK_REFERENCE_ITEMS.find(i => i.id === itemId);
   if (!item) return false;
 
-  const coveredStepIndex = CALCULATION_STEPS.findIndex(s => s.id === item.coveredAfterStep);
-  return coveredStepIndex !== -1 && currentStepIndex > coveredStepIndex;
+  const coveredStepIndex = steps.findIndex(s => s.id === item.coveredAfterStep);
+  if (coveredStepIndex !== -1) {
+    return currentStepIndex > coveredStepIndex;
+  }
+
+  // Step was filtered out — find the next step in the original order that exists in filtered steps
+  const originalIndex = CALCULATION_STEPS.findIndex(s => s.id === item.coveredAfterStep);
+  if (originalIndex === -1) return false;
+
+  for (let i = originalIndex + 1; i < CALCULATION_STEPS.length; i++) {
+    const filteredIndex = steps.findIndex(s => s.id === CALCULATION_STEPS[i].id);
+    if (filteredIndex !== -1) {
+      return currentStepIndex >= filteredIndex;
+    }
+  }
+
+  return false;
 }
 
 // Standard appliances that appear in all scenarios
@@ -237,7 +295,7 @@ export const HOUSE_SCENARIOS: HouseScenario[] = [
     description: "A modest 1,200 sq ft dwelling unit with basic appliances",
     appliances: [
       ...STANDARD_APPLIANCES,
-      { id: "range", name: "Electric Range", watts: 8000, necReference: "Table 220.55" },
+      { id: "range", name: "Electric Range", watts: 9600, necReference: "Table 220.55" },
       { id: "dryer", name: "Electric Dryer", watts: 5000, necReference: "220.54" },
       { id: "water-heater", name: "Water Heater", watts: 4500, necReference: "220.53" },
       { id: "dishwasher", name: "Dishwasher", watts: 1200, necReference: "220.53" },
@@ -320,6 +378,7 @@ export const CALCULATION_STEPS: CalculationStep[] = [
   {
     id: "convert-disposal",
     title: "Convert Disposal Motor (HP to Watts)",
+    shouldShow: (scenario) => !!scenario.appliances.find(a => a.id === "disposal"),
     sparkyPrompt: "Now let's convert the disposal motor. If this dwelling has a disposal, find its HP and voltage, look up the amps in Table 430.248, and calculate the watts. If there's no disposal, enter 0.",
     hint: (scenario) => {
       const disposal = scenario.appliances.find(a => a.id === "disposal");
@@ -345,6 +404,7 @@ export const CALCULATION_STEPS: CalculationStep[] = [
   {
     id: "convert-pool-pump",
     title: "Convert Pool Pump Motor (HP to Watts)",
+    shouldShow: (scenario) => !!scenario.appliances.find(a => a.id === "pool-pump"),
     sparkyPrompt: "If this dwelling has a pool pump, convert it the same way. Find the HP and voltage, look up the amps in Table 430.248, and calculate the watts. If there's no pool pump, enter 0.",
     hint: (scenario) => {
       const pump = scenario.appliances.find(a => a.id === "pool-pump");
@@ -366,13 +426,13 @@ export const CALCULATION_STEPS: CalculationStep[] = [
     },
     validateAnswer: (user, expected) => Math.abs(user - expected) <= 50,
   },
-  // Step 4: General Lighting (220.12)
+  // Step 4: General Lighting (220.41)
   {
     id: "general-lighting",
     title: "General Lighting Load",
-    sparkyPrompt: "Great! Now that we've converted all the motors, let's calculate the service load. Per 220.12(J), we use 3 VA per square foot for dwelling units. What's the general lighting load?",
+    sparkyPrompt: "Great! Now that we've converted all the motors, let's calculate the service load. Per 220.41, we use 3 VA per square foot for dwelling units. What's the general lighting load?",
     hint: "Multiply the square footage by 3 VA/sq ft",
-    necReference: "NEC 220.12(J)",
+    necReference: "NEC 220.41",
     inputType: "calculation",
     formula: "Square Footage × 3 VA/sq ft",
     expectedAnswer: (scenario) => scenario.squareFootage * 3,
@@ -382,7 +442,7 @@ export const CALCULATION_STEPS: CalculationStep[] = [
   {
     id: "small-appliance-laundry",
     title: "Small Appliance & Laundry Circuits",
-    sparkyPrompt: "Now add the small appliance and laundry circuits. Per 220.52, we need 2 small appliance circuits at 1,500 VA each, plus 1 laundry circuit at 1,500 VA. What's the total?",
+    sparkyPrompt: "Now add the small appliance and laundry circuits. Per 220.52, we need 2 small appliance circuits at 1,500 VA each, plus 1 laundry circuit at 1,500 VA. Note — 220.52 permits these loads to be included with the general lighting load, which is why we'll combine them all when applying demand factors in the next step. What's the total?",
     hint: "Small appliance: 2 × 1,500 VA = 3,000 VA\nLaundry: 1 × 1,500 VA\nTotal: 3,000 + 1,500 = 4,500 VA",
     necReference: "NEC 220.52",
     inputType: "calculation",
@@ -390,28 +450,60 @@ export const CALCULATION_STEPS: CalculationStep[] = [
     expectedAnswer: () => 4500,
     validateAnswer: (user, expected) => user === expected,
   },
-  // Step 6: Apply Lighting Demand (Table 220.42)
+  // Step 6: Apply Lighting Demand (Table 220.45)
   {
     id: "lighting-demand",
     title: "Apply Lighting Demand Factor",
-    sparkyPrompt: "Now apply the demand factors from Table 220.42 to the general lighting, small appliance, and laundry loads combined. First 3,000 VA at 100%, remainder at 35%. What's the demand load?",
+    sparkyPrompt: "Now apply the demand factors from Table 220.45 to the general lighting, small appliance, and laundry loads combined. First 3,000 VA at 100%, from 3,001 to 120,000 VA at 35%, and any remainder over 120,000 VA at 25%. What's the demand load?",
     hint: (scenario, prev) => {
       const lighting = prev["general-lighting"] || scenario.squareFootage * 3;
       const smallAppLaundry = 4500;
       const subtotal = lighting + smallAppLaundry;
-      const remainder = subtotal - 3000;
-      const demandRemainder = Math.round(remainder * 0.35);
-      const total = 3000 + demandRemainder;
-      return `Subtotal: ${lighting.toLocaleString()} + 4,500 = ${subtotal.toLocaleString()} VA\n\nFirst 3,000 VA @ 100% = 3,000 VA\nRemainder: ${subtotal.toLocaleString()} - 3,000 = ${remainder.toLocaleString()} VA\n${remainder.toLocaleString()} × 35% = ${demandRemainder.toLocaleString()} VA\n\nDemand Load: 3,000 + ${demandRemainder.toLocaleString()} = ${total.toLocaleString()} VA`;
+
+      let demand = 0;
+      let hint = `Subtotal: ${lighting.toLocaleString()} + 4,500 = ${subtotal.toLocaleString()} VA\n\n`;
+      hint += `Table 220.45 Demand Factors:\n`;
+
+      // Tier 1: First 3,000 VA @ 100%
+      const tier1 = Math.min(subtotal, 3000);
+      const tier1Demand = tier1;
+      hint += `First 3,000 VA @ 100% = ${tier1Demand.toLocaleString()} VA\n`;
+      demand += tier1Demand;
+
+      if (subtotal > 3000) {
+        // Tier 2: 3,001 to 120,000 VA @ 35%
+        const tier2 = Math.min(subtotal - 3000, 117000);
+        const tier2Demand = Math.round(tier2 * 0.35);
+        hint += `Next ${tier2.toLocaleString()} VA @ 35% = ${tier2Demand.toLocaleString()} VA\n`;
+        demand += tier2Demand;
+      }
+
+      if (subtotal > 120000) {
+        // Tier 3: Over 120,000 VA @ 25%
+        const tier3 = subtotal - 120000;
+        const tier3Demand = Math.round(tier3 * 0.25);
+        hint += `Remainder ${tier3.toLocaleString()} VA @ 25% = ${tier3Demand.toLocaleString()} VA\n`;
+        demand += tier3Demand;
+      }
+
+      hint += `\nDemand Load: ${demand.toLocaleString()} VA`;
+      return hint;
     },
-    necReference: "NEC Table 220.42",
+    necReference: "NEC Table 220.45",
     inputType: "calculation",
-    formula: "3,000 + ((Subtotal - 3,000) × 35%)",
+    formula: "3,000 + (next 117,000 × 35%) + (over 120,000 × 25%)",
     expectedAnswer: (scenario, prev) => {
       const lighting = prev["general-lighting"] || scenario.squareFootage * 3;
       const subtotal = lighting + 4500;
-      const remainder = Math.max(0, subtotal - 3000);
-      return 3000 + Math.round(remainder * 0.35);
+
+      let demand = Math.min(subtotal, 3000); // First 3,000 @ 100%
+      if (subtotal > 3000) {
+        demand += Math.round(Math.min(subtotal - 3000, 117000) * 0.35); // 3,001–120,000 @ 35%
+      }
+      if (subtotal > 120000) {
+        demand += Math.round((subtotal - 120000) * 0.25); // Over 120,000 @ 25%
+      }
+      return demand;
     },
     validateAnswer: (user, expected) => Math.abs(user - expected) <= 50,
   },
@@ -419,26 +511,28 @@ export const CALCULATION_STEPS: CalculationStep[] = [
   {
     id: "hvac",
     title: "HVAC Load (220.60)",
-    sparkyPrompt: "Per 220.60, heating and cooling are non-coincident loads - we use the LARGER of the two. You already converted the A/C motor to watts. Compare it to the heating load and enter the larger value.",
+    sparkyPrompt: "Per 220.60, heating and cooling are non-coincident loads — we use the LARGER of the two. But there's a catch: since the A/C is a motor load, 220.60 requires us to use 125% of the A/C load for this comparison. Multiply your A/C watts by 1.25, then compare to the heating load and enter the larger value.",
     hint: (scenario, prev) => {
       const heat = scenario.appliances.find(a => a.id === "heat");
       const heatWatts = heat?.watts || 0;
       const acWatts = prev["convert-ac"] || 0;
+      const acAdjusted = Math.round(acWatts * 1.25);
 
-      const larger = Math.max(heatWatts, acWatts);
-      const largerName = heatWatts >= acWatts ? "Heating" : "A/C";
+      const larger = Math.max(heatWatts, acAdjusted);
+      const largerName = heatWatts >= acAdjusted ? "Heating" : "A/C (125%)";
 
-      return `Heating: ${heatWatts.toLocaleString()} VA\nA/C (from Step 1): ${acWatts.toLocaleString()} VA\n\n${largerName} is larger: ${larger.toLocaleString()} VA`;
+      return `A/C (from Step 1): ${acWatts.toLocaleString()} VA × 125% = ${acAdjusted.toLocaleString()} VA\nHeating: ${heatWatts.toLocaleString()} VA\n\n${largerName} is larger: ${larger.toLocaleString()} VA`;
     },
     necReference: "NEC 220.60",
     inputType: "calculation",
-    formula: "Larger of: Heat OR A/C",
+    formula: "Larger of: Heat OR (A/C × 125%)",
     expectedAnswer: (scenario, prev) => {
       const heat = scenario.appliances.find(a => a.id === "heat");
       const heatWatts = heat?.watts || 0;
       const acWatts = prev["convert-ac"] || 0;
+      const acAdjusted = Math.round(acWatts * 1.25);
 
-      return Math.max(heatWatts, acWatts);
+      return Math.max(heatWatts, acAdjusted);
     },
     validateAnswer: (user, expected) => Math.abs(user - expected) <= 100,
   },
@@ -519,43 +613,71 @@ export const CALCULATION_STEPS: CalculationStep[] = [
   {
     id: "range",
     title: "Range/Cooking Equipment (Table 220.55)",
-    sparkyPrompt: "Now for cooking equipment. Use Table 220.55 Column C. For a single range 12 kW or less, use 8 kW. For larger ranges, add 5% for each kW over 12 kW.",
+    sparkyPrompt: "Now for cooking equipment using Table 220.55. First, determine which column applies based on the appliance rating: Column A (<3½ kW) or Column B (3½–8¾ kW) use 80% of nameplate. Column C (≥8¾ kW) uses 8 kW max demand for a single range ≤12 kW, with a 5% increase per kW over 12 kW. If there's a separate cooktop and oven, combine them and use Column C per Note 3.",
     hint: (scenario) => {
       const range = scenario.appliances.find(a => a.id === "range");
       const cooktop = scenario.appliances.find(a => a.id === "cooktop");
-      let totalWatts = (range?.watts || 0) + (cooktop?.watts || 0);
 
-      if (totalWatts === 0) return "No cooking equipment - enter 0.";
+      if (!range && !cooktop) return "No cooking equipment — enter 0.";
 
       let hint = "";
+
+      // Note 3: Separate cooktop + range → combine and use Column C
       if (range && cooktop) {
-        hint = `Range: ${range.watts.toLocaleString()} W\nCooktop: ${cooktop.watts.toLocaleString()} W\nCombined: ${totalWatts.toLocaleString()} W\n\n`;
-      } else if (range) {
-        hint = `Range: ${range.watts.toLocaleString()} W\n\n`;
+        const totalWatts = range.watts + cooktop.watts;
+        hint = `Note 3: Combine separate units\nRange: ${range.watts.toLocaleString()} W\nCooktop: ${cooktop.watts.toLocaleString()} W\nCombined: ${totalWatts.toLocaleString()} W\n\n`;
+
+        if (totalWatts <= 12000) {
+          hint += `Column C: 8,000 VA for ≤12 kW`;
+        } else {
+          const overKW = Math.ceil((totalWatts - 12000) / 1000);
+          const demand = Math.round(8000 * (1 + (overKW * 0.05)));
+          hint += `Exceeds 12 kW by ${overKW} kW\n8,000 × ${(1 + overKW * 0.05).toFixed(2)} = ${demand.toLocaleString()} VA`;
+        }
+        return hint;
       }
 
-      if (totalWatts <= 12000) {
-        hint += `Table 220.55 Column C: 8,000 VA for ranges ≤12 kW`;
+      // Single appliance
+      const appliance = range || cooktop;
+      const watts = appliance!.watts;
+      hint = `${appliance!.name}: ${watts.toLocaleString()} W\n\n`;
+
+      if (watts < 3500) {
+        hint += `Column A (<3½ kW): 80% of nameplate\n${watts.toLocaleString()} × 0.80 = ${Math.round(watts * 0.80).toLocaleString()} VA`;
+      } else if (watts < 8750) {
+        hint += `Column B (3½–8¾ kW): 80% of nameplate\n${watts.toLocaleString()} × 0.80 = ${Math.round(watts * 0.80).toLocaleString()} VA`;
+      } else if (watts <= 12000) {
+        hint += `Column C (≥8¾ kW): 8,000 VA for ≤12 kW`;
       } else {
-        const overKW = Math.ceil((totalWatts - 12000) / 1000);
+        const overKW = Math.ceil((watts - 12000) / 1000);
         const demand = Math.round(8000 * (1 + (overKW * 0.05)));
-        hint += `Range exceeds 12 kW by ${overKW} kW\n8,000 + (${overKW} × 5%) = 8,000 × ${(1 + overKW * 0.05).toFixed(2)} = ${demand.toLocaleString()} VA`;
+        hint += `Column C: Exceeds 12 kW by ${overKW} kW\n8,000 × ${(1 + overKW * 0.05).toFixed(2)} = ${demand.toLocaleString()} VA`;
       }
 
       return hint;
     },
     necReference: "NEC Table 220.55",
     inputType: "calculation",
-    formula: "Table 220.55 Column C (8 kW for ranges ≤12 kW)",
+    formula: "Table 220.55 (Col A/B: 80% | Col C: 8 kW for ≤12 kW)",
     expectedAnswer: (scenario) => {
       const range = scenario.appliances.find(a => a.id === "range");
       const cooktop = scenario.appliances.find(a => a.id === "cooktop");
-      let rangeWatts = (range?.watts || 0) + (cooktop?.watts || 0);
 
-      if (rangeWatts === 0) return 0;
-      if (rangeWatts <= 12000) return 8000;
+      if (!range && !cooktop) return 0;
 
-      const overKW = Math.ceil((rangeWatts - 12000) / 1000);
+      // Note 3: Separate cooktop + range → combine and use Column C
+      if (range && cooktop) {
+        const totalWatts = range.watts + cooktop.watts;
+        if (totalWatts <= 12000) return 8000;
+        const overKW = Math.ceil((totalWatts - 12000) / 1000);
+        return Math.round(8000 * (1 + (overKW * 0.05)));
+      }
+
+      // Single appliance
+      const watts = (range || cooktop)!.watts;
+      if (watts < 8750) return Math.round(watts * 0.80);
+      if (watts <= 12000) return 8000;
+      const overKW = Math.ceil((watts - 12000) / 1000);
       return Math.round(8000 * (1 + (overKW * 0.05)));
     },
     validateAnswer: (user, expected) => Math.abs(user - expected) <= 200,
@@ -661,34 +783,122 @@ export const CALCULATION_STEPS: CalculationStep[] = [
   {
     id: "service-amps",
     title: "Service Size (Table 310.12)",
-    sparkyPrompt: "Final step! Divide the total VA by 240V to get the minimum amperage. Then round up to the next standard service size (100A, 125A, 150A, 200A, 225A, 400A).",
+    sparkyPrompt: "Divide the total VA by 240V to get the minimum amperage. Just enter the result of the division — I'll round it up to the next standard service size for you.",
     hint: (scenario, prev) => {
       const totalVA = prev["total-va"] || 0;
       const amps = totalVA / 240;
       const standardSizes = [100, 125, 150, 200, 225, 400];
       const serviceSize = standardSizes.find(size => size >= amps) || 400;
 
-      return `${totalVA.toLocaleString()} VA ÷ 240V = ${amps.toFixed(1)} Amps\n\nRound up to next standard size: ${serviceSize}A`;
+      return `${totalVA.toLocaleString()} VA ÷ 240V = ${amps.toFixed(1)} Amps\n\nStandard sizes: 100A, 125A, 150A, 200A, 225A, 400A\nRounds up to: ${serviceSize}A`;
     },
     necReference: "NEC Table 310.12",
     inputType: "calculation",
-    formula: "Total VA ÷ 240V → next standard size",
+    formula: "Total VA ÷ 240V",
     expectedAnswer: (scenario, prev) => {
+      const totalVA = prev["total-va"] || 0;
+      return Math.round(totalVA / 240 * 10) / 10;
+    },
+    validateAnswer: (user, expected) => Math.abs(user - expected) <= 5,
+    storedAnswer: (scenario, prev) => {
       const totalVA = prev["total-va"] || 0;
       const amps = totalVA / 240;
       const standardSizes = [100, 125, 150, 200, 225, 400];
       return standardSizes.find(size => size >= amps) || 400;
     },
-    validateAnswer: (user, expected) => {
-      const standardSizes = [100, 125, 150, 200, 225, 400];
-      return standardSizes.includes(user) && user >= expected - 25;
+  },
+  // Step 14: Service Conductor Sizing (Table 310.12(A))
+  {
+    id: "service-conductor",
+    title: "Service Conductor (Table 310.12(A))",
+    sparkyPrompt: "Now let's size the service conductor. Using Table 310.12, find the copper conductor size for your service rating. Enter the wire size (e.g., 4, 2, 1/0, 3/0, 250).",
+    hint: (scenario, prev) => {
+      const serviceAmps = prev["service-amps"] || 0;
+      const copperSize = getDwellingConductorSize(serviceAmps);
+
+      return `Service rating: ${serviceAmps}A\n\nTable 310.12 — Copper column:\n${serviceAmps}A → ${copperSize} AWG/kcmil\n\nEnter: ${copperSize}`;
     },
+    necReference: "NEC Table 310.12",
+    inputType: "calculation",
+    formula: "Service rating → Table 310.12 → copper conductor",
+    parseInput: parseConductorInput,
+    expectedAnswer: (scenario, prev) => {
+      const serviceAmps = prev["service-amps"] || 0;
+      return conductorSizeToCode(getDwellingConductorSize(serviceAmps));
+    },
+    validateAnswer: (user, expected) => user === expected,
+  },
+  // Step 15: GEC Sizing (Table 250.66)
+  {
+    id: "gec-size",
+    title: "GEC Sizing (Table 250.66)",
+    sparkyPrompt: "Finally, size the Grounding Electrode Conductor (GEC) using Table 250.66. Look up the service conductor size from the previous step and find the required GEC size. Enter the GEC AWG number (use 10 for 1/0, 20 for 2/0, 30 for 3/0).",
+    hint: (scenario, prev) => {
+      const serviceAmps = prev["service-amps"] || 0;
+      const copperSize = getDwellingConductorSize(serviceAmps);
+      const gecSize = getGECSize(copperSize);
+
+      let gecEntry = gecSize;
+      if (gecSize === "1/0") { gecEntry = "10"; }
+      else if (gecSize === "2/0") { gecEntry = "20"; }
+      else if (gecSize === "3/0") { gecEntry = "30"; }
+
+      return `Service conductor: ${copperSize} AWG/kcmil\n\nTable 250.66:\n${copperSize} conductor → ${gecSize} AWG GEC\n\nEnter: ${gecEntry}`;
+    },
+    necReference: "NEC Table 250.66",
+    inputType: "calculation",
+    formula: "Service conductor size → Table 250.66 → GEC AWG",
+    expectedAnswer: (scenario, prev) => {
+      const serviceAmps = prev["service-amps"] || 0;
+      const copperSize = getDwellingConductorSize(serviceAmps);
+      const gecSize = getGECSize(copperSize);
+      if (gecSize === "1/0") return 10;
+      if (gecSize === "2/0") return 20;
+      if (gecSize === "3/0") return 30;
+      return parseInt(gecSize);
+    },
+    validateAnswer: (user, expected) => user === expected,
   },
 ];
 
+// Parse conductor size string to numeric code
+// AWG sizes (1–14) stay as-is, /0 sizes use negative numbers, kcmil stays as-is
+export function parseConductorInput(input: string): number {
+  const trimmed = input.trim();
+  if (trimmed === "1/0") return -1;
+  if (trimmed === "2/0") return -2;
+  if (trimmed === "3/0") return -3;
+  if (trimmed === "4/0") return -4;
+  const num = parseFloat(trimmed.replace(/,/g, ""));
+  return isNaN(num) ? NaN : num;
+}
+
+// Convert conductor size string to numeric code (for expectedAnswer)
+export function conductorSizeToCode(size: string): number {
+  if (size === "1/0") return -1;
+  if (size === "2/0") return -2;
+  if (size === "3/0") return -3;
+  if (size === "4/0") return -4;
+  return parseFloat(size);
+}
+
+// Convert numeric code back to display string
+export function conductorCodeToLabel(code: number): string {
+  if (code === -1) return "1/0";
+  if (code === -2) return "2/0";
+  if (code === -3) return "3/0";
+  if (code === -4) return "4/0";
+  return `${code}`;
+}
+
+// Filter steps based on scenario equipment — skips steps whose shouldShow returns false
+export function getFilteredSteps(scenario: HouseScenario): CalculationStep[] {
+  return CALCULATION_STEPS.filter(step => !step.shouldShow || step.shouldShow(scenario));
+}
+
 // Sparky messages for different situations
 export const SPARKY_MESSAGES = {
-  welcome: "Hey there! Ready to learn dwelling unit load calculations? These rules from NEC Article 220 are essential for the Master Electrician exam. We'll use Table 220.42 for demand factors, Table 430.248 for motor conversions, and 220.50 for the largest motor rule. Let's go!",
+  welcome: "Hey there! Ready to learn dwelling unit load calculations? These rules from NEC Article 220 are essential for the Master Electrician exam. We'll use Table 220.45 for demand factors, Table 430.248 for motor conversions, and 220.50 for the largest motor rule. Let's go!",
   selectScenario: "Pick a dwelling unit size. Bigger homes have more equipment and motors, making the calculation more complex. I recommend starting with a smaller home if this is your first time!",
   correct: [
     "Excellent work! That's exactly right!",

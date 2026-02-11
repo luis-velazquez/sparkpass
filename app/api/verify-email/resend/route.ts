@@ -69,8 +69,12 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
 
-    // Send verification email via Resend
-    await sendVerificationEmail(user.email, user.name, verificationUrl);
+    // Send verification email via Resend (non-blocking — don't fail if email fails)
+    try {
+      await sendVerificationEmail(user.email, user.name, verificationUrl);
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+    }
 
     if (process.env.NODE_ENV === "development") {
       console.log(`[DEV] Verification URL: ${verificationUrl}`);
