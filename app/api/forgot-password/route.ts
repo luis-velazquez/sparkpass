@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db, users, passwordResetTokens } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 // Generate a secure random token
 function generateToken(): string {
@@ -76,14 +77,12 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
-    // Log reset email (MVP - console.log instead of sending)
-    console.log("=".repeat(60));
-    console.log("[PASSWORD RESET] Reset email would be sent:");
-    console.log(`To: ${user.email}`);
-    console.log(`Name: ${user.name}`);
-    console.log(`Reset URL: ${resetUrl}`);
-    console.log(`Token expires: ${expiresAt.toISOString()}`);
-    console.log("=".repeat(60));
+    // Send password reset email via Resend
+    await sendPasswordResetEmail(user.email, user.name, resetUrl);
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[DEV] Reset URL: ${resetUrl}`);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

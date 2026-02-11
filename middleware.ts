@@ -1,4 +1,4 @@
-// Protected routes middleware for SparkPass
+// Protected routes middleware for SparkyPass
 // Simplified version that doesn't require database access
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -43,6 +43,7 @@ export async function middleware(request: NextRequest) {
   });
 
   const isAuthenticated = !!token;
+  const isEmailVerified = (token?.isEmailVerified as boolean) ?? false;
   const profileComplete = (token?.profileComplete as boolean) ?? false;
 
   // Protected routes: redirect to login if not authenticated
@@ -53,25 +54,61 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // If authenticated but profile not complete, redirect to profile completion
+    // If authenticated but email not verified, redirect to verify-email
+    if (!isEmailVerified) {
+      const verifyUrl = new URL("/verify-email", request.url);
+      if (token?.email) {
+        verifyUrl.searchParams.set("email", token.email as string);
+      }
+      return NextResponse.redirect(verifyUrl);
+    }
+
+    // If authenticated + verified but profile not complete, redirect to profile completion
     if (!profileComplete && pathname !== "/register/profile") {
       return NextResponse.redirect(new URL("/register/profile", request.url));
     }
   }
 
-  // /register/profile requires authentication but not complete profile
+  // /register/profile requires authentication + email verification
   if (pathname === "/register/profile") {
     if (!isAuthenticated) {
       return NextResponse.redirect(new URL("/login", request.url));
+    }
+    if (!isEmailVerified) {
+      const verifyUrl = new URL("/verify-email", request.url);
+      if (token?.email) {
+        verifyUrl.searchParams.set("email", token.email as string);
+      }
+      return NextResponse.redirect(verifyUrl);
     }
     if (profileComplete) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
+  // /verify-email handling
+  if (pathname === "/verify-email") {
+    // If authenticated and already verified, redirect away
+    if (isAuthenticated && isEmailVerified) {
+      if (!profileComplete) {
+        return NextResponse.redirect(new URL("/register/profile", request.url));
+      }
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    // Otherwise allow: unauthenticated (clicking link) or authenticated + unverified
+    return NextResponse.next();
+  }
+
   // Auth routes: redirect to dashboard if already authenticated
   if (isAuthRoute(pathname)) {
     if (isAuthenticated) {
+      if (!isEmailVerified) {
+        const verifyUrl = new URL("/verify-email", request.url);
+        if (token?.email) {
+          verifyUrl.searchParams.set("email", token.email as string);
+        }
+        return NextResponse.redirect(verifyUrl);
+      }
       if (!profileComplete) {
         return NextResponse.redirect(new URL("/register/profile", request.url));
       }
@@ -82,6 +119,13 @@ export async function middleware(request: NextRequest) {
   // Homepage: redirect authenticated users to dashboard
   if (pathname === "/") {
     if (isAuthenticated) {
+      if (!isEmailVerified) {
+        const verifyUrl = new URL("/verify-email", request.url);
+        if (token?.email) {
+          verifyUrl.searchParams.set("email", token.email as string);
+        }
+        return NextResponse.redirect(verifyUrl);
+      }
       if (!profileComplete) {
         return NextResponse.redirect(new URL("/register/profile", request.url));
       }

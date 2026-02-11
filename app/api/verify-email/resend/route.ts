@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db, users, verificationTokens } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
+import { sendVerificationEmail } from "@/lib/email";
 
 // Generate a secure random token
 function generateToken(): string {
@@ -68,14 +69,12 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
 
-    // Log verification email (MVP - console.log instead of sending)
-    console.log("=".repeat(60));
-    console.log("[EMAIL VERIFICATION] Verification email would be sent:");
-    console.log(`To: ${user.email}`);
-    console.log(`Name: ${user.name}`);
-    console.log(`Verification URL: ${verificationUrl}`);
-    console.log(`Token expires: ${expiresAt.toISOString()}`);
-    console.log("=".repeat(60));
+    // Send verification email via Resend
+    await sendVerificationEmail(user.email, user.name, verificationUrl);
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[DEV] Verification URL: ${verificationUrl}`);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

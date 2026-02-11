@@ -3,6 +3,7 @@ import { hash } from "bcryptjs";
 import crypto from "crypto";
 import { db, users, verificationTokens } from "@/lib/db";
 import { eq } from "drizzle-orm";
+import { sendVerificationEmail } from "@/lib/email";
 
 // Generate a secure random token
 function generateToken(): string {
@@ -99,14 +100,12 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
 
-    // Log verification email (MVP - console.log instead of sending)
-    console.log("=".repeat(60));
-    console.log("[EMAIL VERIFICATION] Verification email would be sent:");
-    console.log(`To: ${email.toLowerCase()}`);
-    console.log(`Name: ${name.trim()}`);
-    console.log(`Verification URL: ${verificationUrl}`);
-    console.log(`Token expires: ${expiresAt.toISOString()}`);
-    console.log("=".repeat(60));
+    // Send verification email via Resend
+    await sendVerificationEmail(email.toLowerCase(), name.trim(), verificationUrl);
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[DEV] Verification URL: ${verificationUrl}`);
+    }
 
     return NextResponse.json(
       { success: true, userId, email: email.toLowerCase() },
