@@ -1,6 +1,6 @@
-# SparkPass Deployment Guide
+# SparkyPass Deployment Guide
 
-This guide covers deploying SparkPass to Vercel with Turso database.
+This guide covers deploying SparkyPass to Vercel with Turso database.
 
 ## Prerequisites
 
@@ -27,24 +27,24 @@ This guide covers deploying SparkPass to Vercel with Turso database.
 
 4. Create a database:
    ```bash
-   turso db create sparkpass
+   turso db create sparkypass
    ```
 
 5. Get your database URL:
    ```bash
-   turso db show sparkpass --url
-   # Output: libsql://sparkpass-<your-username>.turso.io
+   turso db show sparkypass --url
+   # Output: libsql://sparkypass-<your-username>.turso.io
    ```
 
 6. Create an auth token:
    ```bash
-   turso db tokens create sparkpass
+   turso db tokens create sparkypass
    # Save this token securely!
    ```
 
 7. Push your schema to the remote database:
    ```bash
-   TURSO_DATABASE_URL="libsql://sparkpass-<your-username>.turso.io" \
+   TURSO_DATABASE_URL="libsql://sparkypass-<your-username>.turso.io" \
    TURSO_AUTH_TOKEN="your-auth-token" \
    npm run db:push
    ```
@@ -57,7 +57,7 @@ This guide covers deploying SparkPass to Vercel with Turso database.
 
 2. Import your Git repository
 
-3. Set the Root Directory to `sparkpass` (if deploying from a monorepo)
+3. Set the Root Directory to `sparkypass` (if deploying from a monorepo)
 
 4. Add Environment Variables in Vercel dashboard:
 
@@ -65,7 +65,7 @@ This guide covers deploying SparkPass to Vercel with Turso database.
    |----------|-------|-------|
    | `NEXTAUTH_URL` | `https://your-domain.vercel.app` | Your production URL |
    | `NEXTAUTH_SECRET` | `openssl rand -base64 32` | Generate a secure secret |
-   | `TURSO_DATABASE_URL` | `libsql://sparkpass-xxx.turso.io` | From Step 1 |
+   | `TURSO_DATABASE_URL` | `libsql://sparkypass-xxx.turso.io` | From Step 1 |
    | `TURSO_AUTH_TOKEN` | `your-turso-token` | From Step 1 |
    | `GOOGLE_CLIENT_ID` | Your OAuth ID | Optional |
    | `GOOGLE_CLIENT_SECRET` | Your OAuth secret | Optional |
@@ -91,7 +91,7 @@ This guide covers deploying SparkPass to Vercel with Turso database.
 
 3. Deploy:
    ```bash
-   cd sparkpass
+   cd sparkypass
    vercel
    ```
 
@@ -159,7 +159,7 @@ Test these features in production:
 ### Build Failures
 - Check Vercel build logs for specific errors
 - Ensure all required environment variables are set
-- Verify the root directory is set to `sparkpass` if in a monorepo
+- Verify the root directory is set to `sparkypass` if in a monorepo
 
 ## Environment Variables Reference
 
@@ -167,7 +167,7 @@ Test these features in production:
 # Required
 NEXTAUTH_URL=https://your-app.vercel.app
 NEXTAUTH_SECRET=your-32-char-secret
-TURSO_DATABASE_URL=libsql://sparkpass-xxx.turso.io
+TURSO_DATABASE_URL=libsql://sparkypass-xxx.turso.io
 TURSO_AUTH_TOKEN=your-turso-auth-token
 CONTACT_EMAIL=avgluis@gmail.com
 

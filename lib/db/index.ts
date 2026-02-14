@@ -6,7 +6,7 @@ import * as schema from "./schema";
 import path from "path";
 
 // Create SQLite database connection
-const dbPath = path.join(process.cwd(), "sparkpass.db");
+const dbPath = path.join(process.cwd(), "sparkypass.db");
 const sqlite = new Database(dbPath);
 
 // Create Drizzle ORM instance
