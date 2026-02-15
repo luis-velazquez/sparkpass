@@ -272,7 +272,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             <AnimatedStat value={500} suffix="+" label="Practice Questions" />
-            <AnimatedStat value={3} suffix="" label="NEC Chapters Covered" />
+            <AnimatedStat value={2023} suffix="" label="NEC Code Book" />
             <AnimatedStat value={24} suffix="/7" label="Access Anytime" />
           </div>
         </div>

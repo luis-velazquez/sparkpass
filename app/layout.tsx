@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Nunito, Space_Mono } from "next/font/google";
 import Link from "next/link";
-import { Zap } from "lucide-react";
+
 import { Logo } from "@/components/layout/Logo";
 import { DesktopNav } from "@/components/layout/DesktopNav";
 import { MobileNav } from "@/components/layout/MobileNav";
@@ -88,7 +88,7 @@ export default function RootLayout({
           <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-amber" />
+                <img src="/lightning-bolt.svg" alt="SparkyPass" className="w-5 h-5 brightness-50 dark:brightness-100" />
                 <span className="font-semibold">SparkyPass</span>
               </div>
               <nav className="flex gap-6 text-sm text-muted-foreground">
