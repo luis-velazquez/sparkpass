@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-label="Sparky the electrician mascot - streak celebration">
+  <!-- Glow filter for lightning bolt -->
+  <defs>
+    <filter id="sparky-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="star-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Sparkle stars around head -->
+  <path d="M12 45 L14 41 L16 45 L14 47 Z" fill="#FCD34D" filter="url(#star-glow)" />
+  <path d="M88 45 L90 41 L92 45 L90 47 Z" fill="#FCD34D" filter="url(#star-glow)" />
+  <path d="M18 28 L20 24 L22 28 L20 30 Z" fill="#A3FF00" filter="url(#star-glow)" />
+  <path d="M80 28 L82 24 L84 28 L82 30 Z" fill="#A3FF00" filter="url(#star-glow)" />
+  <path d="M50 4 L52 0 L54 4 L52 6 Z" fill="#FCD34D" filter="url(#star-glow)" />
+
+  <!-- Face (drawn first so it appears behind the hat) -->
+  <circle cx="50" cy="58" r="24" fill="#FBBF24" />
+  <!-- Cheeks - brighter blush for excitement -->
+  <circle cx="34" cy="63" r="5" fill="#F59E0B" opacity="0.5" />
+  <circle cx="66" cy="63" r="5" fill="#F59E0B" opacity="0.5" />
+
+  <!-- Eyes - star-shaped pupils for hype -->
+  <ellipse cx="40" cy="53" rx="6" ry="6.5" fill="white" />
+  <ellipse cx="60" cy="53" rx="6" ry="6.5" fill="white" />
+  <!-- Star pupils -->
+  <path d="M40 49.5 L41 52 L43.5 52 L41.5 53.5 L42.5 56 L40 54.5 L37.5 56 L38.5 53.5 L36.5 52 L39 52 Z" fill="#292524" />
+  <path d="M60 49.5 L61 52 L63.5 52 L61.5 53.5 L62.5 56 L60 54.5 L57.5 56 L58.5 53.5 L56.5 52 L59 52 Z" fill="#292524" />
+  <!-- Eye shine -->
+  <circle cx="42" cy="51.5" r="1.2" fill="white" />
+  <circle cx="62" cy="51.5" r="1.2" fill="white" />
+
+  <!-- Eyebrows - high and excited -->
+  <path d="M33 43 Q40 39 47 43" stroke="#92400E" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M53 43 Q60 39 67 43" stroke="#92400E" stroke-width="2.5" fill="none" stroke-linecap="round" />
+
+  <!-- Mouth - big open grin -->
+  <path d="M36 66 Q50 80 64 66" stroke="#92400E" stroke-width="3" fill="#92400E" stroke-linecap="round" />
+  <!-- Teeth -->
+  <rect x="42" y="66" width="16" height="5" rx="1" fill="white" />
+
+  <!-- Hard Hat (drawn after face so it appears on top) -->
+  <ellipse cx="50" cy="28" rx="26" ry="12" fill="#F59E0B" />
+  <rect x="26" y="24" width="48" height="14" rx="2" fill="#F59E0B" />
+  <rect x="22" y="36" width="56" height="6" rx="2" fill="#D97706" />
+  <!-- Hat highlight -->
+  <ellipse cx="50" cy="26" rx="16" ry="6" fill="#FCD34D" opacity="0.5" />
+
+  <!-- Lightning bolt badge on hat -->
+  <path d="M52 20 L48 28 L52 28 L48 36 L56 26 L52 26 L56 20 Z" fill="#A3FF00"
+    filter="url(#sparky-glow)" />
+</svg>

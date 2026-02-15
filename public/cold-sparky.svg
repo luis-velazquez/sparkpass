@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-label="Sparky the electrician mascot - cold">
+  <defs>
+    <filter id="sparky-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="breath-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Snowflakes falling -->
+  <circle cx="15" cy="12" r="1.5" fill="white" opacity="0.7" />
+  <circle cx="82" cy="8" r="1.2" fill="white" opacity="0.6" />
+  <circle cx="28" cy="5" r="1" fill="white" opacity="0.5" />
+  <circle cx="72" cy="20" r="1.5" fill="white" opacity="0.7" />
+  <circle cx="90" cy="40" r="1" fill="white" opacity="0.5" />
+  <circle cx="8" cy="35" r="1.3" fill="white" opacity="0.6" />
+  <circle cx="45" cy="95" r="1.2" fill="white" opacity="0.5" />
+  <circle cx="88" cy="75" r="1" fill="white" opacity="0.6" />
+  <circle cx="12" cy="80" r="1.5" fill="white" opacity="0.5" />
+
+  <!-- Face - slightly blue-ish tint from cold -->
+  <circle cx="50" cy="58" r="24" fill="#E8C94A" />
+  <!-- Cold blush - blue/purple tinted cheeks -->
+  <circle cx="34" cy="63" r="5" fill="#A78BFA" opacity="0.35" />
+  <circle cx="66" cy="63" r="5" fill="#A78BFA" opacity="0.35" />
+
+  <!-- Eyes - squinting from cold -->
+  <ellipse cx="40" cy="54" rx="5" ry="4" fill="white" />
+  <ellipse cx="60" cy="54" rx="5" ry="4" fill="white" />
+  <circle cx="40" cy="54.5" r="2.5" fill="#292524" />
+  <circle cx="60" cy="54.5" r="2.5" fill="#292524" />
+  <!-- Eye shine -->
+  <circle cx="41.5" cy="53" r="1.2" fill="white" />
+  <circle cx="61.5" cy="53" r="1.2" fill="white" />
+
+  <!-- Eyebrows - worried/tense from cold -->
+  <path d="M34 49 Q38 51 46 49" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+  <path d="M54 49 Q62 51 66 49" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+
+  <!-- Mouth - chattering/wavy teeth -->
+  <path d="M40 69 Q42 67 44 69 Q46 71 48 69 Q50 67 52 69 Q54 71 56 69 Q58 67 60 69" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+
+  <!-- Cold breath puffs -->
+  <ellipse cx="68" cy="66" rx="4" ry="2.5" fill="white" opacity="0.3" filter="url(#breath-glow)" />
+  <ellipse cx="74" cy="63" rx="3" ry="2" fill="white" opacity="0.25" filter="url(#breath-glow)" />
+  <ellipse cx="78" cy="60" rx="2.5" ry="1.5" fill="white" opacity="0.2" filter="url(#breath-glow)" />
+
+  <!-- Runny nose -->
+  <ellipse cx="50" cy="61" rx="1.5" ry="1" fill="#60A5FA" opacity="0.5" />
+
+  <!-- Scarf -->
+  <path d="M28 74 Q50 82 72 74" stroke="#EF4444" stroke-width="6" fill="none" stroke-linecap="round" />
+  <path d="M28 74 Q50 82 72 74" stroke="#DC2626" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="0 12 12" />
+  <!-- Scarf tail hanging down -->
+  <path d="M68 76 Q72 82 70 92" stroke="#EF4444" stroke-width="5" fill="none" stroke-linecap="round" />
+  <path d="M68 76 Q72 82 70 92" stroke="#DC2626" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="0 10 10" />
+  <!-- Scarf fringe -->
+  <line x1="68" y1="91" x2="66" y2="96" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="70" y1="92" x2="70" y2="97" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="72" y1="91" x2="74" y2="96" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" />
+
+  <!-- Hard Hat with snow on top -->
+  <ellipse cx="50" cy="28" rx="26" ry="12" fill="#F59E0B" />
+  <rect x="26" y="24" width="48" height="14" rx="2" fill="#F59E0B" />
+  <rect x="22" y="36" width="56" height="6" rx="2" fill="#D97706" />
+  <ellipse cx="50" cy="26" rx="16" ry="6" fill="#FCD34D" opacity="0.5" />
+
+  <!-- Snow pile on hat -->
+  <ellipse cx="50" cy="18" rx="22" ry="5" fill="white" />
+  <ellipse cx="38" cy="17" rx="8" ry="4" fill="#F0F0F0" opacity="0.5" />
+  <ellipse cx="60" cy="17" rx="7" ry="3.5" fill="white" />
+
+  <!-- Icicles hanging from hat brim -->
+  <path d="M26 42 L25 48" stroke="#BFDBFE" stroke-width="1.5" stroke-linecap="round" />
+  <path d="M34 42 L33 50" stroke="#BFDBFE" stroke-width="1.5" stroke-linecap="round" />
+  <path d="M42 42 L41.5 47" stroke="#BFDBFE" stroke-width="1.2" stroke-linecap="round" />
+  <path d="M58 42 L58.5 47" stroke="#BFDBFE" stroke-width="1.2" stroke-linecap="round" />
+  <path d="M66 42 L67 50" stroke="#BFDBFE" stroke-width="1.5" stroke-linecap="round" />
+  <path d="M74 42 L75 48" stroke="#BFDBFE" stroke-width="1.5" stroke-linecap="round" />
+
+  <!-- Lightning bolt badge on hat -->
+  <path d="M52 20 L48 28 L52 28 L48 36 L56 26 L52 26 L56 20 Z" fill="#A3FF00" opacity="0.5"
+    filter="url(#sparky-glow)" />
+</svg>

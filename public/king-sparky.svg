@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-label="Sparky the electrician mascot - king">
+  <defs>
+    <filter id="sparky-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="gem-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Face (drawn first so it appears behind the crown) -->
+  <circle cx="50" cy="58" r="24" fill="#FBBF24" />
+  <!-- Cheeks -->
+  <circle cx="35" cy="62" r="4" fill="#F59E0B" opacity="0.4" />
+  <circle cx="65" cy="62" r="4" fill="#F59E0B" opacity="0.4" />
+
+  <!-- Eyes - confident and regal -->
+  <ellipse cx="40" cy="54" rx="5" ry="6" fill="white" />
+  <ellipse cx="60" cy="54" rx="5" ry="6" fill="white" />
+  <circle cx="41" cy="55" r="3" fill="#292524" />
+  <circle cx="61" cy="55" r="3" fill="#292524" />
+  <!-- Eye shine -->
+  <circle cx="42" cy="53" r="1.5" fill="white" />
+  <circle cx="62" cy="53" r="1.5" fill="white" />
+
+  <!-- Eyebrows - slightly raised, confident -->
+  <path d="M34 48 Q40 45.5 46 48" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+  <path d="M54 48 Q60 45.5 66 48" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+
+  <!-- Smile - smug/confident grin -->
+  <path d="M38 67 Q50 76 62 67" stroke="#92400E" stroke-width="2.5" fill="none" stroke-linecap="round" />
+
+  <!-- Crown base band -->
+  <rect x="24" y="34" width="52" height="8" rx="2" fill="#D97706" />
+  <!-- Crown base band highlight -->
+  <rect x="28" y="35" width="44" height="3" rx="1" fill="#F59E0B" opacity="0.5" />
+
+  <!-- Crown body -->
+  <path d="M24 36 L24 24 L33 30 L41 14 L50 28 L59 14 L67 30 L76 24 L76 36 Z" fill="#F59E0B" />
+  <!-- Crown inner shading -->
+  <path d="M28 36 L28 26 L35 30 L41 18 L50 30 L59 18 L65 30 L72 26 L72 36 Z" fill="#FCD34D" opacity="0.4" />
+
+  <!-- Crown jewels -->
+  <!-- Center gem - green lightning gem -->
+  <circle cx="50" cy="30" r="3.5" fill="#A3FF00" filter="url(#gem-glow)" />
+  <circle cx="50" cy="30" r="1.8" fill="#D9FF80" />
+  <!-- Left gem - ruby -->
+  <circle cx="35" cy="32" r="2.5" fill="#EF4444" filter="url(#gem-glow)" />
+  <circle cx="35" cy="32" r="1.2" fill="#FCA5A5" />
+  <!-- Right gem - ruby -->
+  <circle cx="65" cy="32" r="2.5" fill="#EF4444" filter="url(#gem-glow)" />
+  <circle cx="65" cy="32" r="1.2" fill="#FCA5A5" />
+
+  <!-- Crown tip ornaments - small circles on each peak -->
+  <circle cx="24" cy="24" r="2" fill="#FCD34D" />
+  <circle cx="41" cy="14" r="2" fill="#FCD34D" />
+  <circle cx="50" cy="28" r="0" />
+  <circle cx="59" cy="14" r="2" fill="#FCD34D" />
+  <circle cx="76" cy="24" r="2" fill="#FCD34D" />
+
+  <!-- Lightning bolt emblem on crown band -->
+  <path d="M51 34 L49 38 L51 38 L49 42 L53 37 L51 37 L53 34 Z" fill="#A3FF00"
+    filter="url(#sparky-glow)" />
+</svg>

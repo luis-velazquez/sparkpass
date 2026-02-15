@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-label="Sparky the electrician mascot - sad">
+  <defs>
+    <filter id="sparky-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="tear-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Face (drawn first so it appears behind the hat) -->
+  <circle cx="50" cy="58" r="24" fill="#FBBF24" />
+  <!-- Cheeks - subdued -->
+  <circle cx="35" cy="63" r="4" fill="#F59E0B" opacity="0.3" />
+  <circle cx="65" cy="63" r="4" fill="#F59E0B" opacity="0.3" />
+
+  <!-- Eyes - droopy and sad -->
+  <ellipse cx="40" cy="55" rx="5" ry="5.5" fill="white" />
+  <ellipse cx="60" cy="55" rx="5" ry="5.5" fill="white" />
+  <circle cx="40" cy="56.5" r="3" fill="#292524" />
+  <circle cx="60" cy="56.5" r="3" fill="#292524" />
+  <!-- Eye shine - smaller, less sparkle -->
+  <circle cx="41.5" cy="55" r="1.2" fill="white" />
+  <circle cx="61.5" cy="55" r="1.2" fill="white" />
+
+  <!-- Eyebrows - angled inward/down, worried -->
+  <path d="M34 49 Q38 52 46 50" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+  <path d="M54 50 Q62 52 66 49" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+
+  <!-- Tear drop -->
+  <path d="M66 60 Q67 64 66 68 Q64 66 66 60 Z" fill="#60A5FA" filter="url(#tear-glow)" />
+  <ellipse cx="66" cy="67" rx="1.5" ry="2" fill="#93C5FD" opacity="0.6" />
+
+  <!-- Mouth - frown -->
+  <path d="M40 72 Q50 65 60 72" stroke="#92400E" stroke-width="2.5" fill="none" stroke-linecap="round" />
+
+  <!-- Hard Hat - tilted slightly for sad effect -->
+  <g transform="rotate(-5, 50, 30)">
+    <ellipse cx="50" cy="28" rx="26" ry="12" fill="#F59E0B" />
+    <rect x="26" y="24" width="48" height="14" rx="2" fill="#F59E0B" />
+    <rect x="22" y="36" width="56" height="6" rx="2" fill="#D97706" />
+    <ellipse cx="50" cy="26" rx="16" ry="6" fill="#FCD34D" opacity="0.5" />
+
+    <!-- Lightning bolt badge on hat - dimmer -->
+    <path d="M52 20 L48 28 L52 28 L48 36 L56 26 L52 26 L56 20 Z" fill="#A3FF00" opacity="0.6"
+      filter="url(#sparky-glow)" />
+  </g>
+</svg>

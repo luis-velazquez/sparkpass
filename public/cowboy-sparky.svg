@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-label="Sparky the electrician mascot - cowboy">
+  <defs>
+    <filter id="sparky-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Face (drawn first so it appears behind the hat) -->
+  <circle cx="50" cy="58" r="24" fill="#FBBF24" />
+  <!-- Cheeks -->
+  <circle cx="35" cy="62" r="4" fill="#F59E0B" opacity="0.4" />
+  <circle cx="65" cy="62" r="4" fill="#F59E0B" opacity="0.4" />
+
+  <!-- Eyes -->
+  <ellipse cx="40" cy="54" rx="5" ry="6" fill="white" />
+  <ellipse cx="60" cy="54" rx="5" ry="6" fill="white" />
+  <circle cx="41" cy="55" r="3" fill="#292524" />
+  <circle cx="61" cy="55" r="3" fill="#292524" />
+  <!-- Eye shine -->
+  <circle cx="42" cy="53" r="1.5" fill="white" />
+  <circle cx="62" cy="53" r="1.5" fill="white" />
+
+  <!-- Eyebrows - friendly raised -->
+  <path d="M34 48 Q40 45 46 48" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+  <path d="M54 48 Q60 45 66 48" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" />
+
+  <!-- Smile -->
+  <path d="M38 68 Q50 78 62 68" stroke="#92400E" stroke-width="3" fill="none" stroke-linecap="round" />
+
+  <!-- Cowboy Hat -->
+  <!-- Wide brim -->
+  <ellipse cx="50" cy="38" rx="38" ry="7" fill="#8B6914" />
+  <ellipse cx="50" cy="37" rx="38" ry="6" fill="#A37B1E" />
+
+  <!-- Hat crown -->
+  <path d="M32 38 L32 20 Q32 10 50 10 Q68 10 68 20 L68 38" fill="#A37B1E" />
+  <!-- Crown indent -->
+  <path d="M34 20 Q50 26 66 20" stroke="#8B6914" stroke-width="1.5" fill="none" />
+
+  <!-- Hat band -->
+  <rect x="32" y="31" width="36" height="4" rx="1" fill="#5C4310" />
+
+  <!-- Lightning bolt on hat band -->
+  <path d="M51 31 L49 34 L51 34 L49 36 L53 33 L51 33 L53 31 Z" fill="#A3FF00"
+    filter="url(#sparky-glow)" />
+</svg>
