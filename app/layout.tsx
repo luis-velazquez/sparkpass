@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Outfit, Nunito, Space_Mono } from "next/font/google";
 import Link from "next/link";
 import { Zap } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
@@ -11,14 +11,20 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AuthButtons } from "@/components/layout/AuthButtons";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+});
+
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -34,8 +40,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="theme-color" id="theme-color-meta" content="#ffffff" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var m=document.getElementById('theme-color-meta');
+            function u(){m.content=document.documentElement.classList.contains('dark')?'#1c1917':'#ffffff'}
+            u();
+            new MutationObserver(u).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+          })();
+        `}} />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
+        className={`${outfit.variable} ${nunito.variable} ${spaceMono.variable} antialiased min-h-screen`}
       >
         <ThemeProvider
           attribute="class"
@@ -44,7 +61,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
         <SessionProvider>
-        <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
             <Logo />
 

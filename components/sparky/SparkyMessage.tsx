@@ -21,7 +21,7 @@ const sparkyMessageVariants = cva(
 );
 
 const speechBubbleVariants = cva(
-  "relative bg-purple-soft text-foreground rounded-2xl break-words max-w-full",
+  "relative bg-sparky-green-bg text-foreground rounded-2xl break-words max-w-full border border-sparky-green/20 backdrop-blur-sm shadow-[0_0_16px_rgba(163,255,0,0.12)]",
   {
     variants: {
       size: {
@@ -64,7 +64,7 @@ export function SparkyMessage({
             style={{
               borderTop: "8px solid transparent",
               borderBottom: "8px solid transparent",
-              borderRight: "10px solid #EDE9FE",
+              borderRight: "10px solid var(--sparky-green-bg)",
             }}
           />
           <p className="relative z-10">{message}</p>

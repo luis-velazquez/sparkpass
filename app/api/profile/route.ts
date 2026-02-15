@@ -16,14 +16,20 @@ export async function GET() {
         name: users.name,
         email: users.email,
         username: users.username,
+        authProvider: users.authProvider,
         city: users.city,
         state: users.state,
         dateOfBirth: users.dateOfBirth,
         targetExamDate: users.targetExamDate,
         newsletterOptedIn: users.newsletterOptedIn,
+        showHintsOnHard: users.showHintsOnHard,
+        questionsPerQuiz: users.questionsPerQuiz,
         xp: users.xp,
         level: users.level,
         createdAt: users.createdAt,
+        trialEndsAt: users.trialEndsAt,
+        subscriptionStatus: users.subscriptionStatus,
+        subscriptionPeriodEnd: users.subscriptionPeriodEnd,
       })
       .from(users)
       .where(eq(users.id, session.user.id))
@@ -37,14 +43,20 @@ export async function GET() {
       name: user.name,
       email: user.email,
       username: user.username,
+      authProvider: user.authProvider,
       city: user.city,
       state: user.state,
       dateOfBirth: user.dateOfBirth?.toISOString() || null,
       targetExamDate: user.targetExamDate?.toISOString() || null,
       newsletterOptedIn: user.newsletterOptedIn,
+      showHintsOnHard: user.showHintsOnHard,
+      questionsPerQuiz: user.questionsPerQuiz,
       xp: user.xp,
       level: user.level,
       createdAt: user.createdAt?.toISOString() || null,
+      trialEndsAt: user.trialEndsAt?.toISOString() || null,
+      subscriptionStatus: user.subscriptionStatus || null,
+      subscriptionPeriodEnd: user.subscriptionPeriodEnd?.toISOString() || null,
     });
   } catch (error) {
     console.error("Error fetching profile:", error);
@@ -64,12 +76,14 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { targetExamDate, newsletterOptedIn } = body;
+    const { targetExamDate, newsletterOptedIn, showHintsOnHard, questionsPerQuiz } = body;
 
     // Build update object with only provided fields
     const updateData: {
       targetExamDate?: Date | null;
       newsletterOptedIn?: boolean;
+      showHintsOnHard?: boolean;
+      questionsPerQuiz?: number;
       updatedAt: Date;
     } = {
       updatedAt: new Date(),
@@ -94,6 +108,19 @@ export async function PATCH(request: Request) {
     // Handle newsletterOptedIn update
     if (newsletterOptedIn !== undefined) {
       updateData.newsletterOptedIn = Boolean(newsletterOptedIn);
+    }
+
+    // Handle showHintsOnHard update
+    if (showHintsOnHard !== undefined) {
+      updateData.showHintsOnHard = Boolean(showHintsOnHard);
+    }
+
+    // Handle questionsPerQuiz update
+    if (questionsPerQuiz !== undefined) {
+      const val = Number(questionsPerQuiz);
+      if (!isNaN(val) && val >= 0) {
+        updateData.questionsPerQuiz = val;
+      }
     }
 
     await db

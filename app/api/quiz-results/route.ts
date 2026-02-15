@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { categorySlug, score, totalQuestions, bestStreak } = body;
+    const { categorySlug, score, totalQuestions, bestStreak, difficulty } = body;
 
     if (!categorySlug || typeof score !== "number" || typeof totalQuestions !== "number") {
       return NextResponse.json(
@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       id: resultId,
       userId: session.user.id,
       categorySlug,
+      difficulty: difficulty || null,
       score,
       totalQuestions,
       bestStreak: bestStreak || 0,

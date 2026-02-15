@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 
 // In-memory rate limiting store
 // In production, use Redis or database-backed rate limiting
@@ -251,14 +252,21 @@ ${stripHtmlTags(message.trim())}
 This message was sent via the SparkyPass contact form.
 `.trim();
 
-    // Log email (MVP - console.log instead of actual sending)
-    console.log("=".repeat(60));
-    console.log("[CONTACT FORM] Email would be sent:");
-    console.log(`To: ${contactEmail}`);
-    console.log(`Subject: SparkyPass Contact: ${stripHtmlTags(name.trim())}`);
-    console.log("");
-    console.log(emailContent);
-    console.log("=".repeat(60));
+    // Send contact form email via Resend
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const fromAddress = process.env.EMAIL_FROM || "SparkyPass <onboarding@resend.dev>";
+
+    try {
+      await resend.emails.send({
+        from: fromAddress,
+        to: contactEmail,
+        subject: `SparkyPass Contact: ${stripHtmlTags(name.trim())}`,
+        replyTo: rawEmail,
+        text: emailContent,
+      });
+    } catch (emailError) {
+      console.error("[CONTACT FORM] Failed to send email:", emailError);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -36,12 +36,21 @@ export function getQuestionsByCategoryAndDifficulty(
 }
 
 /**
- * Get a random selection of questions from a category
+ * Get a random selection of questions from a category, optionally filtered by difficulty
  */
-export function getRandomQuestions(category: CategorySlug, count: number = 15): Question[] {
-  const categoryQuestions = getQuestionsByCategory(category);
+export function getRandomQuestions(category: CategorySlug, count: number = 15, difficulty?: Difficulty): Question[] {
+  const categoryQuestions = difficulty
+    ? getQuestionsByCategoryAndDifficulty(category, difficulty)
+    : getQuestionsByCategory(category);
   const shuffled = [...categoryQuestions].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, shuffled.length));
+}
+
+/**
+ * Get question count by category and difficulty
+ */
+export function getQuestionCountByCategoryAndDifficulty(category: CategorySlug, difficulty: Difficulty): number {
+  return getQuestionsByCategoryAndDifficulty(category, difficulty).length;
 }
 
 /**
@@ -72,6 +81,7 @@ export function getCategoryCounts(): Record<CategorySlug, number> {
     "conduit-fill": getQuestionCountByCategory("conduit-fill"),
     "voltage-drop": getQuestionCountByCategory("voltage-drop"),
     "motor-calculations": getQuestionCountByCategory("motor-calculations"),
+    "temperature-correction": getQuestionCountByCategory("temperature-correction"),
   };
 }
 

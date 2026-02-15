@@ -113,7 +113,7 @@ export function ExamCountdown({
 
   return (
     <div className={className}>
-      <Card>
+      <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Target className="h-5 w-5 text-purple" />
@@ -143,7 +143,7 @@ export function ExamCountdown({
               </div>
 
               {/* Exam date display */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 dark:bg-stone-800/50 rounded-lg p-3">
                 <Calendar className="h-4 w-4 shrink-0" />
                 <span className="truncate">{formatExamDate(targetExamDate)}</span>
               </div>
@@ -161,7 +161,7 @@ export function ExamCountdown({
                     {completionPercentage}%
                   </span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${completionPercentage}%` }}
@@ -189,7 +189,7 @@ export function ExamCountdown({
           ) : (
             /* No exam date set state */
             <div className="text-center py-4 space-y-4">
-              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mx-auto">
+              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 dark:bg-stone-800/50 mx-auto">
                 <Calendar className="h-10 w-10 text-muted-foreground" />
               </div>
               <div>

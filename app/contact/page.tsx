@@ -124,14 +124,22 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-cream dark:bg-stone-950 relative">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-lg relative z-10"
       >
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
           <CardHeader className="text-center space-y-4">
             <Link
               href="/"
@@ -146,7 +154,7 @@ export default function ContactPage() {
                     <CheckCircle className="h-12 w-12 text-emerald" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold">
+                <CardTitle className="text-2xl font-bold font-display">
                   Message Sent!
                 </CardTitle>
                 <p className="text-muted-foreground">
@@ -160,7 +168,7 @@ export default function ContactPage() {
                     <Mail className="h-12 w-12 text-purple" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold">
+                <CardTitle className="text-2xl font-bold font-display">
                   Contact Us
                 </CardTitle>
                 <p className="text-muted-foreground">

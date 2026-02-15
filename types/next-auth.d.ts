@@ -11,6 +11,9 @@ declare module "next-auth" {
       image?: string | null;
       profileComplete: boolean;
       isEmailVerified: boolean;
+      subscriptionStatus: "trialing" | "active" | "past_due" | "canceled" | "expired" | null;
+      trialEndsAt: string | null;
+      subscriptionPeriodEnd: string | null;
     };
   }
 
@@ -27,5 +30,8 @@ declare module "next-auth/jwt" {
     id?: string;
     profileComplete?: boolean;
     isEmailVerified?: boolean;
+    subscriptionStatus?: "trialing" | "active" | "past_due" | "canceled" | "expired" | null;
+    trialEndsAt?: string | null;
+    subscriptionPeriodEnd?: string | null;
   }
 }

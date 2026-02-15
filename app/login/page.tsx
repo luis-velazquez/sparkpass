@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Zap, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,12 +85,12 @@ function LoginForm() {
   const errorMessage = getErrorMessage(error);
 
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-lg border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
       <CardHeader className="text-center space-y-4">
         <Link href="/" className="inline-flex items-center justify-center gap-2">
-          <Zap className="h-10 w-10 text-amber" />
+          <div className="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center"><img src="/lightning-bolt.svg" alt="SparkyPass" className="w-7 h-7" /></div>
         </Link>
-        <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
+        <CardTitle className="text-2xl font-bold font-display">Welcome Back!</CardTitle>
         <p className="text-muted-foreground">
           Sign in to continue your exam prep journey
         </p>
@@ -251,12 +251,12 @@ function LoginForm() {
 
 function LoginFormFallback() {
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-lg border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
       <CardHeader className="text-center space-y-4">
         <div className="inline-flex items-center justify-center gap-2">
-          <Zap className="h-10 w-10 text-amber" />
+          <div className="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center"><img src="/lightning-bolt.svg" alt="SparkyPass" className="w-7 h-7" /></div>
         </div>
-        <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
+        <CardTitle className="text-2xl font-bold font-display">Welcome Back!</CardTitle>
         <p className="text-muted-foreground">
           Sign in to continue your exam prep journey
         </p>
@@ -272,12 +272,20 @@ function LoginFormFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark dark:from-stone-950 dark:to-stone-950 relative">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
         <Suspense fallback={<LoginFormFallback />}>
           <LoginForm />

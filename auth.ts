@@ -126,6 +126,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.name || "User",
             authProvider: account?.provider as "google" | "facebook" | "apple",
             emailVerified: true, // OAuth users are considered verified
+            trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            subscriptionStatus: "trialing",
           });
           user.id = newUserId;
         } else {
@@ -152,6 +154,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             dbUser.username && dbUser.city && dbUser.state && dbUser.dateOfBirth && dbUser.targetExamDate
           );
           token.isEmailVerified = dbUser.emailVerified;
+          token.subscriptionStatus = (dbUser.subscriptionStatus as "trialing" | "active" | "past_due" | "canceled" | "expired") ?? null;
+          token.trialEndsAt = dbUser.trialEndsAt?.toISOString() ?? null;
+          token.subscriptionPeriodEnd = dbUser.subscriptionPeriodEnd?.toISOString() ?? null;
         }
       }
 
@@ -165,6 +170,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: token.id as string,
           profileComplete: (token.profileComplete as boolean) ?? false,
           isEmailVerified: (token.isEmailVerified as boolean) ?? false,
+          subscriptionStatus: token.subscriptionStatus ?? null,
+          trialEndsAt: token.trialEndsAt ?? null,
+          subscriptionPeriodEnd: token.subscriptionPeriodEnd ?? null,
         },
       };
     },

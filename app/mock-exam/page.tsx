@@ -59,7 +59,7 @@ const EXAM_OPTIONS: ExamOption[] = [
     difficulty: "standard",
     icon: BookOpen,
     color: "text-purple",
-    bgColor: "bg-purple-soft",
+    bgColor: "bg-purple-soft dark:bg-purple/10",
   },
   {
     id: "full-exam",
@@ -109,15 +109,23 @@ export default function MockExamPage() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-8">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-8"
+        className="relative z-10 mb-8"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2">
           <span className="text-amber">Mock Exam</span>
         </h1>
         <p className="text-muted-foreground">
@@ -127,7 +135,7 @@ export default function MockExamPage() {
       </motion.div>
 
       {/* Exam Options Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {EXAM_OPTIONS.map((exam, index) => (
           <motion.div
             key={exam.id}
@@ -136,7 +144,7 @@ export default function MockExamPage() {
             transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
           >
             <Card
-              className={`h-full cursor-pointer transition-all hover:shadow-lg pressable ${
+              className={`h-full cursor-pointer transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)] pressable border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 ${
                 selectedExam === exam.id ? "ring-2 ring-amber" : ""
               } ${exam.difficulty === "challenging" ? "border-red-500/30" : ""}`}
               onClick={() => setSelectedExam(exam.id)}
@@ -230,11 +238,11 @@ export default function MockExamPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.45 }}
-        className="mb-8"
+        className="relative z-10 mb-8"
       >
-        <h2 className="text-xl font-semibold text-foreground mb-4">Exam Day Tips</h2>
+        <h2 className="text-xl font-semibold font-display text-foreground mb-4">Exam Day Tips</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardContent className="pt-6">
               <Clock className="h-8 w-8 text-amber mb-3" />
               <h3 className="font-semibold text-foreground mb-2">Time Management</h3>
@@ -243,7 +251,7 @@ export default function MockExamPage() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardContent className="pt-6">
               <BookOpen className="h-8 w-8 text-emerald mb-3" />
               <h3 className="font-semibold text-foreground mb-2">Read Carefully</h3>
@@ -252,7 +260,7 @@ export default function MockExamPage() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardContent className="pt-6">
               <Target className="h-8 w-8 text-purple mb-3" />
               <h3 className="font-semibold text-foreground mb-2">Eliminate Wrong Answers</h3>
@@ -269,6 +277,7 @@ export default function MockExamPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5 }}
+        className="relative z-10"
       >
         <SparkyMessage
           size="medium"

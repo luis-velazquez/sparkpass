@@ -3,7 +3,7 @@ import { hash } from "bcryptjs";
 import crypto from "crypto";
 import { db, users, verificationTokens } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { sendVerificationEmail } from "@/lib/email";
+import { sendVerificationEmail, sendWelcomeTrialEmail } from "@/lib/email";
 
 // Generate a secure random token
 function generateToken(): string {
@@ -82,6 +82,8 @@ export async function POST(request: Request) {
       passwordHash,
       authProvider: "email",
       emailVerified: false,
+      trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      subscriptionStatus: "trialing",
     });
 
     // Generate verification token
@@ -105,6 +107,13 @@ export async function POST(request: Request) {
       await sendVerificationEmail(email.toLowerCase(), name.trim(), verificationUrl);
     } catch (emailError) {
       console.error("Failed to send verification email:", emailError);
+    }
+
+    // Send welcome trial email (non-blocking)
+    try {
+      await sendWelcomeTrialEmail(email.toLowerCase(), name.trim());
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
     }
 
     if (process.env.NODE_ENV === "development") {

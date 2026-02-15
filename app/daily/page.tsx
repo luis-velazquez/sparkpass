@@ -120,8 +120,18 @@ export default function DailyChallengePage() {
 
   if (status === "loading") {
     return (
-      <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-amber" />
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh] relative z-10">
+          <Loader2 className="h-8 w-8 animate-spin text-amber" />
+        </div>
       </main>
     );
   }
@@ -131,7 +141,16 @@ export default function DailyChallengePage() {
   const potentialXP = challenges.reduce((sum, c) => sum + c.xpReward, 0);
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="container mx-auto px-4 py-8 relative z-10">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -139,7 +158,7 @@ export default function DailyChallengePage() {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2">
           <span className="text-purple">Daily Challenge</span>
         </h1>
         <p className="text-muted-foreground">
@@ -155,7 +174,7 @@ export default function DailyChallengePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <Card>
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Flame className="h-4 w-4 text-orange-500" />
@@ -182,7 +201,7 @@ export default function DailyChallengePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
         >
-          <Card>
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-purple" />
@@ -191,7 +210,7 @@ export default function DailyChallengePage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-soft">
+                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-soft dark:bg-purple/10">
                   <Trophy className="h-7 w-7 text-purple" />
                 </div>
                 <div>
@@ -211,7 +230,7 @@ export default function DailyChallengePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card>
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Star className="h-4 w-4 text-amber" />
@@ -278,7 +297,7 @@ export default function DailyChallengePage() {
         transition={{ duration: 0.5, delay: 0.3 }}
         className="mb-8"
       >
-        <h2 className="text-xl font-semibold text-foreground mb-4">This Week&apos;s Challenges</h2>
+        <h2 className="text-xl font-semibold font-display text-foreground mb-4">This Week&apos;s Challenges</h2>
         <div className="space-y-3">
           {challenges.map((challenge, index) => (
             <motion.div
@@ -288,11 +307,11 @@ export default function DailyChallengePage() {
               transition={{ duration: 0.3, delay: 0.35 + index * 0.05 }}
             >
               <Card
-                className={`${
+                className={`border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 ${
                   challenge.completed
                     ? "bg-emerald/5 border-emerald/30"
                     : challenge.locked
-                    ? "bg-muted/30 opacity-60"
+                    ? "bg-muted/30 dark:bg-stone-800/30 opacity-60"
                     : ""
                 }`}
               >
@@ -304,8 +323,8 @@ export default function DailyChallengePage() {
                           challenge.completed
                             ? "bg-emerald text-white"
                             : challenge.locked
-                            ? "bg-muted text-muted-foreground"
-                            : "bg-purple-soft text-purple"
+                            ? "bg-muted dark:bg-stone-800 text-muted-foreground"
+                            : "bg-purple-soft dark:bg-purple/10 text-purple"
                         }`}
                       >
                         {challenge.completed ? (
@@ -367,7 +386,7 @@ export default function DailyChallengePage() {
         transition={{ duration: 0.5, delay: 0.5 }}
         className="mb-8"
       >
-        <h2 className="text-xl font-semibold text-foreground mb-4">Streak Bonuses</h2>
+        <h2 className="text-xl font-semibold font-display text-foreground mb-4">Streak Bonuses</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { days: 3, bonus: "1.25x XP", achieved: currentStreak >= 3 },
@@ -377,7 +396,7 @@ export default function DailyChallengePage() {
           ].map((tier) => (
             <Card
               key={tier.days}
-              className={tier.achieved ? "bg-amber/10 border-amber/30" : ""}
+              className={`border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 ${tier.achieved ? "bg-amber/10 border-amber/30" : ""}`}
             >
               <CardContent className="pt-4 text-center">
                 <Flame
@@ -410,6 +429,7 @@ export default function DailyChallengePage() {
           message="Consistency is the key to success! Daily practice, even just 10-15 minutes, builds lasting knowledge. Your brain consolidates learning during sleep, so short daily sessions beat long weekend cramming!"
         />
       </motion.div>
+      </div>
     </main>
   );
 }

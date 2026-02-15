@@ -194,6 +194,8 @@ export default function QuizResultsPage() {
   const [previousUserXP, setPreviousUserXP] = useState<number | null>(null);
   const [showFireAnimation, setShowFireAnimation] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [difficulty, setDifficulty] = useState<string | null>(null);
+  const [bestPercentage, setBestPercentage] = useState<number | null>(null);
 
   const category = useMemo(() => getCategoryBySlug(categorySlug), [categorySlug]);
 
@@ -215,6 +217,8 @@ export default function QuizResultsPage() {
     const bookmarkedStr = sessionStorage.getItem("bookmarkedQuestions");
     const preQuizXPStr = sessionStorage.getItem("preQuizXP");
     const bestStreakStr = sessionStorage.getItem("bestStreak");
+    const difficultyStr = sessionStorage.getItem("quizDifficulty");
+    if (difficultyStr) setDifficulty(difficultyStr);
 
     if (!answersStr || !questionIdsStr || storedCategorySlug !== categorySlug) {
       // No quiz data found or category mismatch - redirect to quiz selection
@@ -298,7 +302,7 @@ export default function QuizResultsPage() {
     // Trigger XP animation
     setShowXpAnimation(true);
 
-    // Save quiz result to database
+    // Save quiz result to database, then fetch best score
     fetch("/api/quiz-results", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -307,8 +311,21 @@ export default function QuizResultsPage() {
         score: results.correctCount,
         totalQuestions: results.totalQuestions,
         bestStreak: resultData.bestStreak,
+        difficulty,
       }),
-    }).catch((err) => console.error("Failed to save quiz result:", err));
+    })
+      .then(() => {
+        const params = new URLSearchParams({ category: resultData.categorySlug });
+        if (difficulty) params.set("difficulty", difficulty);
+        return fetch(`/api/quiz-results/best?${params}`);
+      })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.bestPercentage !== null && data?.bestPercentage !== undefined) {
+          setBestPercentage(data.bestPercentage);
+        }
+      })
+      .catch((err) => console.error("Failed to save/fetch quiz result:", err));
 
     // Check for level-up if we have previous XP
     if (previousUserXP !== null) {
@@ -348,6 +365,7 @@ export default function QuizResultsPage() {
     sessionStorage.removeItem("quizCategory");
     sessionStorage.removeItem("bookmarkedQuestions");
     sessionStorage.removeItem("bestStreak");
+    sessionStorage.removeItem("quizDifficulty");
     router.push(`/quiz/${categorySlug}`);
   };
 
@@ -358,6 +376,7 @@ export default function QuizResultsPage() {
     sessionStorage.removeItem("quizCategory");
     sessionStorage.removeItem("bookmarkedQuestions");
     sessionStorage.removeItem("bestStreak");
+    sessionStorage.removeItem("quizDifficulty");
     router.push("/quiz");
   };
 
@@ -390,10 +409,20 @@ export default function QuizResultsPage() {
   // Loading state
   if (!resultData || !results || !category) {
     return (
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="animate-pulse">
-          <div className="h-8 bg-muted rounded w-1/3 mb-6" />
-          <div className="h-64 bg-muted rounded mb-6" />
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="container mx-auto px-4 py-6 max-w-4xl relative z-10">
+          <div className="animate-pulse">
+            <div className="h-8 bg-muted dark:bg-stone-800 rounded w-1/3 mb-6" />
+            <div className="h-64 bg-muted dark:bg-stone-800 rounded mb-6" />
+          </div>
         </div>
       </main>
     );
@@ -407,7 +436,16 @@ export default function QuizResultsPage() {
       : "text-red-500";
 
   return (
-    <main className="container mx-auto px-4 py-6 max-w-4xl">
+    <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="container mx-auto px-4 py-6 max-w-4xl relative z-10">
       {/* Fire Animation for passing scores */}
       <FireAnimation show={showFireAnimation} />
 
@@ -426,19 +464,32 @@ export default function QuizResultsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-2xl md:text-3xl font-bold text-foreground mb-2"
+          className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2"
         >
           Quiz Complete!
         </motion.h1>
 
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-muted-foreground"
+          className="flex items-center justify-center gap-2"
         >
-          {category.name} - {category.necArticle}
-        </motion.p>
+          <p className="text-muted-foreground">
+            {category.name} - {category.necArticle}
+          </p>
+          {difficulty && (
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              difficulty === "easy"
+                ? "bg-emerald/10 text-emerald"
+                : difficulty === "medium"
+                ? "bg-amber/10 text-amber"
+                : "bg-red-500/10 text-red-500"
+            }`}>
+              {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+            </span>
+          )}
+        </motion.div>
       </div>
 
       {/* Score Card */}
@@ -447,7 +498,7 @@ export default function QuizResultsPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.4 }}
       >
-        <Card className="mb-6 border-2 border-amber/30">
+        <Card className="mb-6 border-2 border-amber/30 bg-card dark:bg-stone-900/50">
           <CardContent className="pt-6">
             <div className="text-center">
               {/* Score Display */}
@@ -508,6 +559,21 @@ export default function QuizResultsPage() {
                   </span>
                 </motion.div>
               )}
+
+              {/* Personal Best Display */}
+              {bestPercentage !== null && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.1 }}
+                  className="mt-4"
+                >
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple/20 text-purple rounded-full text-sm font-bold">
+                    <Trophy className="h-4 w-4" />
+                    Personal Best{difficulty ? ` (${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)})` : ""}: {bestPercentage}%
+                  </span>
+                </motion.div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -530,9 +596,9 @@ export default function QuizResultsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
         >
-          <Card className="mb-6">
+          <Card className="mb-6 border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
+              <CardTitle className="flex items-center gap-2 text-lg font-display">
                 <XCircle className="h-5 w-5 text-red-500" />
                 Review Missed Questions ({results.incorrectQuestions.length})
               </CardTitle>
@@ -548,7 +614,7 @@ export default function QuizResultsPage() {
                     >
                       <button
                         onClick={() => toggleQuestionExpand(question.id)}
-                        className="w-full p-4 text-left flex items-start justify-between gap-3 hover:bg-muted/50 transition-colors"
+                        className="w-full p-4 text-left flex items-start justify-between gap-3 hover:bg-muted/50 dark:hover:bg-stone-800/50 transition-colors"
                       >
                         <div className="flex-1">
                           <span className="text-xs text-purple font-medium">
@@ -570,7 +636,7 @@ export default function QuizResultsPage() {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="border-t bg-muted/30"
+                          className="border-t bg-muted/30 dark:bg-stone-800/30"
                         >
                           <div className="p-4 space-y-3">
                             {/* Your Answer */}
@@ -590,7 +656,7 @@ export default function QuizResultsPage() {
                             </div>
 
                             {/* Explanation */}
-                            <div className="p-3 bg-muted rounded-lg">
+                            <div className="p-3 bg-muted dark:bg-stone-800 rounded-lg">
                               <div className="flex items-center gap-2 text-xs font-medium text-purple mb-2">
                                 <Book className="h-3.5 w-3.5" />
                                 Explanation
@@ -630,7 +696,7 @@ export default function QuizResultsPage() {
           onClick={handleBackToCategories}
           variant="outline"
           size="lg"
-          className="gap-2"
+          className="gap-2 border-border dark:border-stone-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Categories
@@ -639,7 +705,7 @@ export default function QuizResultsPage() {
         <Button
           onClick={handleRetakeQuiz}
           size="lg"
-          className="bg-amber hover:bg-amber/90 text-white gap-2"
+          className="bg-amber hover:bg-amber-dark text-white gap-2"
         >
           <RotateCcw className="h-4 w-4" />
           Retake Quiz
@@ -649,7 +715,7 @@ export default function QuizResultsPage() {
           onClick={handleShare}
           variant="outline"
           size="lg"
-          className="gap-2"
+          className="gap-2 border-border dark:border-stone-700"
         >
           <Share2 className="h-4 w-4" />
           Share Score
@@ -666,6 +732,7 @@ export default function QuizResultsPage() {
           message={levelUpInfo.message}
         />
       )}
+      </div>
     </main>
   );
 }

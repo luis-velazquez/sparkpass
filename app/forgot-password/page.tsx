@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Zap, Mail, Loader2, CheckCircle, ArrowLeft } from "lucide-react";
+import { Mail, Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,20 +59,28 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark dark:from-stone-950 dark:to-stone-950 relative">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
           <CardHeader className="text-center space-y-4">
             <Link
               href="/"
               className="inline-flex items-center justify-center gap-2"
             >
-              <Zap className="h-10 w-10 text-amber" />
+              <div className="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center"><img src="/lightning-bolt.svg" alt="SparkyPass" className="w-7 h-7" /></div>
             </Link>
             {isSubmitted ? (
               <>
@@ -81,7 +89,7 @@ export default function ForgotPasswordPage() {
                     <CheckCircle className="h-12 w-12 text-emerald" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold">
+                <CardTitle className="text-2xl font-bold font-display">
                   Check Your Email
                 </CardTitle>
                 <p className="text-muted-foreground">
@@ -97,7 +105,7 @@ export default function ForgotPasswordPage() {
                     <Mail className="h-12 w-12 text-amber" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold">
+                <CardTitle className="text-2xl font-bold font-display">
                   Forgot Password?
                 </CardTitle>
                 <p className="text-muted-foreground">
@@ -117,7 +125,7 @@ export default function ForgotPasswordPage() {
                 />
 
                 {/* Instructions */}
-                <div className="rounded-lg bg-muted p-4 text-sm space-y-2">
+                <div className="rounded-lg bg-muted dark:bg-stone-800 p-4 text-sm space-y-2">
                   <p className="font-medium">What to do:</p>
                   <ul className="list-disc list-inside text-muted-foreground space-y-1">
                     <li>Check your spam or junk folder</li>

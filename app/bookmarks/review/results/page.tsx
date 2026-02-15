@@ -261,10 +261,18 @@ export default function BookmarkReviewResultsPage() {
   // Loading state
   if (!resultData || !results) {
     return (
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="animate-pulse">
-          <div className="h-8 bg-muted rounded w-1/3 mb-6" />
-          <div className="h-64 bg-muted rounded mb-6" />
+      <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-6 max-w-4xl">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="relative z-10 animate-pulse">
+          <div className="h-8 bg-muted dark:bg-stone-800 rounded w-1/3 mb-6" />
+          <div className="h-64 bg-muted dark:bg-stone-800 rounded mb-6" />
         </div>
       </main>
     );
@@ -278,19 +286,27 @@ export default function BookmarkReviewResultsPage() {
       : "text-red-500";
 
   return (
-    <main className="container mx-auto px-4 py-6 max-w-4xl">
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-6 max-w-4xl">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4 flex items-center justify-center gap-2 px-3 py-2 bg-amber/10 rounded-lg text-amber text-sm"
+        className="relative z-10 mb-4 flex items-center justify-center gap-2 px-3 py-2 bg-amber/10 rounded-lg text-amber text-sm"
       >
         <BookMarked className="h-4 w-4" />
         <span className="font-medium">Bookmark Review Complete</span>
       </motion.div>
 
       {/* Header */}
-      <div className="text-center mb-8">
+      <div className="relative z-10 text-center mb-8">
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
@@ -304,7 +320,7 @@ export default function BookmarkReviewResultsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-2xl md:text-3xl font-bold text-foreground mb-2"
+          className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2"
         >
           Review Complete!
         </motion.h1>
@@ -324,8 +340,9 @@ export default function BookmarkReviewResultsPage() {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.4 }}
+        className="relative z-10"
       >
-        <Card className="mb-6 border-2 border-amber/30">
+        <Card className="mb-6 border-2 border-amber/30 bg-card dark:bg-stone-900/50">
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="mb-4">
@@ -381,7 +398,7 @@ export default function BookmarkReviewResultsPage() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.8 }}
-        className="mb-8"
+        className="relative z-10 mb-8"
       >
         <SparkyMessage message={sparkyMessage} size="large" />
       </motion.div>
@@ -392,8 +409,9 @@ export default function BookmarkReviewResultsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
+          className="relative z-10"
         >
-          <Card className="mb-6">
+          <Card className="mb-6 border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <XCircle className="h-5 w-5 text-red-500" />
@@ -416,7 +434,7 @@ export default function BookmarkReviewResultsPage() {
                       >
                         <button
                           onClick={() => toggleQuestionExpand(question.id)}
-                          className="w-full p-4 text-left flex items-start justify-between gap-3 hover:bg-muted/50 transition-colors"
+                          className="w-full p-4 text-left flex items-start justify-between gap-3 hover:bg-muted/50 dark:hover:bg-stone-800/50 transition-colors"
                         >
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -443,7 +461,7 @@ export default function BookmarkReviewResultsPage() {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="border-t bg-muted/30"
+                            className="border-t bg-muted/30 dark:bg-stone-800/30"
                           >
                             <div className="p-4 space-y-3">
                               <div>
@@ -468,7 +486,7 @@ export default function BookmarkReviewResultsPage() {
                                 </p>
                               </div>
 
-                              <div className="p-3 bg-muted rounded-lg">
+                              <div className="p-3 bg-muted dark:bg-stone-800 rounded-lg">
                                 <div className="flex items-center gap-2 text-xs font-medium text-purple mb-2">
                                   <Book className="h-3.5 w-3.5" />
                                   Explanation
@@ -504,7 +522,7 @@ export default function BookmarkReviewResultsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="flex flex-col sm:flex-row gap-3 justify-center"
+        className="relative z-10 flex flex-col sm:flex-row gap-3 justify-center"
       >
         <Button
           onClick={handleBackToBookmarks}
@@ -519,7 +537,7 @@ export default function BookmarkReviewResultsPage() {
         <Button
           onClick={handleRetakeReview}
           size="lg"
-          className="bg-amber hover:bg-amber/90 text-white gap-2"
+          className="bg-amber hover:bg-amber-dark text-white gap-2"
         >
           <RotateCcw className="h-4 w-4" />
           Review Again

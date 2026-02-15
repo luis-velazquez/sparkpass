@@ -232,7 +232,15 @@ export default function ExamSessionPage() {
   const isTimeLow = timeRemaining < 300; // Less than 5 minutes
 
   return (
-    <main className="container mx-auto px-4 py-4 max-w-4xl">
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-4 max-w-4xl">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header with Timer */}
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur py-3 mb-4 border-b border-border">
         <div className="flex items-center justify-between">
@@ -245,7 +253,7 @@ export default function ExamSessionPage() {
               <X className="h-4 w-4 mr-1" />
               Exit
             </Button>
-            <h1 className="text-lg font-semibold text-foreground hidden sm:block">
+            <h1 className="text-lg font-semibold font-display text-foreground hidden sm:block">
               {examConfig.title}
             </h1>
           </div>
@@ -269,7 +277,7 @@ export default function ExamSessionPage() {
       </div>
 
       {/* Question Navigation Pills */}
-      <div className="mb-6 overflow-x-auto pb-2">
+      <div className="relative z-10 mb-6 overflow-x-auto pb-2">
         <div className="flex gap-1.5 min-w-max">
           {questions.map((q, index) => {
             const isActive = index === currentIndex;
@@ -285,7 +293,7 @@ export default function ExamSessionPage() {
                     ? "bg-amber text-white"
                     : isQAnswered
                     ? "bg-emerald/20 text-emerald"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    : "bg-muted dark:bg-stone-800 text-muted-foreground hover:bg-muted/80"
                 }`}
               >
                 {index + 1}
@@ -304,8 +312,9 @@ export default function ExamSessionPage() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.2 }}
+        className="relative z-10"
       >
-        <Card className="mb-6">
+        <Card className="mb-6 border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between mb-4">
               <span className="text-sm text-muted-foreground">
@@ -337,7 +346,7 @@ export default function ExamSessionPage() {
                     className={`w-full text-left p-4 rounded-lg border transition-all ${
                       isSelected
                         ? "border-amber bg-amber/10"
-                        : "border-border hover:border-amber/50 hover:bg-muted/50"
+                        : "border-border hover:border-amber/50 hover:bg-muted/50 dark:hover:bg-stone-800/50"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -345,7 +354,7 @@ export default function ExamSessionPage() {
                         className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
                           isSelected
                             ? "bg-amber text-white"
-                            : "bg-muted text-muted-foreground"
+                            : "bg-muted dark:bg-stone-800 text-muted-foreground"
                         }`}
                       >
                         {String.fromCharCode(65 + index)}
@@ -361,7 +370,7 @@ export default function ExamSessionPage() {
       </motion.div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="relative z-10 flex items-center justify-between">
         <Button
           variant="outline"
           onClick={handlePrev}

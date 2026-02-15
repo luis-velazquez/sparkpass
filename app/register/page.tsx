@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Zap, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Shield, Clock, BookOpen, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,21 +90,29 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark dark:from-stone-950 dark:to-stone-950 relative">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
           <CardHeader className="text-center space-y-4">
             <Link href="/" className="inline-flex items-center justify-center gap-2">
-              <Zap className="h-10 w-10 text-amber" />
+              <div className="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center"><img src="/lightning-bolt.svg" alt="SparkyPass" className="w-7 h-7" /></div>
             </Link>
-            <CardTitle className="text-2xl font-bold">Create Your Account</CardTitle>
+            <CardTitle className="text-2xl font-bold font-display">Start Your Free Trial</CardTitle>
             <p className="text-muted-foreground">
-              Join SparkyPass and start your journey to becoming a Master Electrician
+              7 days of full access — no credit card required
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -188,7 +196,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="John Smith"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value.replace(/\b\w/g, (c) => c.toUpperCase()))}
                   disabled={isLoading}
                   autoComplete="name"
                 />
@@ -264,6 +272,38 @@ export default function RegisterPage() {
                 Sign in
               </Link>
             </p>
+
+            {/* Trial Transparency */}
+            <div className="rounded-lg bg-muted/50 dark:bg-stone-800/50 border border-border p-4 space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Trial Transparency</p>
+              <div className="space-y-2.5">
+                <div className="flex items-start gap-2.5">
+                  <CreditCard className="h-4 w-4 text-emerald flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">No credit card is collected today.</p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <Clock className="h-4 w-4 text-emerald flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">Trial expires automatically after 7 days — no surprise charges.</p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <BookOpen className="h-4 w-4 text-emerald flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">Your study progress is saved even if the trial expires.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Trust Signals */}
+            <div className="flex items-center justify-center gap-4 pt-1">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Shield className="h-4 w-4" />
+                <span className="text-xs">Secured by Stripe</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <svg className="h-5 w-8" viewBox="0 0 32 20" fill="none"><rect width="32" height="20" rx="3" fill="#1A1F71"/><text x="16" y="13" textAnchor="middle" fill="white" fontSize="7" fontWeight="bold" fontFamily="Arial">VISA</text></svg>
+                <svg className="h-5 w-8" viewBox="0 0 32 20" fill="none"><rect width="32" height="20" rx="3" fill="#252525"/><circle cx="12" cy="10" r="6" fill="#EB001B"/><circle cx="20" cy="10" r="6" fill="#F79E1B"/><path d="M16 5.6a6 6 0 0 1 0 8.8 6 6 0 0 1 0-8.8z" fill="#FF5F00"/></svg>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>

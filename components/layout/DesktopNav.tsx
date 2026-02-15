@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { ChevronDown } from "lucide-react";
 import {
   Popover,
@@ -16,7 +17,7 @@ const navLinks = [
   { href: "/flashcards", label: "Flashcards" },
   { href: "/mock-exam", label: "Mock Exam" },
   { href: "/load-calculator", label: "Load Calculator" },
-  { href: "/contact", label: "Contact" },
+  { href: "/settings", label: "Settings" },
 ];
 
 const calcSubLinks = [
@@ -27,6 +28,9 @@ const calcSubLinks = [
 export function DesktopNav() {
   const pathname = usePathname();
   const [calcOpen, setCalcOpen] = useState(false);
+  const { status } = useSession();
+
+  if (status !== "authenticated") return null;
 
   return (
     <nav className="hidden md:flex items-center gap-1">
@@ -39,7 +43,7 @@ export function DesktopNav() {
               <div
                 className={`group flex items-center rounded-md transition-colors ${
                   isActive
-                    ? "bg-amber/10 text-amber"
+                    ? "bg-amber/10 text-amber dark:bg-sparky-green-bg dark:text-sparky-green dark:drop-shadow-[0_0_6px_rgba(163,255,0,0.2)]"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
@@ -52,7 +56,7 @@ export function DesktopNav() {
                 <PopoverTrigger asChild>
                   <button
                     className={`pl-1.5 pr-2 py-1.5 border-l ${
-                      isActive ? "border-amber/25" : "border-transparent group-hover:border-muted-foreground/20"
+                      isActive ? "border-amber/25 dark:border-sparky-green/25" : "border-transparent group-hover:border-muted-foreground/20"
                     }`}
                   >
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform ${calcOpen ? "rotate-180" : ""}`} />
@@ -69,7 +73,7 @@ export function DesktopNav() {
                       onClick={() => setCalcOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm transition-colors ${
                         subActive
-                          ? "bg-amber/10 text-amber font-medium"
+                          ? "bg-amber/10 text-amber dark:bg-sparky-green-bg dark:text-sparky-green dark:drop-shadow-[0_0_6px_rgba(163,255,0,0.2)] font-medium"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       }`}
                     >
@@ -88,7 +92,7 @@ export function DesktopNav() {
             href={link.href}
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
               isActive
-                ? "bg-amber/10 text-amber"
+                ? "bg-amber/10 text-amber dark:bg-sparky-green-bg dark:text-sparky-green dark:drop-shadow-[0_0_6px_rgba(163,255,0,0.2)]"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >

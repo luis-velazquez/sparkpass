@@ -21,6 +21,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  Play,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,8 @@ import { SparkyMessage } from "@/components/sparky";
 import { ExamCountdown } from "@/components/exam";
 import { getLevelTitle, getXPProgress } from "@/lib/levels";
 import { CATEGORIES } from "@/types/question";
+import { SubscriptionBanner } from "@/components/subscription/SubscriptionBanner";
+import { TrialStatusHeader } from "@/components/subscription/TrialStatusHeader";
 
 interface SavedFlashcard {
   id: string;
@@ -74,6 +77,15 @@ interface RecentSession {
   xpEarned: number;
 }
 
+interface SavedQuizProgress {
+  categorySlug: string;
+  difficulty?: string;
+  questionIds: string[];
+  currentQuestionIndex: number;
+  answers: Record<string, number>;
+  timestamp: number;
+}
+
 interface ProgressStats {
   totalAnswered: number;
   uniqueQuestionsAnswered: number;
@@ -94,40 +106,30 @@ const features = [
     description: "Practice with NEC-based questions and get instant feedback.",
     icon: Brain,
     href: "/quiz",
-    color: "text-purple",
-    bgColor: "bg-purple-soft",
   },
   {
     title: "Flashcards",
     description: "Memorize key formulas and code references.",
     icon: BookOpen,
     href: "/flashcards",
-    color: "text-emerald",
-    bgColor: "bg-emerald/10",
   },
   {
     title: "Load Calculator",
     description: "Learn residential load calculations step by step with Sparky.",
     icon: Calculator,
     href: "/load-calculator",
-    color: "text-amber",
-    bgColor: "bg-amber/10",
   },
   {
     title: "Mock Exam",
     description: "Simulate the real exam with timed practice tests.",
     icon: ClipboardCheck,
     href: "/mock-exam",
-    color: "text-orange-500",
-    bgColor: "bg-orange-500/10",
   },
   {
     title: "Daily Challenge",
     description: "Complete daily challenges to keep your streak alive!",
     icon: Calendar,
     href: "/daily",
-    color: "text-purple",
-    bgColor: "bg-purple-soft",
   },
 ];
 
@@ -181,33 +183,14 @@ function getSparkyMessage(daysUntilExam: number | null, weakAreas: string[]): st
   return "Great job staying consistent with your studies! Remember, every question you practice brings you closer to that Master license!";
 }
 
-function getSessionTypeLabel(type: string): string {
-  switch (type) {
-    case "quiz":
-      return "Quiz";
-    case "flashcard":
-      return "Flashcards";
-    case "mock_exam":
-      return "Mock Exam";
-    case "daily_challenge":
-      return "Daily Challenge";
-    case "load_calculator":
-      return "Load Calculator";
-    default:
-      return type;
-  }
-}
-
 function formatTimeAgo(dateString: string | null): string {
-  if (!dateString) return "Unknown";
-
+  if (!dateString) return "";
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
   if (diffMins < 1) return "Just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
@@ -224,6 +207,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [savedFlashcards, setSavedFlashcards] = useState<SavedFlashcard[]>([]);
   const [savedQuestions, setSavedQuestions] = useState<SavedQuestion[]>([]);
+  const [savedQuizProgressList, setSavedQuizProgressList] = useState<SavedQuizProgress[]>([]);
   const [questionsExpanded, setQuestionsExpanded] = useState(false);
 
   useEffect(() => {
@@ -233,6 +217,30 @@ export default function DashboardPage() {
     }
 
     if (status === "authenticated" && session?.user?.id) {
+      // Check for saved quiz progress across all categories
+      const found: SavedQuizProgress[] = [];
+      for (const cat of CATEGORIES) {
+        try {
+          const saved = localStorage.getItem(`sparkypass-quiz-progress-${cat.slug}`);
+          if (saved) {
+            const parsed = JSON.parse(saved) as SavedQuizProgress;
+            if (!parsed.questionIds || !Array.isArray(parsed.questionIds)) continue;
+            const isRecent = Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
+            const hasProgress = parsed.currentQuestionIndex > 0 || Object.keys(parsed.answers || {}).length > 0;
+            if (isRecent && hasProgress) {
+              found.push(parsed);
+            }
+          }
+        } catch {
+          // Ignore invalid localStorage data
+        }
+      }
+      if (found.length > 0) {
+        // Sort by most recent first
+        found.sort((a, b) => b.timestamp - a.timestamp);
+        setSavedQuizProgressList(found);
+      }
+
       // Fetch user data, progress stats, bookmarks, and flashcard bookmarks in parallel
       Promise.all([
         fetch("/api/user").then((res) => res.json()),
@@ -264,18 +272,20 @@ export default function DashboardPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-10 bg-muted rounded w-64 mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="h-32 bg-muted rounded" />
-            <div className="h-32 bg-muted rounded" />
-            <div className="h-32 bg-muted rounded" />
-          </div>
-          <div className="h-48 bg-muted rounded mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="h-64 bg-muted rounded" />
-            <div className="h-64 bg-muted rounded" />
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-10 bg-muted dark:bg-stone-800 rounded w-64 mb-8" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="h-32 bg-muted dark:bg-stone-800 rounded-xl" />
+              <div className="h-32 bg-muted dark:bg-stone-800 rounded-xl" />
+              <div className="h-32 bg-muted dark:bg-stone-800 rounded-xl" />
+            </div>
+            <div className="h-48 bg-muted dark:bg-stone-800 rounded-xl mb-8" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="h-64 bg-muted dark:bg-stone-800 rounded-xl" />
+              <div className="h-64 bg-muted dark:bg-stone-800 rounded-xl" />
+            </div>
           </div>
         </div>
       </main>
@@ -314,707 +324,735 @@ export default function DashboardPage() {
   const categoryStats = progressStats?.categoryStats ?? [];
   const recentSessions = progressStats?.recentSessions ?? [];
 
+  // Completed quiz sessions with scores, excluding categories that have in-progress saved data
+  const savedSlugs = new Set(savedQuizProgressList.map((p) => p.categorySlug));
+  const completedSessions = recentSessions.filter(
+    (s) =>
+      s.questionsAnswered != null &&
+      s.questionsAnswered > 0 &&
+      s.questionsCorrect != null &&
+      s.endedAt != null &&
+      !(s.sessionType === "quiz" && s.categorySlug && savedSlugs.has(s.categorySlug))
+  );
+
   const isNewUser = totalAnswered === 0;
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      {/* Welcome Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Welcome back, <span className="text-amber">{displayName}</span>!
-        </h1>
-        <p className="text-muted-foreground mb-8">
-          Let&apos;s keep the momentum going!
-        </p>
-      </motion.div>
+    <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+      {/* Blueprint grid background */}
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
 
-      {/* Start Studying - Feature Cards */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="mb-8"
-      >
-        <h2 className="text-xl font-semibold text-foreground mb-4">
-          Start Studying
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
-            >
-              <Link href={feature.href}>
-                <Card className="h-full hover:shadow-lg transition-all cursor-pointer group hover:border-amber/50 pressable">
-                  <CardHeader className="pb-2">
-                    <div
-                      className={`w-12 h-12 rounded-lg ${feature.bgColor} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
-                    >
-                      <feature.icon className={`h-6 w-6 ${feature.color}`} />
-                    </div>
-                    <CardTitle className="text-lg">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        {/* Welcome Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 font-display">
+            Welcome back, <span className="text-amber">{displayName}</span>!
+          </h1>
+          <p className="text-muted-foreground mb-8">
+            Let&apos;s keep the momentum going!
+          </p>
+        </motion.div>
+
+        {/* Trial Status / Subscription Banner */}
+        <div className="mb-6 space-y-3">
+          <TrialStatusHeader />
+          <SubscriptionBanner />
         </div>
-      </motion.div>
 
-      {/* Stats Cards Row 1 - Core Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-        {/* XP & Level Card */}
+        {/* Start Studying - Feature Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-8"
         >
-          <Card className="h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Star className="h-4 w-4 text-amber" />
-                Level & XP
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-3xl font-bold text-foreground">
-                  Level {level}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {levelTitle}
-                </span>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {xp.toLocaleString()} XP
+          <h2 className="text-xl font-semibold text-foreground mb-4 font-display">
+            Start Studying
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
+              >
+                <Link href={feature.href}>
+                  <div className="h-full rounded-xl border border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 p-5 cursor-pointer group transition-all duration-300 hover:border-amber/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)] pressable">
+                    <div className="w-12 h-12 rounded-lg bg-amber/10 flex items-center justify-center mb-3 group-hover:bg-amber/20 transition-colors">
+                      <feature.icon className="h-6 w-6 text-amber" />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-1">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Stats Cards Row 1 - Core Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
+          {/* XP & Level Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Card className="h-full border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Star className="h-4 w-4 text-amber" />
+                  Level & XP
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-3xl font-bold text-foreground">
+                    Level {level}
                   </span>
-                  <span className="text-muted-foreground">
-                    {xpProgress.current} / {xpProgress.needed} to next level
+                  <span className="text-sm text-muted-foreground">
+                    {levelTitle}
                   </span>
                 </div>
-                <div className="h-3 bg-muted rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${xpProgress.percentage}%` }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-amber to-amber-light rounded-full"
-                  />
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {xp.toLocaleString()} XP
+                    </span>
+                    <span className="text-muted-foreground">
+                      {xpProgress.current} / {xpProgress.needed} to next level
+                    </span>
+                  </div>
+                  <div className="h-3 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${xpProgress.percentage}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                      className="h-full bg-gradient-to-r from-amber to-amber-light rounded-full"
+                    />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        {/* Study Streak Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card className="h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Flame className="h-4 w-4 text-orange-500" />
-                Study Streak
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/10">
-                  <Flame className="h-8 w-8 text-orange-500" />
+          {/* Study Streak Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Card className="h-full border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-orange-500" />
+                  Study Streak
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/10">
+                    <Flame className="h-8 w-8 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      {studyStreak}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {studyStreak === 1 ? "day" : "days"} in a row
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {studyStreak}
+                {studyStreak === 0 && (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Complete a quiz to start your streak!
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {studyStreak === 1 ? "day" : "days"} in a row
+                )}
+                {studyStreak > 0 && studyStreak < 7 && (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Keep it going! Study today to maintain your streak.
                   </p>
-                </div>
-              </div>
-              {studyStreak === 0 && (
-                <p className="text-sm text-muted-foreground mt-3">
-                  Complete a quiz to start your streak!
-                </p>
-              )}
-              {studyStreak > 0 && studyStreak < 7 && (
-                <p className="text-sm text-muted-foreground mt-3">
-                  Keep it going! Study today to maintain your streak.
-                </p>
-              )}
-              {studyStreak >= 7 && (
-                <p className="text-sm text-emerald mt-3">
-                  Amazing dedication! You&apos;re on fire!
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
+                )}
+                {studyStreak >= 7 && (
+                  <p className="text-sm text-emerald mt-3">
+                    Amazing dedication! You&apos;re on fire!
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        {/* Exam Countdown Card - Using the ExamCountdown component */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <ExamCountdown
-            targetExamDate={targetExamDate}
-            totalQuestionsAnswered={uniqueQuestionsAnswered}
-            totalQuestionsInBank={totalQuestionsInBank}
-          />
-        </motion.div>
-      </div>
+          {/* Exam Countdown Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <ExamCountdown
+              targetExamDate={targetExamDate}
+              totalQuestionsAnswered={uniqueQuestionsAnswered}
+              totalQuestionsInBank={totalQuestionsInBank}
+            />
+          </motion.div>
+        </div>
 
-      {/* Stats Cards Row 2 - Progress Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-        {/* Total Questions Answered */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-        >
-          <Card className="h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald" />
-                Questions Answered
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-emerald/10">
-                  <CheckCircle2 className="h-8 w-8 text-emerald" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {totalAnswered}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    total questions
-                  </p>
-                </div>
-              </div>
-              {isNewUser ? (
-                <p className="text-sm text-muted-foreground mt-3">
-                  Start a quiz to track your progress!
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground mt-3">
-                  <span className="text-emerald font-medium">{answeredToday}</span> answered today
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Overall Accuracy */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Card className="h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-purple" />
-                Overall Accuracy
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-purple-soft">
-                  <TrendingUp className="h-8 w-8 text-purple" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {isNewUser ? "—" : `${accuracy}%`}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    correct answers
-                  </p>
-                </div>
-              </div>
-              {isNewUser ? (
-                <p className="text-sm text-muted-foreground mt-3">
-                  Answer questions to see your accuracy!
-                </p>
-              ) : accuracy >= 80 ? (
-                <p className="text-sm text-emerald mt-3">
-                  Excellent work! Keep it up!
-                </p>
-              ) : accuracy >= 70 ? (
-                <p className="text-sm text-amber mt-3">
-                  Good progress! Aim for 80%+
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground mt-3">
-                  Keep practicing to improve!
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Weak Areas */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.45 }}
-        >
-          <Card className="h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber" />
-                Focus Areas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isNewUser ? (
-                <div className="flex flex-col items-center justify-center py-4">
-                  <p className="text-sm text-muted-foreground text-center">
-                    Complete some quizzes to identify areas for improvement!
-                  </p>
-                </div>
-              ) : weakAreas.length === 0 ? (
+        {/* Stats Cards Row 2 - Progress Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+          {/* Total Questions Answered */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.35 }}
+          >
+            <Card className="h-full border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald" />
+                  Questions Answered
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-16 h-16 rounded-full bg-emerald/10">
                     <CheckCircle2 className="h-8 w-8 text-emerald" />
                   </div>
                   <div>
-                    <p className="text-lg font-semibold text-foreground">
-                      All clear!
+                    <p className="text-3xl font-bold text-foreground">
+                      {totalAnswered}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      No weak areas detected
+                      total questions
                     </p>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {weakAreas.slice(0, 2).map((slug) => {
-                    const category = CATEGORIES.find((c) => c.slug === slug);
-                    const stat = categoryStats.find((s) => s.slug === slug);
-                    return (
-                      <Link key={slug} href={`/quiz/${slug}`}>
-                        <div className="flex items-center justify-between p-2 rounded-lg bg-amber/5 hover:bg-amber/10 transition-colors cursor-pointer pressable">
-                          <span className="text-sm font-medium text-foreground">
-                            {category?.name || slug}
-                          </span>
-                          <span className="text-sm text-amber font-medium">
-                            {stat?.accuracy || 0}%
-                          </span>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Click to practice
+                {isNewUser ? (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Start a quiz to track your progress!
                   </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    <span className="text-emerald font-medium">{answeredToday}</span> answered today
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Overall Accuracy */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Card className="h-full border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-purple" />
+                  Overall Accuracy
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-purple-soft dark:bg-purple/10">
+                    <TrendingUp className="h-8 w-8 text-purple" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      {isNewUser ? "—" : `${accuracy}%`}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      correct answers
+                    </p>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+                {isNewUser ? (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Answer questions to see your accuracy!
+                  </p>
+                ) : accuracy >= 80 ? (
+                  <p className="text-sm text-emerald mt-3">
+                    Excellent work! Keep it up!
+                  </p>
+                ) : accuracy >= 70 ? (
+                  <p className="text-sm text-amber mt-3">
+                    Good progress! Aim for 80%+
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Keep practicing to improve!
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
 
-      {/* Sparky Message */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="mb-8"
-      >
-        <SparkyMessage size="medium" message={sparkyMessage} />
-      </motion.div>
+          {/* Weak Areas */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+          >
+            <Card className="h-full border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber" />
+                  Focus Areas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isNewUser ? (
+                  <div className="flex flex-col items-center justify-center py-4">
+                    <p className="text-sm text-muted-foreground text-center">
+                      Complete some quizzes to identify areas for improvement!
+                    </p>
+                  </div>
+                ) : weakAreas.length === 0 ? (
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-emerald/10">
+                      <CheckCircle2 className="h-8 w-8 text-emerald" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-foreground">
+                        All clear!
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        No weak areas detected
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {weakAreas.slice(0, 2).map((slug) => {
+                      const category = CATEGORIES.find((c) => c.slug === slug);
+                      const stat = categoryStats.find((s) => s.slug === slug);
+                      return (
+                        <Link key={slug} href={`/quiz/${slug}`}>
+                          <div className="flex items-center justify-between p-2 rounded-lg bg-amber/5 hover:bg-amber/10 transition-colors cursor-pointer pressable">
+                            <span className="text-sm font-medium text-foreground">
+                              {category?.name || slug}
+                            </span>
+                            <span className="text-sm text-amber font-medium">
+                              {stat?.accuracy || 0}%
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Click to practice
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
 
-      {/* Saved for Later Section */}
-      {(savedFlashcards.length > 0 || savedQuestions.length > 0) && (
+        {/* Sparky Message */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.52 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
           className="mb-8"
         >
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Bookmark className="h-5 w-5 text-amber" />
-                Saved for Later
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Saved Flashcards */}
-                {savedFlashcards.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                      <BookOpen className="h-4 w-4 text-emerald" />
-                      Flashcards ({savedFlashcards.length})
-                    </h3>
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                      {savedFlashcards.slice(0, 5).map((card) => (
-                        <div
-                          key={card.id}
-                          className="flex items-start justify-between p-3 rounded-lg bg-muted/50 group"
-                        >
-                          <div className="flex-1 min-w-0 mr-2">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {card.front}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {card.necReference}
-                            </p>
-                          </div>
-                          <button
-                            onClick={async () => {
-                              // Optimistically remove from UI
-                              setSavedFlashcards((prev) =>
-                                prev.filter((f) => f.id !== card.id)
-                              );
-                              // Delete from database
-                              try {
-                                await fetch("/api/flashcard-bookmarks", {
-                                  method: "DELETE",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ flashcardId: card.flashcardId }),
-                                });
-                              } catch (error) {
-                                console.error("Failed to remove flashcard bookmark:", error);
-                              }
-                            }}
-                            className="p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Remove from saved"
-                          >
-                            <X className="h-4 w-4 text-muted-foreground" />
-                          </button>
-                        </div>
-                      ))}
-                      {savedFlashcards.length > 5 && (
-                        <Link href="/flashcards">
-                          <p className="text-sm text-amber hover:underline cursor-pointer pressable">
-                            +{savedFlashcards.length - 5} more flashcards
-                          </p>
-                        </Link>
-                      )}
-                    </div>
-                    <Link href="/flashcards" className="block mt-3">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Review Flashcards
-                      </Button>
-                    </Link>
-                  </div>
-                )}
+          <SparkyMessage size="medium" message={sparkyMessage} />
+        </motion.div>
 
-                {/* Saved Questions */}
-                {savedQuestions.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                      <Brain className="h-4 w-4 text-purple" />
-                      Quiz Questions ({savedQuestions.length})
-                    </h3>
-                    <div className={`space-y-2 ${questionsExpanded ? "max-h-[400px]" : "max-h-[300px]"} overflow-y-auto`}>
-                      {(questionsExpanded ? savedQuestions : savedQuestions.slice(0, 5)).map((question, index) => {
-                        const category = CATEGORIES.find(
-                          (c) => c.slug === question.category
-                        );
-                        return (
-                          <Link
-                            key={question.id}
-                            href={`/review?question=${question.questionId}`}
-                            className="block"
+        {/* Saved for Later Section */}
+        {(savedFlashcards.length > 0 || savedQuestions.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.52 }}
+            className="mb-8"
+          >
+            <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Bookmark className="h-5 w-5 text-amber" />
+                  Saved for Later
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Saved Flashcards */}
+                  {savedFlashcards.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 text-emerald" />
+                        Flashcards ({savedFlashcards.length})
+                      </h3>
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        {savedFlashcards.slice(0, 5).map((card) => (
+                          <div
+                            key={card.id}
+                            className="flex items-start justify-between p-3 rounded-lg bg-muted/50 dark:bg-stone-800/50 group"
                           >
-                            <div className="flex items-start justify-between p-3 rounded-lg bg-muted/50 group hover:bg-purple/10 hover:border-purple/30 border border-transparent transition-colors cursor-pointer pressable">
-                              <div className="flex-1 min-w-0 mr-2">
-                                <p className="text-sm font-medium text-foreground truncate group-hover:text-purple transition-colors">
-                                  {question.question}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {category?.name || question.category}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-purple group-hover:translate-x-0.5 transition-all" />
-                                <button
-                                  onClick={async (e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    // Optimistically remove from UI
-                                    setSavedQuestions((prev) =>
-                                      prev.filter((q) => q.id !== question.id)
-                                    );
-                                    // Delete from database
-                                    try {
-                                      await fetch("/api/bookmarks", {
-                                        method: "DELETE",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ questionId: question.questionId }),
-                                      });
-                                    } catch (error) {
-                                      console.error("Failed to remove bookmark:", error);
-                                    }
-                                  }}
-                                  className="p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                                  title="Remove from saved"
-                                >
-                                  <X className="h-4 w-4 text-muted-foreground hover:text-red-500" />
-                                </button>
-                              </div>
+                            <div className="flex-1 min-w-0 mr-2">
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {card.front}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {card.necReference}
+                              </p>
                             </div>
+                            <button
+                              onClick={async () => {
+                                setSavedFlashcards((prev) =>
+                                  prev.filter((f) => f.id !== card.id)
+                                );
+                                try {
+                                  await fetch("/api/flashcard-bookmarks", {
+                                    method: "DELETE",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ flashcardId: card.flashcardId }),
+                                  });
+                                } catch (error) {
+                                  console.error("Failed to remove flashcard bookmark:", error);
+                                }
+                              }}
+                              className="p-1 rounded-full hover:bg-muted dark:hover:bg-stone-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Remove from saved"
+                            >
+                              <X className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          </div>
+                        ))}
+                        {savedFlashcards.length > 5 && (
+                          <Link href="/flashcards">
+                            <p className="text-sm text-amber hover:underline cursor-pointer pressable">
+                              +{savedFlashcards.length - 5} more flashcards
+                            </p>
                           </Link>
-                        );
-                      })}
+                        )}
+                      </div>
+                      <Link href="/flashcards" className="block mt-3">
+                        <Button variant="outline" size="sm" className="w-full border-border dark:border-stone-700">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Review Flashcards
+                        </Button>
+                      </Link>
                     </div>
-                    {savedQuestions.length > 5 && (
-                      <button
-                        onClick={() => setQuestionsExpanded(!questionsExpanded)}
-                        className="flex items-center gap-1 text-sm text-purple hover:text-purple/80 mt-2 transition-colors"
-                      >
-                        <motion.div
-                          animate={{ rotate: questionsExpanded ? 180 : 0 }}
-                          transition={{ duration: 0.2 }}
+                  )}
+
+                  {/* Saved Questions */}
+                  {savedQuestions.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-purple" />
+                        Quiz Questions ({savedQuestions.length})
+                      </h3>
+                      <div className={`space-y-2 ${questionsExpanded ? "max-h-[400px]" : "max-h-[300px]"} overflow-y-auto`}>
+                        {(questionsExpanded ? savedQuestions : savedQuestions.slice(0, 5)).map((question) => {
+                          const category = CATEGORIES.find(
+                            (c) => c.slug === question.category
+                          );
+                          return (
+                            <Link
+                              key={question.id}
+                              href={`/review?question=${question.questionId}`}
+                              className="block"
+                            >
+                              <div className="flex items-start justify-between p-3 rounded-lg bg-muted/50 dark:bg-stone-800/50 group hover:bg-purple/10 dark:hover:bg-purple/10 hover:border-purple/30 border border-transparent transition-colors cursor-pointer pressable">
+                                <div className="flex-1 min-w-0 mr-2">
+                                  <p className="text-sm font-medium text-foreground truncate group-hover:text-purple transition-colors">
+                                    {question.question}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {category?.name || question.category}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-purple group-hover:translate-x-0.5 transition-all" />
+                                  <button
+                                    onClick={async (e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setSavedQuestions((prev) =>
+                                        prev.filter((q) => q.id !== question.id)
+                                      );
+                                      try {
+                                        await fetch("/api/bookmarks", {
+                                          method: "DELETE",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ questionId: question.questionId }),
+                                        });
+                                      } catch (error) {
+                                        console.error("Failed to remove bookmark:", error);
+                                      }
+                                    }}
+                                    className="p-1 rounded-full hover:bg-muted dark:hover:bg-stone-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Remove from saved"
+                                  >
+                                    <X className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+                                  </button>
+                                </div>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                      {savedQuestions.length > 5 && (
+                        <button
+                          onClick={() => setQuestionsExpanded(!questionsExpanded)}
+                          className="flex items-center gap-1 text-sm text-purple hover:text-purple/80 mt-2 transition-colors"
                         >
-                          <ChevronDown className="h-4 w-4" />
-                        </motion.div>
-                        {questionsExpanded
-                          ? "Show less"
-                          : `+${savedQuestions.length - 5} more questions`}
-                      </button>
-                    )}
-                    <Link href="/review" className="block mt-3">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Brain className="h-4 w-4 mr-2" />
-                        Review Questions
-                      </Button>
+                          <motion.div
+                            animate={{ rotate: questionsExpanded ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.div>
+                          {questionsExpanded
+                            ? "Show less"
+                            : `+${savedQuestions.length - 5} more questions`}
+                        </button>
+                      )}
+                      <Link href="/review" className="block mt-3">
+                        <Button variant="outline" size="sm" className="w-full border-border dark:border-stone-700">
+                          <Brain className="h-4 w-4 mr-2" />
+                          Review Questions
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Category Progress and Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Category Progress */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.55 }}
+          >
+            <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-purple" />
+                  Category Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isNewUser ? (
+                  <div className="text-center py-8">
+                    <Brain className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                    <p className="text-muted-foreground mb-4">
+                      No progress yet. Start a quiz to see your category breakdown!
+                    </p>
+                    <Link href="/quiz">
+                      <Button className="bg-amber hover:bg-amber-dark text-white">Start a Quiz</Button>
                     </Link>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+                ) : (
+                  <div className="space-y-4">
+                    {CATEGORIES.map((category) => {
+                      const stat = categoryStats.find(
+                        (s) => s.slug === category.slug
+                      );
+                      const answered = stat?.answered || 0;
+                      const categoryAccuracy = stat?.accuracy || 0;
+                      const isWeak = answered > 0 && categoryAccuracy < 70;
 
-      {/* Category Progress and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Category Progress */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.55 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Brain className="h-5 w-5 text-purple" />
-                Category Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isNewUser ? (
-                <div className="text-center py-8">
-                  <Brain className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-                  <p className="text-muted-foreground mb-4">
-                    No progress yet. Start a quiz to see your category breakdown!
-                  </p>
-                  <Link href="/quiz">
-                    <Button>Start a Quiz</Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {CATEGORIES.map((category) => {
-                    const stat = categoryStats.find(
-                      (s) => s.slug === category.slug
-                    );
-                    const answered = stat?.answered || 0;
-                    const categoryAccuracy = stat?.accuracy || 0;
-                    const isWeak = answered > 0 && categoryAccuracy < 70;
-
-                    return (
-                      <Link key={category.slug} href={`/quiz/${category.slug}`} className="block group">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-foreground group-hover:text-amber transition-colors">
-                              {category.name}
-                            </span>
-                            {isWeak && (
-                              <AlertTriangle className="h-3 w-3 text-amber" />
-                            )}
+                      return (
+                        <Link key={category.slug} href={`/quiz/${category.slug}`} className="block group">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-foreground group-hover:text-amber transition-colors">
+                                {category.name}
+                              </span>
+                              {isWeak && (
+                                <AlertTriangle className="h-3 w-3 text-amber" />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                              <span>{answered} answered</span>
+                              <span
+                                className={`font-medium ${
+                                  answered === 0
+                                    ? "text-muted-foreground"
+                                    : categoryAccuracy >= 80
+                                    ? "text-emerald"
+                                    : categoryAccuracy >= 70
+                                    ? "text-amber"
+                                    : "text-red-500"
+                                }`}
+                              >
+                                {answered === 0 ? "—" : `${categoryAccuracy}%`}
+                              </span>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-amber group-hover:translate-x-0.5 transition-all" />
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                            <span>{answered} answered</span>
-                            <span
-                              className={`font-medium ${
+                          <div className="h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{
+                                width: answered > 0 ? `${categoryAccuracy}%` : "0%",
+                              }}
+                              transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+                              className={`h-full rounded-full ${
                                 answered === 0
-                                  ? "text-muted-foreground"
+                                  ? "bg-muted"
                                   : categoryAccuracy >= 80
-                                  ? "text-emerald"
+                                  ? "bg-emerald"
                                   : categoryAccuracy >= 70
-                                  ? "text-amber"
-                                  : "text-red-500"
+                                  ? "bg-amber"
+                                  : "bg-red-400"
                               }`}
-                            >
-                              {answered === 0 ? "—" : `${categoryAccuracy}%`}
-                            </span>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-amber group-hover:translate-x-0.5 transition-all" />
+                            />
                           </div>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{
-                              width: answered > 0 ? `${categoryAccuracy}%` : "0%",
-                            }}
-                            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-                            className={`h-full rounded-full ${
-                              answered === 0
-                                ? "bg-muted"
-                                : categoryAccuracy >= 80
-                                ? "bg-emerald"
-                                : categoryAccuracy >= 70
-                                ? "bg-amber"
-                                : "bg-red-400"
-                            }`}
-                          />
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        {/* Recent Activity */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Clock className="h-5 w-5 text-amber" />
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {recentSessions.length === 0 ? (
-                <div className="text-center py-8">
-                  <Clock className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-                  <p className="text-muted-foreground mb-4">
-                    No recent activity. Complete a study session to see your history!
-                  </p>
-                  <Link href="/quiz">
-                    <Button>Start Studying</Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {recentSessions.map((session) => {
-                    const isLoadCalc = session.sessionType === "load_calculator";
-                    const categoryName = isLoadCalc
-                      ? (session.categorySlug === "commercial" ? "Commercial Load Calc" : "Residential Load Calc")
-                      : session.categorySlug
+          {/* Recent Activity */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-amber" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {savedQuizProgressList.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Clock className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                    <p className="text-muted-foreground mb-4">
+                      No quizzes in progress. Start a study session to track your progress!
+                    </p>
+                    <Link href="/quiz">
+                      <Button className="bg-amber hover:bg-amber-dark text-white">Start Studying</Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {savedQuizProgressList.map((progress) => {
+                      const cat = CATEGORIES.find((c) => c.slug === progress.categorySlug);
+                      const answeredCount = Object.keys(progress.answers).length;
+                      const totalCount = progress.questionIds.length;
+                      const progressPercent = totalCount > 0
+                        ? Math.round((progress.currentQuestionIndex / totalCount) * 100)
+                        : 0;
+                      return (
+                        <Link key={progress.categorySlug} href={`/quiz/${progress.categorySlug}?resume=true`} className="block group">
+                          <div className="relative overflow-hidden rounded-lg border border-amber/30 dark:border-amber/20 bg-amber/5 dark:bg-amber/5 p-4 group-hover:border-amber/60 group-hover:bg-amber/10 transition-all">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-amber/20 flex items-center justify-center">
+                                  <Play className="h-5 w-5 text-amber" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                    {cat?.name || progress.categorySlug}
+                                    {progress.difficulty && (
+                                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                                        progress.difficulty === "easy"
+                                          ? "bg-emerald/10 text-emerald"
+                                          : progress.difficulty === "medium"
+                                          ? "bg-amber/10 text-amber"
+                                          : "bg-red-500/10 text-red-500"
+                                      }`}>
+                                        {progress.difficulty.charAt(0).toUpperCase() + progress.difficulty.slice(1)}
+                                      </span>
+                                    )}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {answeredCount}/{totalCount} answered · Continue where you left off
+                                  </p>
+                                </div>
+                              </div>
+                              <ChevronRight className="h-5 w-5 text-amber group-hover:translate-x-0.5 transition-transform" />
+                            </div>
+                            {/* Progress bar */}
+                            <div className="mt-3 h-1.5 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-amber rounded-full transition-all"
+                                style={{ width: `${progressPercent}%` }}
+                              />
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Completed Sessions */}
+                {completedSessions.length > 0 && (
+                  <div className={`space-y-2 ${savedQuizProgressList.length > 0 ? "mt-4 pt-4 border-t border-border dark:border-stone-800" : ""}`}>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Completed</p>
+                    {completedSessions.map((session) => {
+                      const categoryName = session.categorySlug
                         ? CATEGORIES.find((c) => c.slug === session.categorySlug)?.name
                         : null;
-                    const sessionHref = isLoadCalc
-                      ? (session.categorySlug === "commercial" ? "/load-calculator/commercial" : "/load-calculator")
-                      : session.categorySlug
-                      ? `/quiz/${session.categorySlug}`
-                      : session.sessionType === "quiz"
-                      ? "/quiz"
-                      : session.sessionType === "flashcard"
-                      ? "/flashcards"
-                      : session.sessionType === "mock_exam"
-                      ? "/mock-exam"
-                      : "/quiz";
-
-                    const hasScore = session.questionsAnswered != null && session.questionsCorrect != null;
-                    const scorePercent = hasScore
-                      ? Math.round((session.questionsCorrect! / session.questionsAnswered!) * 100)
-                      : null;
-
-                    return (
-                      <Link key={session.id} href={sessionHref} className="block group">
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 group-hover:bg-muted transition-colors">
+                      const scorePercent = Math.round(
+                        (session.questionsCorrect! / session.questionsAnswered!) * 100
+                      );
+                      return (
+                        <div key={session.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 dark:bg-stone-800/50">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-purple-soft flex items-center justify-center">
-                              {session.sessionType === "quiz" && (
-                                <Brain className="h-5 w-5 text-purple" />
-                              )}
-                              {session.sessionType === "flashcard" && (
-                                <BookOpen className="h-5 w-5 text-emerald" />
-                              )}
-                              {session.sessionType === "mock_exam" && (
-                                <ClipboardCheck className="h-5 w-5 text-amber" />
-                              )}
-                              {session.sessionType === "daily_challenge" && (
-                                <Calendar className="h-5 w-5 text-purple" />
-                              )}
-                              {session.sessionType === "load_calculator" && (
-                                <Calculator className="h-5 w-5 text-amber" />
-                              )}
+                            <div className="w-10 h-10 rounded-full bg-purple-soft dark:bg-purple/10 flex items-center justify-center">
+                              <CheckCircle2 className="h-5 w-5 text-emerald" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-foreground group-hover:text-amber transition-colors">
-                                {categoryName || getSessionTypeLabel(session.sessionType)}
+                              <p className="text-sm font-medium text-foreground">
+                                {categoryName || session.sessionType}
                               </p>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span>{formatTimeAgo(session.startedAt)}</span>
-                                {hasScore && (
-                                  <>
-                                    <span>·</span>
-                                    <span>{session.questionsCorrect}/{session.questionsAnswered} correct</span>
-                                  </>
-                                )}
-                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {session.questionsCorrect}/{session.questionsAnswered} correct · {formatTimeAgo(session.endedAt)}
+                              </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            {hasScore && scorePercent !== null ? (
-                              <span className={`text-sm font-bold ${
-                                scorePercent >= 80
-                                  ? "text-emerald"
-                                  : scorePercent >= 60
-                                  ? "text-amber"
-                                  : "text-red-500"
-                              }`}>
-                                {scorePercent}%
-                              </span>
-                            ) : session.xpEarned > 0 ? (
-                              <span className="text-sm font-medium text-amber">
-                                +{session.xpEarned} XP
-                              </span>
-                            ) : null}
-                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-amber group-hover:translate-x-0.5 transition-all" />
-                          </div>
+                          <span className={`text-sm font-bold ${
+                            scorePercent >= 80
+                              ? "text-emerald"
+                              : scorePercent >= 60
+                              ? "text-amber"
+                              : "text-red-500"
+                          }`}>
+                            {scorePercent}%
+                          </span>
                         </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
 
+      </div>
     </main>
   );
 }

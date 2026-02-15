@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useParams, useRouter, notFound } from "next/navigation";
+import { useParams, useRouter, useSearchParams, notFound } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
@@ -22,6 +22,7 @@ import {
   Lightbulb,
   Zap,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { SessionTimeoutWarning } from "@/components/session-timeout-warning";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,8 +39,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { SparkyMessage } from "@/components/sparky";
-import { getRandomQuestions, getQuestionById } from "@/lib/questions";
-import { getCategoryBySlug, type Question, type CategorySlug } from "@/types/question";
+import { getRandomQuestions, getQuestionById, getQuestionCountByCategoryAndDifficulty } from "@/lib/questions";
+import { getCategoryBySlug, type Question, type CategorySlug, type Difficulty } from "@/types/question";
 
 // Sparky congratulation messages for correct answers
 const CORRECT_MESSAGES = [
@@ -87,11 +88,11 @@ const STREAK_BROKEN_MESSAGES = [
   "Hey, streaks are made to be broken... and rebuilt! You're still making progress!",
 ];
 
-const QUESTIONS_PER_QUIZ = 60;
+const DEFAULT_QUESTIONS_PER_QUIZ = 60;
 const XP_PER_CORRECT_ANSWER = 25;
 const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour
 const SESSION_WARNING_MS = 5 * 60 * 1000; // 5 minutes before timeout
-const QUIZ_STORAGE_KEY = "sparkypass-quiz-progress";
+const QUIZ_STORAGE_PREFIX = "sparkypass-quiz-progress-";
 
 // Get a random message from an array
 function getRandomMessage(messages: string[]): string {
@@ -189,6 +190,7 @@ interface QuizState {
 
 interface SavedQuizProgress {
   categorySlug: string;
+  difficulty?: Difficulty;
   questionIds: string[];
   currentQuestionIndex: number;
   answers: Record<string, number>; // Serialized Map
@@ -198,8 +200,9 @@ interface SavedQuizProgress {
   timestamp: number;
 }
 
-function createInitialState(categorySlug: CategorySlug): QuizState {
-  const questions = getRandomQuestions(categorySlug, QUESTIONS_PER_QUIZ);
+function createInitialState(categorySlug: CategorySlug, difficulty?: Difficulty, count?: number): QuizState {
+  const questionCount = count && count > 0 ? count : 9999;
+  const questions = getRandomQuestions(categorySlug, questionCount, difficulty);
   return {
     questions,
     currentQuestionIndex: 0,
@@ -217,19 +220,56 @@ function createInitialState(categorySlug: CategorySlug): QuizState {
   };
 }
 
+const DIFFICULTY_CONFIG: { value: Difficulty; label: string; description: string; color: string; bg: string; border: string }[] = [
+  {
+    value: "easy",
+    label: "Easy",
+    description: "Fundamental concepts and straightforward NEC references",
+    color: "text-emerald",
+    bg: "bg-emerald/10",
+    border: "border-emerald/30 hover:border-emerald/60",
+  },
+  {
+    value: "medium",
+    label: "Medium",
+    description: "Applied knowledge with multi-step calculations",
+    color: "text-amber",
+    bg: "bg-amber/10",
+    border: "border-amber/30 hover:border-amber/60",
+  },
+  {
+    value: "hard",
+    label: "Hard",
+    description: "Complex scenarios and deep NEC code references",
+    color: "text-red-500",
+    bg: "bg-red-500/10",
+    border: "border-red-500/30 hover:border-red-500/60",
+  },
+];
+
 export default function QuizTakingPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const categorySlug = params.category as CategorySlug;
+  const autoResume = searchParams.get("resume") === "true";
 
   const category = useMemo(() => getCategoryBySlug(categorySlug), [categorySlug]);
+
+  // Difficulty selection state
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
+
+  // User quiz preferences
+  const { status: authStatus } = useSession();
+  const [showHintsOnHard, setShowHintsOnHard] = useState(false);
+  const [questionsPerQuiz, setQuestionsPerQuiz] = useState(DEFAULT_QUESTIONS_PER_QUIZ);
 
   // Resume prompt state
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [savedProgress, setSavedProgress] = useState<SavedQuizProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize state lazily with questions
+  // Initialize state lazily with questions (will be re-initialized after difficulty selection)
   const [quizState, setQuizState] = useState<QuizState>(() =>
     createInitialState(categorySlug)
   );
@@ -265,30 +305,78 @@ export default function QuizTakingPage() {
 
   // Check for saved progress on mount
   useEffect(() => {
-    const saved = localStorage.getItem(QUIZ_STORAGE_KEY);
+    const saved = localStorage.getItem(QUIZ_STORAGE_PREFIX + categorySlug);
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as SavedQuizProgress;
-        // Check if saved progress is for this category and not too old (24 hours)
-        const isValidCategory = parsed.categorySlug === categorySlug;
+        // Check if saved progress is not too old (24 hours)
         const isRecent = Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
         const hasProgress = parsed.currentQuestionIndex > 0 || Object.keys(parsed.answers).length > 0;
 
-        if (isValidCategory && isRecent && hasProgress) {
-          setSavedProgress(parsed);
-          setShowResumePrompt(true);
+        if (isRecent && hasProgress) {
+          if (autoResume) {
+            // Auto-resume: skip the prompt and restore progress directly
+            const questions = parsed.questionIds
+              .map(id => getQuestionById(id))
+              .filter((q): q is Question => q !== undefined);
+
+            if (questions.length > 0) {
+              if (parsed.difficulty) {
+                setSelectedDifficulty(parsed.difficulty as Difficulty);
+              }
+              setQuizState({
+                questions,
+                currentQuestionIndex: parsed.currentQuestionIndex,
+                selectedAnswer: null,
+                bookmarkedQuestions: new Set(parsed.bookmarkedQuestions),
+                answers: new Map(Object.entries(parsed.answers).map(([k, v]) => [k, v])),
+                isSubmitted: false,
+                showXpAnimation: false,
+                sparkyMessage: "",
+                showHint: false,
+                correctStreak: parsed.correctStreak,
+                bestStreak: parsed.bestStreak || parsed.correctStreak,
+                showOnFire: parsed.correctStreak >= STREAK_THRESHOLD,
+                streakBroken: false,
+              });
+            } else {
+              // Questions no longer exist, show prompt
+              setSavedProgress(parsed);
+              setShowResumePrompt(true);
+            }
+          } else {
+            setSavedProgress(parsed);
+            setShowResumePrompt(true);
+          }
         }
       } catch {
         // Invalid saved state, ignore
       }
     }
     setIsLoading(false);
-  }, [categorySlug]);
+  }, [categorySlug, autoResume]);
+
+  // Fetch user's quiz preferences
+  useEffect(() => {
+    if (authStatus !== "authenticated") return;
+    fetch("/api/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.showHintsOnHard !== undefined) {
+          setShowHintsOnHard(data.showHintsOnHard);
+        }
+        if (data?.questionsPerQuiz !== undefined) {
+          setQuestionsPerQuiz(data.questionsPerQuiz);
+        }
+      })
+      .catch(() => {});
+  }, [authStatus]);
 
   // Save progress to localStorage
   const saveProgress = useCallback((state: QuizState) => {
     const toSave: SavedQuizProgress = {
       categorySlug,
+      difficulty: selectedDifficulty ?? undefined,
       questionIds: state.questions.map(q => q.id),
       currentQuestionIndex: state.currentQuestionIndex,
       answers: Object.fromEntries(state.answers),
@@ -297,12 +385,12 @@ export default function QuizTakingPage() {
       bestStreak: state.bestStreak,
       timestamp: Date.now(),
     };
-    localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(toSave));
-  }, [categorySlug]);
+    localStorage.setItem(QUIZ_STORAGE_PREFIX + categorySlug, JSON.stringify(toSave));
+  }, [categorySlug, selectedDifficulty]);
 
   // Clear saved progress
   const clearSavedProgress = useCallback(() => {
-    localStorage.removeItem(QUIZ_STORAGE_KEY);
+    localStorage.removeItem(QUIZ_STORAGE_PREFIX + categorySlug);
   }, []);
 
   // Handle continuing saved progress
@@ -318,6 +406,10 @@ export default function QuizTakingPage() {
       // Questions no longer exist, start fresh
       handleStartFresh();
       return;
+    }
+
+    if (savedProgress.difficulty) {
+      setSelectedDifficulty(savedProgress.difficulty);
     }
 
     setQuizState({
@@ -342,10 +434,16 @@ export default function QuizTakingPage() {
   // Handle starting fresh
   const handleStartFresh = useCallback(() => {
     clearSavedProgress();
-    setQuizState(createInitialState(categorySlug));
+    setQuizState(createInitialState(categorySlug, selectedDifficulty ?? undefined, questionsPerQuiz));
     setShowResumePrompt(false);
     setSavedProgress(null);
-  }, [categorySlug, clearSavedProgress]);
+  }, [categorySlug, selectedDifficulty, questionsPerQuiz, clearSavedProgress]);
+
+  // Handle difficulty selection
+  const handleDifficultySelect = useCallback((difficulty: Difficulty) => {
+    setSelectedDifficulty(difficulty);
+    setQuizState(createInitialState(categorySlug, difficulty, questionsPerQuiz));
+  }, [categorySlug, questionsPerQuiz]);
 
   // Auto-save progress when quiz state changes
   useEffect(() => {
@@ -441,6 +539,7 @@ export default function QuizTakingPage() {
       JSON.stringify(Array.from(bookmarkedQuestions))
     );
     sessionStorage.setItem("bestStreak", String(bestStreak));
+    if (selectedDifficulty) sessionStorage.setItem("quizDifficulty", selectedDifficulty);
     sessionStorage.setItem("sessionTimedOut", "true");
     clearSavedProgress();
     router.push(`/quiz/${categorySlug}/results`);
@@ -656,6 +755,7 @@ export default function QuizTakingPage() {
         JSON.stringify(Array.from(bookmarkedQuestions))
       );
       sessionStorage.setItem("bestStreak", String(bestStreak));
+      if (selectedDifficulty) sessionStorage.setItem("quizDifficulty", selectedDifficulty);
       clearSavedProgress();
       router.push(`/quiz/${categorySlug}/results`);
     } else {
@@ -745,8 +845,18 @@ export default function QuizTakingPage() {
   // Show loading state while checking for saved progress
   if (isLoading) {
     return (
-      <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-amber" />
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh] relative z-10">
+          <Loader2 className="h-8 w-8 animate-spin text-amber" />
+        </div>
       </main>
     );
   }
@@ -759,18 +869,27 @@ export default function QuizTakingPage() {
     const answeredCount = Object.keys(savedProgress.answers).length;
 
     return (
-      <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh] relative z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full"
         >
-          <Card>
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardHeader className="text-center">
               <div className="w-16 h-16 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
                 <Save className="h-8 w-8 text-amber" />
               </div>
-              <CardTitle className="text-xl">Welcome Back!</CardTitle>
+              <CardTitle className="text-xl font-display">Welcome Back!</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center">
@@ -778,10 +897,21 @@ export default function QuizTakingPage() {
                   You have a quiz in progress.
                 </p>
 
-                <div className="bg-muted rounded-lg p-4 text-left space-y-2">
+                <div className="bg-muted dark:bg-stone-800 rounded-lg p-4 text-left space-y-2">
                   <div className="flex items-center gap-2">
                     <Book className="h-4 w-4 text-amber" />
                     <span className="font-medium">{category?.name}</span>
+                    {savedProgress.difficulty && (
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        savedProgress.difficulty === "easy"
+                          ? "bg-emerald/10 text-emerald"
+                          : savedProgress.difficulty === "medium"
+                          ? "bg-amber/10 text-amber"
+                          : "bg-red-500/10 text-red-500"
+                      }`}>
+                        {savedProgress.difficulty.charAt(0).toUpperCase() + savedProgress.difficulty.slice(1)}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-3.5 w-3.5" />
@@ -821,7 +951,7 @@ export default function QuizTakingPage() {
                 <Button
                   variant="outline"
                   onClick={handleStartFresh}
-                  className="w-full"
+                  className="w-full border-border dark:border-stone-700"
                 >
                   <RotateCcw className="h-4 w-4 mr-2" />
                   Start a New Quiz
@@ -830,6 +960,74 @@ export default function QuizTakingPage() {
             </CardContent>
           </Card>
         </motion.div>
+        </div>
+      </main>
+    );
+  }
+
+  // Show difficulty selection if not yet chosen
+  if (!selectedDifficulty) {
+    return (
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh] relative z-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full"
+        >
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-8 w-8 text-amber" />
+              </div>
+              <CardTitle className="text-xl font-display">{category?.name}</CardTitle>
+              <p className="text-muted-foreground text-sm mt-1">
+                Choose your difficulty level
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {DIFFICULTY_CONFIG.map((diff) => {
+                const count = getQuestionCountByCategoryAndDifficulty(categorySlug, diff.value);
+                return (
+                  <button
+                    key={diff.value}
+                    onClick={() => handleDifficultySelect(diff.value)}
+                    disabled={count === 0}
+                    className={`w-full text-left p-4 rounded-lg border transition-all ${diff.border} ${
+                      count === 0 ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:shadow-md"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`font-bold ${diff.color}`}>{diff.label}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${diff.bg} ${diff.color}`}>
+                        {count} questions
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{diff.description}</p>
+                  </button>
+                );
+              })}
+
+              <Button
+                variant="ghost"
+                onClick={() => router.push("/quiz")}
+                className="w-full mt-2 text-muted-foreground"
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Back to Categories
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+        </div>
       </main>
     );
   }
@@ -849,6 +1047,9 @@ export default function QuizTakingPage() {
 
   // Check if user is on fire (3+ streak)
   const isOnFireStreak = correctStreak >= STREAK_THRESHOLD;
+
+  // Hints are visible unless on hard difficulty with showHintsOnHard disabled
+  const hintsVisible = selectedDifficulty !== "hard" || showHintsOnHard;
 
   return (
     <>
@@ -876,12 +1077,21 @@ export default function QuizTakingPage() {
       )}
 
       <motion.main
-        className="container mx-auto px-4 py-6 max-w-4xl"
+        className="relative min-h-screen bg-cream dark:bg-stone-950"
         animate={shakeAnimation}
       >
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <div className={`h-2 bg-muted rounded-full overflow-hidden transition-shadow duration-500 ${
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="container mx-auto px-4 py-6 max-w-4xl relative z-10">
+      {/* Progress Bar - hidden on mobile, shown below submit instead */}
+      <div className="hidden md:block mb-6">
+        <div className={`h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden transition-shadow duration-500 ${
           isOnFireStreak ? "shadow-[0_0_12px_3px_rgba(249,115,22,0.6)]" : ""
         }`}>
           <motion.div
@@ -897,8 +1107,8 @@ export default function QuizTakingPage() {
         </div>
       </div>
 
-      {/* Navigation Bar */}
-      <div className="flex items-center justify-between gap-3 mb-6">
+      {/* Navigation Bar - hidden on mobile, shown below submit instead */}
+      <div className="hidden md:flex items-center justify-between gap-3 mb-6">
         {/* Left - Exit */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -986,6 +1196,20 @@ export default function QuizTakingPage() {
               {correctStreak >= 10 && "🔥"}
             </motion.span>
           )}
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple/10 text-purple hidden sm:inline-flex">
+            {category?.name}
+          </span>
+          {selectedDifficulty && (
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              selectedDifficulty === "easy"
+                ? "bg-emerald/10 text-emerald"
+                : selectedDifficulty === "medium"
+                ? "bg-amber/10 text-amber"
+                : "bg-red-500/10 text-red-500"
+            }`}>
+              {selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)}
+            </span>
+          )}
         </div>
 
         {/* Right - Save (icon on mobile, full on desktop) + Submit/Next (desktop only) */}
@@ -1051,11 +1275,11 @@ export default function QuizTakingPage() {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="mb-6">
+          <Card className="mb-6 border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardContent className="pt-6">
-              {/* Hint Button and Difficulty */}
+              {/* Hint Button */}
+              {hintsVisible && (
               <div className="flex items-center gap-2 mb-4">
-                {/* Enhanced Hint Button */}
                 <button
                   onClick={() => setQuizState(prev => ({ ...prev, showHint: !prev.showHint }))}
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-all ${
@@ -1073,10 +1297,8 @@ export default function QuizTakingPage() {
                     <ChevronDown className="h-3.5 w-3.5" />
                   </motion.div>
                 </button>
-                <span className="text-xs text-muted-foreground capitalize px-2 py-0.5 rounded bg-muted">
-                  {currentQuestion.difficulty}
-                </span>
               </div>
+              )}
 
               {/* Question Text */}
               <h2 className="text-lg md:text-xl font-semibold text-foreground leading-relaxed">
@@ -1085,7 +1307,7 @@ export default function QuizTakingPage() {
 
               {/* Expandable Hint Section - Below Question */}
               <AnimatePresence>
-                {quizState.showHint && (
+                {hintsVisible && quizState.showHint && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
@@ -1159,10 +1381,10 @@ export default function QuizTakingPage() {
                 optionClasses +=
                   "border-amber bg-amber/10 text-foreground";
               } else if (isSubmitted) {
-                optionClasses += "border-border bg-muted/50 text-muted-foreground";
+                optionClasses += "border-border bg-muted/50 dark:bg-stone-800/50 text-muted-foreground";
               } else {
                 optionClasses +=
-                  "border-border hover:border-amber/50 hover:bg-muted/50 cursor-pointer";
+                  "border-border hover:border-amber/50 hover:bg-muted/50 dark:hover:bg-stone-800/50 cursor-pointer";
               }
 
               return (
@@ -1182,7 +1404,7 @@ export default function QuizTakingPage() {
                           ? "bg-red-500 text-white"
                           : isSelected
                           ? "bg-amber text-white"
-                          : "bg-muted text-muted-foreground"
+                          : "bg-muted dark:bg-stone-800 text-muted-foreground"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}
@@ -1216,6 +1438,99 @@ export default function QuizTakingPage() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             )}
+          </div>
+
+          {/* Mobile Progress Bar & Nav - visible only on small screens */}
+          <div className="md:hidden mb-4">
+            {/* Mobile Progress Bar */}
+            <div className={`h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden transition-shadow duration-500 mb-3 ${
+              isOnFireStreak ? "shadow-[0_0_12px_3px_rgba(249,115,22,0.6)]" : ""
+            }`}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercentage}%` }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className={`h-full rounded-full transition-all duration-500 ${
+                  isOnFireStreak
+                    ? "bg-gradient-to-r from-orange-500 via-amber to-red-500 bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite]"
+                    : "bg-gradient-to-r from-amber to-amber-light"
+                }`}
+              />
+            </div>
+            {/* Mobile Nav Row */}
+            <div className="flex items-center justify-between">
+              {/* Left - Exit */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-9 w-9">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Exit Quiz?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to exit? Your progress will be lost and you&apos;ll need to start over.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Continue Quiz</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleExit}>
+                      Exit Quiz
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              {/* Center - Question counter, difficulty, category */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrevQuestion}
+                  disabled={currentQuestionIndex === 0}
+                  className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-sm font-medium text-muted-foreground">
+                  {currentQuestionIndex + 1} / {totalQuestions}
+                </span>
+                <button
+                  onClick={handleNextQuestion}
+                  disabled={!isSubmitted}
+                  className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                {selectedDifficulty && (
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                    selectedDifficulty === "easy"
+                      ? "bg-emerald/10 text-emerald"
+                      : selectedDifficulty === "medium"
+                      ? "bg-amber/10 text-amber"
+                      : "bg-red-500/10 text-red-500"
+                  }`}>
+                    {selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)}
+                  </span>
+                )}
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple/10 text-purple">
+                  {category?.name}
+                </span>
+              </div>
+
+              {/* Right - Save */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleToggleBookmark}
+                className={`h-9 w-9 ${isBookmarked ? "text-amber border-amber" : ""}`}
+              >
+                {isBookmarked ? (
+                  <Star className="h-4 w-4 fill-amber" />
+                ) : (
+                  <StarOff className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Feedback Section - Shows after answer is submitted */}
@@ -1254,12 +1569,12 @@ export default function QuizTakingPage() {
                         rotate: 0,
                       }}
                       transition={{ duration: 0.5, type: "spring", bounce: 0.5 }}
-                      className={`inline-flex items-center gap-2 rounded-full text-lg font-bold border ${
+                      className={`inline-flex items-center gap-1.5 rounded-full font-bold border ${
                         correctStreak >= 10
-                          ? "px-5 py-2.5 bg-gradient-to-r from-red-500/30 via-orange-500/30 to-yellow-500/30 text-red-500 border-red-500/50 shadow-[0_0_12px_3px_rgba(239,68,68,0.3)]"
+                          ? "px-4 py-2 text-base bg-gradient-to-r from-red-500/30 via-orange-500/30 to-yellow-500/30 text-red-500 border-red-500/50 shadow-[0_0_8px_2px_rgba(239,68,68,0.3)]"
                           : correctStreak >= 7
-                          ? "px-4 py-2 bg-gradient-to-r from-orange-500/25 to-red-500/25 text-orange-500 border-orange-500/40 shadow-[0_0_8px_2px_rgba(249,115,22,0.25)]"
-                          : "px-4 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-500 border-orange-500/30"
+                          ? "px-3.5 py-1.5 text-sm bg-gradient-to-r from-orange-500/25 to-red-500/25 text-orange-500 border-orange-500/40 shadow-[0_0_6px_2px_rgba(249,115,22,0.25)]"
+                          : "px-3 py-1.5 text-sm bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-500 border-orange-500/30"
                       }`}
                     >
                       <motion.span
@@ -1275,7 +1590,7 @@ export default function QuizTakingPage() {
                           repeatDelay: correctStreak >= 10 ? 0.3 : 0.8,
                         }}
                       >
-                        <Flame className="h-5 w-5" />
+                        <Flame className={correctStreak >= 10 ? "h-6 w-6" : "h-5 w-5"} />
                       </motion.span>
                       {correctStreak} Streak!{correctStreak >= 10 && " 🔥"}
                     </motion.span>
@@ -1303,7 +1618,7 @@ export default function QuizTakingPage() {
                     <SparkyMessage message={sparkyMessage} size="medium" className="mb-4" />
 
                     {/* Explanation */}
-                    <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                    <div className="mt-4 p-4 bg-muted/50 dark:bg-stone-800/50 rounded-lg">
                       <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
                         <Book className="h-4 w-4 text-purple" />
                         Explanation
@@ -1380,6 +1695,7 @@ export default function QuizTakingPage() {
         remainingTime={timeoutRemainingTime}
         onContinue={dismissTimeoutWarning}
       />
+      </div>
     </motion.main>
     </>
   );

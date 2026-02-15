@@ -104,7 +104,7 @@ export function LevelUpModal({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="flex flex-col items-center text-center py-4"
+              className="flex flex-col items-center text-center py-4 relative"
             >
               {/* Stars Animation Background */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -155,7 +155,7 @@ export function LevelUpModal({
                 transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
                 className="relative mb-6"
               >
-                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-amber via-amber-light to-amber flex items-center justify-center shadow-lg shadow-amber/30">
+                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-amber via-amber-light to-amber flex items-center justify-center shadow-glow-primary">
                   <div className="w-24 h-24 rounded-full bg-background flex flex-col items-center justify-center">
                     <span className="text-4xl font-bold text-amber">
                       {newLevel}

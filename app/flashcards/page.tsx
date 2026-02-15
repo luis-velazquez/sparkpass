@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -27,6 +27,20 @@ import {
 } from "@/app/flashcards/flashcards";
 
 export default function FlashcardsPage() {
+  return (
+    <Suspense fallback={
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-amber" />
+        </div>
+      </main>
+    }>
+      <FlashcardsContent />
+    </Suspense>
+  );
+}
+
+function FlashcardsContent() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -138,8 +152,18 @@ export default function FlashcardsPage() {
 
   if (status === "loading" || selectedSetId === null) {
     return (
-      <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-amber" />
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh] relative z-10">
+          <Loader2 className="h-8 w-8 animate-spin text-amber" />
+        </div>
       </main>
     );
   }
@@ -242,7 +266,16 @@ export default function FlashcardsPage() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="container mx-auto px-4 py-8 relative z-10">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -250,7 +283,7 @@ export default function FlashcardsPage() {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2">
           <span className="text-emerald">Flashcards</span>
         </h1>
         <p className="text-muted-foreground">
@@ -306,7 +339,7 @@ export default function FlashcardsPage() {
             {savedCards.size} saved
           </span>
         </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div className="h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
@@ -339,10 +372,10 @@ export default function FlashcardsPage() {
                 <Card
                   className={`h-full flex flex-col justify-center items-center p-8 text-center relative ${
                     savedCards.has(currentCard.id)
-                      ? "border-2 border-amber bg-amber/5 shadow-lg shadow-amber/20"
+                      ? "border-2 border-amber bg-amber/5 shadow-glow-primary"
                       : isFlipped
                       ? "bg-emerald/5 border-emerald/30"
-                      : "bg-card"
+                      : "bg-card dark:bg-stone-900/50 border-border dark:border-stone-800"
                   }`}
                 >
                   {/* Saved indicator badge */}
@@ -381,7 +414,7 @@ export default function FlashcardsPage() {
           </div>
         </motion.div>
       ) : (
-        <Card className="h-[300px] flex items-center justify-center mb-6">
+        <Card className="h-[300px] flex items-center justify-center mb-6 border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
           <div className="text-center">
             {selectedSetId === "saved" ? (
               <>
@@ -409,6 +442,7 @@ export default function FlashcardsPage() {
           variant="outline"
           onClick={handlePrev}
           disabled={currentIndex === 0}
+          className="border-border dark:border-stone-700"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Previous
@@ -416,6 +450,7 @@ export default function FlashcardsPage() {
         <Button
           variant="outline"
           onClick={() => setIsFlipped(!isFlipped)}
+          className="border-border dark:border-stone-700"
         >
           <RotateCcw className="h-4 w-4 mr-1" />
           Flip
@@ -433,6 +468,7 @@ export default function FlashcardsPage() {
           variant="outline"
           onClick={handleNext}
           disabled={currentIndex === cards.length - 1}
+          className="border-border dark:border-stone-700"
         >
           Next
           <ChevronRight className="h-4 w-4 ml-1" />
@@ -446,11 +482,11 @@ export default function FlashcardsPage() {
         transition={{ duration: 0.5, delay: 0.3 }}
         className="flex justify-center gap-3 mb-8"
       >
-        <Button variant="outline" onClick={handleShuffle}>
+        <Button variant="outline" onClick={handleShuffle} className="border-border dark:border-stone-700">
           <Shuffle className="h-4 w-4 mr-2" />
           Shuffle
         </Button>
-        <Button variant="outline" onClick={handleReset}>
+        <Button variant="outline" onClick={handleReset} className="border-border dark:border-stone-700">
           <RotateCcw className="h-4 w-4 mr-2" />
           Clear Saved
         </Button>
@@ -476,7 +512,7 @@ export default function FlashcardsPage() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="mt-8"
         >
-          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold font-display text-foreground mb-4 flex items-center gap-2">
             <Star className="h-5 w-5 text-amber fill-amber" />
             Saved for Later ({savedCards.size})
           </h2>
@@ -491,7 +527,7 @@ export default function FlashcardsPage() {
                   href={`/flashcards?card=${card.id}`}
                   className="block"
                 >
-                  <Card className="p-3 hover:border-amber/50 hover:bg-amber/5 transition-colors cursor-pointer group pressable">
+                  <Card className="p-3 border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 hover:border-amber/50 hover:bg-amber/5 transition-all duration-300 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)] cursor-pointer group pressable">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-amber transition-colors">
@@ -510,6 +546,7 @@ export default function FlashcardsPage() {
           </div>
         </motion.div>
       )}
+      </div>
     </main>
   );
 }

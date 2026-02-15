@@ -141,7 +141,7 @@ function CollapsibleCard({
   const shouldShowContent = !isMobile || isExpanded;
 
   return (
-    <Card>
+    <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
       <CardHeader
         className={`pb-3 ${isMobile ? "cursor-pointer pressable" : ""}`}
         onClick={() => isMobile && setIsExpanded(!isExpanded)}
@@ -508,7 +508,7 @@ export default function CommercialLoadCalculatorPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full"
         >
-          <Card>
+          <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardHeader className="text-center">
               <div className="w-16 h-16 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-4">
                 <Save className="h-8 w-8 text-amber" />
@@ -522,7 +522,7 @@ export default function CommercialLoadCalculatorPage() {
                 </p>
 
                 {savedScenario && (
-                  <div className="bg-muted rounded-lg p-4 text-left space-y-2">
+                  <div className="bg-muted dark:bg-stone-800 rounded-lg p-4 text-left space-y-2">
                     <div className="flex items-center gap-2">
                       {SCENARIO_ICONS[savedScenario.id] || <Building2 className="h-4 w-4 text-amber" />}
                       <span className="font-medium">{savedScenario.name}</span>
@@ -567,7 +567,7 @@ export default function CommercialLoadCalculatorPage() {
                 <Button
                   variant="outline"
                   onClick={handleStartFresh}
-                  className="w-full"
+                  className="w-full border-border dark:border-stone-700"
                 >
                   <RotateCcw className="h-4 w-4 mr-2" />
                   Start a New Calculation
@@ -588,13 +588,21 @@ export default function CommercialLoadCalculatorPage() {
   const completionResults = getCompletionResults();
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-8">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-6"
+        className="relative z-10 mb-6"
       >
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -603,7 +611,7 @@ export default function CommercialLoadCalculatorPage() {
               onClick={handleReset}
               className="text-left"
             >
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 cursor-pointer hover:opacity-80 transition-opacity">
+              <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-2 cursor-pointer hover:opacity-80 transition-opacity">
                 <span className="text-amber">Load Calculator</span>
               </h1>
             </button>
@@ -612,7 +620,7 @@ export default function CommercialLoadCalculatorPage() {
             </p>
           </div>
           {state.selectedScenario && (
-            <Button variant="outline" onClick={handleReset}>
+            <Button variant="outline" onClick={handleReset} className="border-border dark:border-stone-700">
               <RotateCcw className="h-4 w-4 mr-2" />
               Start Over
             </Button>
@@ -627,7 +635,7 @@ export default function CommercialLoadCalculatorPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-6"
+          className="relative z-10 mb-6"
         >
           <div className="flex justify-between text-sm text-muted-foreground mb-2">
             <span>
@@ -635,7 +643,7 @@ export default function CommercialLoadCalculatorPage() {
             </span>
             <span>{Math.round(progress)}% Complete</span>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -646,7 +654,7 @@ export default function CommercialLoadCalculatorPage() {
       )}
 
       {/* Main Content - 3 Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT COLUMN: Equipment + Quick Reference */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -806,7 +814,7 @@ export default function CommercialLoadCalculatorPage() {
           transition={{ duration: 0.5, delay: 0.25 }}
           className="lg:col-span-6 order-1 lg:order-2"
         >
-          <Card className="h-full">
+          <Card className="h-full border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calculator className="h-5 w-5 text-amber" />
@@ -836,11 +844,11 @@ export default function CommercialLoadCalculatorPage() {
                     {DIFFICULTY_LEVELS.map((level) => (
                       <Card
                         key={level.id}
-                        className={`cursor-pointer hover:shadow-md transition-all pressable ${
+                        className={`cursor-pointer hover:shadow-md transition-all duration-300 pressable border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 ${
                           level.id === "beginner"
                             ? "hover:border-emerald/50"
                             : "hover:border-amber/50"
-                        }`}
+                        } hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]`}
                         onClick={() => handleSelectDifficulty(level.id)}
                       >
                         <CardContent className="pt-6">
@@ -903,7 +911,7 @@ export default function CommercialLoadCalculatorPage() {
                     {COMMERCIAL_SCENARIOS.map((scenario) => (
                       <Card
                         key={scenario.id}
-                        className="cursor-pointer hover:border-amber/50 hover:shadow-md transition-all pressable"
+                        className="cursor-pointer hover:border-amber/50 hover:shadow-md transition-all duration-300 pressable border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]"
                         onClick={() => handleSelectScenario(scenario)}
                       >
                         <CardContent className="pt-6">
@@ -944,7 +952,7 @@ export default function CommercialLoadCalculatorPage() {
                 >
                   {/* Formula Display */}
                   {currentStep.formula && (
-                    <div className="bg-purple-soft rounded-lg p-4">
+                    <div className="bg-purple-soft dark:bg-purple/10 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <BookOpen className="h-4 w-4 text-purple" />
                         <span className="text-sm font-medium text-purple">Formula</span>
@@ -1072,6 +1080,7 @@ export default function CommercialLoadCalculatorPage() {
                       variant="outline"
                       onClick={handlePreviousStep}
                       disabled={state.currentStepIndex === 0}
+                      className="border-border dark:border-stone-700"
                     >
                       <ChevronLeft className="h-4 w-4 mr-1" />
                       Previous
@@ -1122,7 +1131,7 @@ export default function CommercialLoadCalculatorPage() {
                     for this {state.selectedScenario?.squareFootage.toLocaleString()} sq ft {state.selectedScenario?.name.toLowerCase()}.
                   </p>
                   <div className="flex justify-center gap-4">
-                    <Button variant="outline" onClick={handleReset}>
+                    <Button variant="outline" onClick={handleReset} className="border-border dark:border-stone-700">
                       <RotateCcw className="h-4 w-4 mr-2" />
                       Try Another
                     </Button>

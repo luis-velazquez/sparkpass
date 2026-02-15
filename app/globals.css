@@ -3,23 +3,84 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
+/* ================================================================
+   NEC QUEST — UNIFIED DESIGN SYSTEM
+   Amber primary · Purple secondary · Warm stone neutrals
+   Gamification: XP green, streak fire, badge tiers
+   ================================================================ */
 
-  /* Brand Colors */
+:root {
+  /* === PRIMARY — AMBER === */
   --amber: #F59E0B;
   --amber-light: #FCD34D;
   --amber-dark: #D97706;
-  --emerald: #10B981;
-  --emerald-light: #34D399;
-  --emerald-dark: #059669;
+  --amber-lighter: #FEF3C7;
+  --amber-glow: rgba(245, 158, 11, 0.25);
+
+  /* === SECONDARY — PURPLE === */
   --purple: #8B5CF6;
   --purple-light: #A78BFA;
   --purple-dark: #7C3AED;
   --purple-soft: #EDE9FE;
+  --purple-glow: rgba(139, 92, 246, 0.2);
+
+  /* === ACCENT — EMERALD === */
+  --emerald: #10B981;
+  --emerald-light: #34D399;
+  --emerald-dark: #059669;
+  --emerald-lighter: #D1FAE5;
+
+  /* === SPARKY HIGHLIGHT === */
+  --sparky-green: #A3FF00;
+  --sparky-green-bg: rgba(163, 255, 0, 0.15);
+
+  /* === GAMIFICATION === */
+  --xp-green: #10B981;
+  --xp-green-dark: #059669;
+  --xp-green-bg: rgba(16, 185, 129, 0.08);
+
+  --streak-fire: #E8590C;
+  --streak-fire-light: #FB923C;
+  --streak-fire-bg: rgba(232, 89, 12, 0.06);
+
+  --correct: #059669;
+  --correct-light: #D1FAE5;
+  --error-color: #EF4444;
+  --error-light: #FEE2E2;
+
+  /* === WARM NEUTRALS — Light Mode === */
   --cream: #FFFBEB;
   --cream-dark: #FEF3C7;
 
-  /* UI Colors */
+  --bg-base: #FFFBEB;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FEF3C7;
+  --bg-card: #FFFDF5;
+  --border-subtle: rgba(217, 119, 6, 0.08);
+  --border-medium: rgba(217, 119, 6, 0.15);
+  --border-strong: rgba(217, 119, 6, 0.25);
+
+  --text-primary: #292524;
+  --text-secondary: #57534E;
+  --text-muted: #A8A29E;
+
+  /* === GRADIENTS === */
+  --grad-primary: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
+  --grad-secondary: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
+  --grad-xp: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  --grad-streak: linear-gradient(135deg, #E8590C 0%, #FB923C 100%);
+  --grad-legendary: linear-gradient(135deg, #F59E0B 0%, #E8590C 50%, #8B5CF6 100%);
+
+  /* === SHADOWS === */
+  --shadow-sm: 0 1px 3px rgba(41,37,36,0.06), 0 0 0 1px var(--border-subtle);
+  --shadow-card: 0 4px 20px rgba(41,37,36,0.06), 0 0 0 1px var(--border-subtle);
+  --shadow-elevated: 0 8px 32px rgba(41,37,36,0.1), 0 0 0 1px var(--border-medium);
+  --shadow-glow-primary: 0 4px 20px rgba(245,158,11,0.25);
+  --shadow-glow-secondary: 0 4px 16px rgba(139,92,246,0.2);
+  --shadow-glow-xp: 0 4px 16px rgba(16,185,129,0.2);
+  --shadow-glow-streak: 0 4px 16px rgba(232,89,12,0.15);
+
+  /* === UI Colors (shadcn/ui compatible) === */
   --muted: oklch(0.97 0 0);
   --border: oklch(0.922 0 0);
   --card: oklch(1 0 0);
@@ -56,14 +117,19 @@
 }
 
 @theme inline {
+  /* Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-amber: var(--amber);
   --color-amber-light: var(--amber-light);
   --color-amber-dark: var(--amber-dark);
+  --color-amber-lighter: var(--amber-lighter);
   --color-emerald: var(--emerald);
   --color-emerald-light: var(--emerald-light);
   --color-emerald-dark: var(--emerald-dark);
+  --color-emerald-lighter: var(--emerald-lighter);
+  --color-sparky-green: var(--sparky-green);
+  --color-sparky-green-bg: var(--sparky-green-bg);
   --color-purple: var(--purple);
   --color-purple-light: var(--purple-light);
   --color-purple-dark: var(--purple-dark);
@@ -75,8 +141,41 @@
   --color-card: var(--card);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Gamification colors */
+  --color-xp-green: var(--xp-green);
+  --color-xp-green-dark: var(--xp-green-dark);
+  --color-xp-green-bg: var(--xp-green-bg);
+  --color-streak-fire: var(--streak-fire);
+  --color-streak-fire-light: var(--streak-fire-light);
+  --color-streak-fire-bg: var(--streak-fire-bg);
+  --color-correct: var(--correct);
+  --color-correct-light: var(--correct-light);
+  --color-error-color: var(--error-color);
+  --color-error-light: var(--error-light);
+
+  /* Fonts — --font-sans is Tailwind's default body font */
+  --font-sans: var(--font-nunito);
+  --font-display: var(--font-outfit);
+  --font-body: var(--font-nunito);
+  --font-mono: var(--font-space-mono);
+
+  /* Shadows — preserve Tailwind defaults + add design system shadows */
+  --shadow-2xs: 0 1px rgba(0,0,0,0.05);
+  --shadow-xs: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.25);
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-glow-primary: var(--shadow-glow-primary);
+  --shadow-glow-secondary: var(--shadow-glow-secondary);
+  --shadow-glow-xp: var(--shadow-glow-xp);
+  --shadow-glow-streak: var(--shadow-glow-streak);
+
+  /* shadcn/ui tokens */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -111,7 +210,12 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* System dark mode preference - matches .dark class values */
+/* ================================================================
+   DARK MODE
+   Stone-based dark — warm, not blue-black
+   ================================================================ */
+
+/* System dark mode preference */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
     --background: #1C1917;
@@ -127,77 +231,66 @@
   }
 }
 
-body {
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-/* Ensure minimum touch target size for interactive elements */
-@media (max-width: 768px) {
-  button:not([data-slot="sheet-close"]),
-  [role="button"],
-  a.btn,
-  input[type="checkbox"],
-  input[type="radio"] {
-    min-height: 44px;
-  }
-
-  /* Ensure form inputs are properly sized for mobile */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="tel"],
-  input[type="number"],
-  input[type="date"],
-  select,
-  textarea {
-    font-size: 16px; /* Prevents iOS zoom on focus */
-    min-height: 44px;
-  }
-}
-
 .dark {
-  /* Dark mode background - dark charcoal */
   --background: #1C1917;
   --foreground: #FAFAF9;
-
-  /* Cards - slightly lighter than background for depth */
   --card: #292524;
   --card-foreground: #FAFAF9;
-
-  /* Popover/dropdown menus */
   --popover: #292524;
   --popover-foreground: #FAFAF9;
-
-  /* Keep amber as primary for brand consistency */
   --primary: #F59E0B;
   --primary-foreground: #1C1917;
-
-  /* Secondary elements */
   --secondary: #44403C;
   --secondary-foreground: #FAFAF9;
-
-  /* Muted text and backgrounds */
   --muted: #44403C;
   --muted-foreground: #A8A29E;
-
-  /* Accent colors */
   --accent: #44403C;
   --accent-foreground: #FAFAF9;
-
-  /* Destructive/error states */
   --destructive: #EF4444;
-
-  /* Borders and inputs */
   --border: #44403C;
   --input: #44403C;
   --ring: #F59E0B;
 
-  /* Brand colors adjusted for dark mode */
+  /* Brand adjustments for dark */
   --cream: #292524;
   --cream-dark: #1C1917;
   --purple-soft: #3B2F63;
+  --amber-lighter: #462A00;
+  --emerald-lighter: #064E3B;
+  --sparky-green: #A3FF00;
+  --sparky-green-bg: rgba(163, 255, 0, 0.12);
+
+  /* Dark warm neutrals */
+  --bg-base: #1C1917;
+  --bg-surface: #292524;
+  --bg-elevated: #3D3835;
+  --bg-card: #302C29;
+  --border-subtle: rgba(168, 162, 158, 0.1);
+  --border-medium: rgba(168, 162, 158, 0.18);
+  --border-strong: rgba(168, 162, 158, 0.28);
+
+  --text-primary: #FAFAF9;
+  --text-secondary: #D6D3D1;
+  --text-muted: #A8A29E;
+
+  /* Gamification dark adjustments */
+  --xp-green: #34D399;
+  --xp-green-bg: rgba(52, 211, 153, 0.1);
+  --streak-fire: #FB923C;
+  --streak-fire-bg: rgba(251, 146, 60, 0.08);
+  --correct: #34D399;
+  --correct-light: rgba(52, 211, 153, 0.12);
+  --error-color: #F87171;
+  --error-light: rgba(248, 113, 113, 0.12);
+
+  /* Dark shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 1px var(--border-subtle);
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--border-subtle);
+  --shadow-elevated: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--border-medium);
+  --shadow-glow-primary: 0 4px 20px rgba(245,158,11,0.3);
+  --shadow-glow-secondary: 0 4px 16px rgba(139,92,246,0.25);
+  --shadow-glow-xp: 0 4px 16px rgba(52,211,153,0.25);
+  --shadow-glow-streak: 0 4px 16px rgba(251,146,60,0.2);
 
   /* Charts */
   --chart-1: #F59E0B;
@@ -217,6 +310,50 @@ body {
   --sidebar-ring: #F59E0B;
 }
 
+/* ================================================================
+   BASE STYLES
+   ================================================================ */
+
+body {
+  font-family: var(--font-body), 'Nunito', Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb { background: var(--amber); border-radius: 3px; }
+
+/* Mobile text size bump — make small text more readable */
+@media (max-width: 768px) {
+  :root {
+    --text-xs: 0.8125rem;   /* 13px instead of 12px */
+    --text-sm: 0.9375rem;   /* 15px instead of 14px */
+  }
+
+  /* Ensure minimum touch target size for interactive elements */
+  button:not([data-slot="sheet-close"]),
+  [role="button"],
+  a.btn,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -224,15 +361,17 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Display headings use Outfit */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), 'Outfit', sans-serif;
+  }
 }
 
-/* Apple-style press interaction for all interactive elements.
-   Usage: Add the "pressable" class to any element that should
-   scale up on press (cards, links, divs with onClick, etc.).
-   Buttons and [role="button"] get this automatically.
+/* ================================================================
+   INTERACTIONS
+   ================================================================ */
 
-   - Pointer devices (mouse): scale(1.06) on active
-   - Touch devices: subtle opacity change to avoid scroll glitch */
 .pressable,
 button:not(:disabled),
 [role="button"]:not(:disabled) {
@@ -240,7 +379,7 @@ button:not(:disabled),
               opacity 150ms ease;
 }
 
-/* Pointer devices (mouse/trackpad) - full scale effect */
+/* Pointer devices (mouse/trackpad) */
 @media (hover: hover) and (pointer: fine) {
   .pressable:active,
   button:not(:disabled):active,
@@ -250,7 +389,7 @@ button:not(:disabled),
   }
 }
 
-/* Touch devices - subtle opacity instead of scale to avoid scroll glitch */
+/* Touch devices */
 @media (hover: none) and (pointer: coarse) {
   .pressable:active,
   button:not(:disabled):active,
@@ -260,7 +399,91 @@ button:not(:disabled),
   }
 }
 
+/* ================================================================
+   ANIMATIONS
+   ================================================================ */
+
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+@keyframes xp-fill {
+  from { width: 0%; }
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.3); }
+  70% { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
+  100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+}
+
+@keyframes fire-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.05); }
+}
+
+@keyframes legendary-pulse {
+  0%, 100% { box-shadow: 0 2px 12px rgba(245,158,11,0.15); }
+  50% { box-shadow: 0 4px 24px rgba(245,158,11,0.3); }
+}
+
+/* ================================================================
+   UTILITY CLASSES
+   ================================================================ */
+
+/* Gradient text */
+.text-gradient-primary {
+  background: var(--grad-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-secondary {
+  background: var(--grad-secondary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-streak {
+  background: var(--grad-streak);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-legendary {
+  background: var(--grad-legendary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient backgrounds */
+.bg-grad-primary { background: var(--grad-primary); }
+.bg-grad-secondary { background: var(--grad-secondary); }
+.bg-grad-xp { background: var(--grad-xp); }
+.bg-grad-streak { background: var(--grad-streak); }
+.bg-grad-legendary { background: var(--grad-legendary); }
+
+/* Glow shadows */
+.shadow-glow-primary { box-shadow: var(--shadow-glow-primary); }
+.shadow-glow-secondary { box-shadow: var(--shadow-glow-secondary); }
+.shadow-glow-xp { box-shadow: var(--shadow-glow-xp); }
+.shadow-glow-streak { box-shadow: var(--shadow-glow-streak); }
+
+/* XP bar shimmer */
+.xp-bar-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
+  animation: shimmer 2s infinite;
+}
+
+/* Monospace text (for NEC references, data, timers) */
+.font-mono-data {
+  font-family: var(--font-mono), 'Space Mono', monospace;
 }

@@ -224,20 +224,28 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
   }, [router]);
 
   return (
-    <main className="container mx-auto px-4 py-6 max-w-4xl">
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-6 max-w-4xl">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4 flex items-center gap-2 px-3 py-2 bg-amber/10 rounded-lg text-amber text-sm"
+        className="relative z-10 mb-4 flex items-center gap-2 px-3 py-2 bg-amber/10 rounded-lg text-amber text-sm"
       >
         <BookMarked className="h-4 w-4" />
         <span className="font-medium">Bookmark Review Session</span>
       </motion.div>
 
       {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="relative z-10 mb-6">
+        <div className="h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}
@@ -248,7 +256,7 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
       </div>
 
       {/* Header Row */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="relative z-10 flex items-center justify-between mb-6">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="sm" className="gap-2">
@@ -288,16 +296,17 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
+          className="relative z-10"
         >
-          <Card className="mb-6">
+          <Card className="mb-6 border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <CardContent className="pt-6">
               {/* NEC Reference Badge */}
               <div className="flex items-center gap-2 mb-4">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-soft text-purple text-sm font-medium">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-soft dark:bg-purple/10 text-purple text-sm font-medium">
                   <Book className="h-3.5 w-3.5" />
                   {currentQuestion.necReference}
                 </span>
-                <span className="text-xs text-muted-foreground capitalize px-2 py-0.5 rounded bg-muted">
+                <span className="text-xs text-muted-foreground capitalize px-2 py-0.5 rounded bg-muted dark:bg-stone-800">
                   {currentQuestion.difficulty}
                 </span>
               </div>
@@ -329,10 +338,10 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
                 optionClasses += "border-amber bg-amber/10 text-foreground";
               } else if (isSubmitted) {
                 optionClasses +=
-                  "border-border bg-muted/50 text-muted-foreground";
+                  "border-border bg-muted/50 dark:bg-stone-800/50 text-muted-foreground";
               } else {
                 optionClasses +=
-                  "border-border hover:border-amber/50 hover:bg-muted/50 cursor-pointer";
+                  "border-border hover:border-amber/50 hover:bg-muted/50 dark:hover:bg-stone-800/50 cursor-pointer";
               }
 
               return (
@@ -351,7 +360,7 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
                           ? "bg-red-500 text-white"
                           : isSelected
                           ? "bg-amber text-white"
-                          : "bg-muted text-muted-foreground"
+                          : "bg-muted dark:bg-stone-800 text-muted-foreground"
                       }`}
                     >
                       {String.fromCharCode(65 + index)}
@@ -415,7 +424,7 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
                     />
 
                     {/* Explanation */}
-                    <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                    <div className="mt-4 p-4 bg-muted/50 dark:bg-stone-800/50 rounded-lg">
                       <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
                         <Book className="h-4 w-4 text-purple" />
                         Explanation
@@ -450,7 +459,7 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
                 onClick={handleSubmitAnswer}
                 disabled={selectedAnswer === null}
                 size="lg"
-                className="bg-amber hover:bg-amber/90 text-white"
+                className="bg-amber hover:bg-amber-dark text-white"
               >
                 Submit Answer
               </Button>
@@ -458,7 +467,7 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
               <Button
                 onClick={handleNextQuestion}
                 size="lg"
-                className="bg-amber hover:bg-amber/90 text-white gap-2"
+                className="bg-amber hover:bg-amber-dark text-white gap-2"
               >
                 {isLastQuestion ? "See Results" : "Next Question"}
                 <ArrowRight className="h-4 w-4" />
@@ -474,14 +483,22 @@ function BookmarkReviewQuiz({ initialQuestions }: { initialQuestions: Question[]
 // Loading skeleton component
 function LoadingSkeleton() {
   return (
-    <main className="container mx-auto px-4 py-6 max-w-4xl">
-      <div className="mb-6">
-        <div className="h-2 bg-muted animate-pulse rounded-full" />
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-6 max-w-4xl">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="relative z-10 mb-6">
+        <div className="h-2 bg-muted dark:bg-stone-800 animate-pulse rounded-full" />
       </div>
-      <div className="space-y-4">
-        <div className="h-40 bg-muted animate-pulse rounded-lg" />
-        <div className="h-20 bg-muted animate-pulse rounded-lg" />
-        <div className="h-20 bg-muted animate-pulse rounded-lg" />
+      <div className="relative z-10 space-y-4">
+        <div className="h-40 bg-muted dark:bg-stone-800 animate-pulse rounded-lg" />
+        <div className="h-20 bg-muted dark:bg-stone-800 animate-pulse rounded-lg" />
+        <div className="h-20 bg-muted dark:bg-stone-800 animate-pulse rounded-lg" />
       </div>
     </main>
   );

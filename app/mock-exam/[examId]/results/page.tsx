@@ -108,13 +108,21 @@ export default function ExamResultsPage() {
   const passed = results.score >= 70;
 
   return (
-    <main className="container mx-auto px-4 py-8 max-w-3xl">
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-8 max-w-3xl">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-8"
+        className="relative z-10 text-center mb-8"
       >
         <div
           className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 ${
@@ -123,7 +131,7 @@ export default function ExamResultsPage() {
         >
           <Trophy className={`h-10 w-10 ${passed ? "text-emerald" : "text-amber"}`} />
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2">
           {results.examTitle} Complete!
         </h1>
         <p className="text-muted-foreground">{getScoreMessage(results.score)}</p>
@@ -134,9 +142,9 @@ export default function ExamResultsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="mb-6"
+        className="relative z-10 mb-6"
       >
-        <Card>
+        <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
           <CardContent className="pt-6">
             <div className="text-center mb-6">
               <p className={`text-6xl font-bold ${getScoreColor(results.score)}`}>
@@ -181,9 +189,9 @@ export default function ExamResultsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15 }}
-        className="mb-6"
+        className="relative z-10 mb-6"
       >
-        <Card>
+        <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
           <CardContent className="pt-6">
             <div className="space-y-3">
               <div className="flex justify-between">
@@ -219,7 +227,7 @@ export default function ExamResultsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="mb-6"
+        className="relative z-10 mb-6"
       >
         <Button
           variant="outline"
@@ -246,7 +254,7 @@ export default function ExamResultsPage() {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           transition={{ duration: 0.3 }}
-          className="space-y-4 mb-8"
+          className="relative z-10 space-y-4 mb-8"
         >
           {results.questions
             .filter((q) => results.answers[q.id] !== null && results.answers[q.id] !== undefined)
@@ -326,7 +334,7 @@ export default function ExamResultsPage() {
                   </div>
 
                   {question.explanation && (
-                    <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="mt-3 p-3 bg-muted/50 dark:bg-stone-800/50 rounded-lg">
                       <p className="text-sm text-muted-foreground">
                         <strong>Explanation:</strong> {question.explanation}
                       </p>
@@ -349,7 +357,7 @@ export default function ExamResultsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.25 }}
-        className="mb-8"
+        className="relative z-10 mb-8"
       >
         <SparkyMessage
           size="medium"
@@ -366,7 +374,7 @@ export default function ExamResultsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="flex flex-col sm:flex-row gap-3 justify-center"
+        className="relative z-10 flex flex-col sm:flex-row gap-3 justify-center"
       >
         <Link href={`/mock-exam/${examId}`}>
           <Button variant="outline" className="w-full sm:w-auto">

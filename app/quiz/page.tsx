@@ -35,7 +35,7 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
 const categoryColors = {
   "load-calculations": {
     icon: "text-purple",
-    bg: "bg-purple-soft",
+    bg: "bg-purple-soft dark:bg-purple/10",
     border: "hover:border-purple/50",
   },
   "grounding-bonding": {
@@ -97,7 +97,16 @@ export default function QuizPage() {
   }, []);
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="container mx-auto px-4 py-8 relative z-10">
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -105,7 +114,7 @@ export default function QuizPage() {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2">
           Choose a <span className="text-amber">Category</span>
         </h1>
         <p className="text-muted-foreground">
@@ -131,7 +140,7 @@ export default function QuizPage() {
             >
               <Link href={`/quiz/${category.slug}`}>
                 <Card
-                  className={`h-full hover:shadow-lg transition-all cursor-pointer group pressable ${colors.border}`}
+                  className={`h-full hover:shadow-lg transition-all duration-300 cursor-pointer group pressable border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)] ${colors.border}`}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
@@ -192,6 +201,7 @@ export default function QuizPage() {
           message="Pro tip: Start with the areas where you feel least confident! Tackling your weak spots first is the fastest path to mastery. Every electrician has their Achilles' heel - find yours and strengthen it!"
         />
       </motion.div>
+      </div>
     </main>
   );
 }

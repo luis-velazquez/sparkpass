@@ -4,19 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Zap, Loader2, CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { useRef } from "react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -41,27 +35,16 @@ const US_STATES = [
   "West Virginia", "Wisconsin", "Wyoming"
 ];
 
-function autoFormatDate(raw: string, prev: string): string {
-  // Strip non-digits and slashes
-  const digits = raw.replace(/[^\d]/g, "");
-  // If user is deleting, don't auto-format
-  if (raw.length < prev.length) return raw;
-  // Build formatted string: MM/DD/YYYY
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
-}
-
-function parseDateInput(val: string): Date | undefined {
-  const match = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (!match) return undefined;
-  const [, mm, dd, yyyy] = match;
-  const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
-  // Verify the date components round-trip (catches invalid dates like 02/31)
+function buildDate(mm: string, dd: string, yyyy: string): Date | undefined {
+  const month = Number(mm);
+  const day = Number(dd);
+  const year = Number(yyyy);
+  if (!month || !day || yyyy.length !== 4 || !year) return undefined;
+  const date = new Date(year, month - 1, day);
   if (
-    date.getFullYear() === Number(yyyy) &&
-    date.getMonth() === Number(mm) - 1 &&
-    date.getDate() === Number(dd)
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
   ) {
     return date;
   }
@@ -73,15 +56,28 @@ export default function ProfileCompletionPage() {
   const { data: session, status, update } = useSession();
 
   const [username, setUsername] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
-  const [dobInput, setDobInput] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobYear, setDobYear] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("Texas");
-  const [targetExamDate, setTargetExamDate] = useState<Date | undefined>(undefined);
-  const [examInput, setExamInput] = useState("");
-  const [newsletterOptedIn, setNewsletterOptedIn] = useState(false);
+  const [examMonth, setExamMonth] = useState("");
+  const [examDay, setExamDay] = useState("");
+  const [examYear, setExamYear] = useState("");
+  const [newsletterOptedIn, setNewsletterOptedIn] = useState(true);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState("");
+  const [shakeKey, setShakeKey] = useState(0);
+  const [fieldErrors, setFieldErrors] = useState<Set<string>>(new Set());
+
+  const dobDayRef = useRef<HTMLInputElement>(null);
+  const dobYearRef = useRef<HTMLInputElement>(null);
+  const examDayRef = useRef<HTMLInputElement>(null);
+  const examYearRef = useRef<HTMLInputElement>(null);
+
+  const dateOfBirth = buildDate(dobMonth, dobDay, dobYear);
+  const targetExamDate = buildDate(examMonth, examDay, examYear);
 
   // Handle redirects in useEffect to avoid setState during render
   useEffect(() => {
@@ -95,7 +91,7 @@ export default function ProfileCompletionPage() {
   // Show loading state
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-cream to-cream-dark">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-cream to-cream-dark dark:from-stone-950 dark:to-stone-950">
         <Loader2 className="h-8 w-8 animate-spin text-amber" />
       </div>
     );
@@ -104,48 +100,55 @@ export default function ProfileCompletionPage() {
   // Show loading while redirecting
   if (status === "unauthenticated" || session?.user?.profileComplete) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-cream to-cream-dark">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-cream to-cream-dark dark:from-stone-950 dark:to-stone-950">
         <Loader2 className="h-8 w-8 animate-spin text-amber" />
       </div>
     );
   }
 
+  const showError = (msg: string, fields: string[] = []) => {
+    setFormError(msg);
+    setShakeKey((k) => k + 1);
+    if (fields.length) setFieldErrors(new Set(fields));
+  };
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
+    setFieldErrors(new Set());
 
-    // Validation
+    // Collect all missing required fields
     const trimmedUsername = username.trim();
-    if (!trimmedUsername) {
-      setFormError("Please enter a username");
+    const errors: string[] = [];
+
+    if (!trimmedUsername) errors.push("username");
+    if (!dateOfBirth) errors.push("dob");
+    if (!city.trim()) errors.push("city");
+    if (!state) errors.push("state");
+    if (!agreedToTerms) errors.push("terms");
+
+    if (errors.length > 0) {
+      showError("Please fill out all required fields", errors);
       return;
     }
+
+    if (!dateOfBirth) return;
+
+    // Format validation
     if (trimmedUsername.length < 3 || trimmedUsername.length > 30) {
-      setFormError("Username must be between 3 and 30 characters");
+      showError("Username must be between 3 and 30 characters", ["username"]);
       return;
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
-      setFormError("Username can only contain letters, numbers, underscores, and hyphens");
-      return;
-    }
-
-    if (!dateOfBirth) {
-      setFormError("Please enter your date of birth");
-      return;
-    }
-
-    if (!city.trim()) {
-      setFormError("Please enter your city");
-      return;
-    }
-
-    if (!state) {
-      setFormError("Please select your state");
-      return;
-    }
-
-    if (!targetExamDate) {
-      setFormError("Please select your target exam date");
+      showError("Username can only contain letters, numbers, underscores, and hyphens", ["username"]);
       return;
     }
 
@@ -153,16 +156,18 @@ export default function ProfileCompletionPage() {
     const eighteenYearsAgo = new Date();
     eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
     if (dateOfBirth > eighteenYearsAgo) {
-      setFormError("You must be at least 18 years old");
+      showError("You must be at least 18 years old", ["dob"]);
       return;
     }
 
-    // Validate target exam date (must be in the future)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (targetExamDate < today) {
-      setFormError("Target exam date must be in the future");
-      return;
+    // Validate target exam date (must be in the future, if provided)
+    if (targetExamDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (targetExamDate < today) {
+        showError("Target exam date must be in the future");
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -177,7 +182,7 @@ export default function ProfileCompletionPage() {
           dateOfBirth: dateOfBirth.toISOString(),
           city: city.trim(),
           state,
-          targetExamDate: targetExamDate.toISOString(),
+          targetExamDate: targetExamDate?.toISOString(),
           newsletterOptedIn,
         }),
       });
@@ -202,19 +207,27 @@ export default function ProfileCompletionPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-cream to-cream-dark dark:from-stone-950 dark:to-stone-950 relative">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
           <CardHeader className="text-center space-y-4">
             <div className="inline-flex items-center justify-center gap-2">
-              <Zap className="h-10 w-10 text-amber" />
+              <div className="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center"><img src="/lightning-bolt.svg" alt="SparkyPass" className="w-7 h-7" /></div>
             </div>
-            <CardTitle className="text-2xl font-bold">Complete Your Profile</CardTitle>
+            <CardTitle className="text-2xl font-bold font-display">Complete Your Profile</CardTitle>
             <p className="text-muted-foreground">
               Just a few more details to personalize your experience
             </p>
@@ -226,13 +239,6 @@ export default function ProfileCompletionPage() {
               message="Welcome aboard, future Master Electrician! Let me know a bit about you so I can help you prepare for your exam."
             />
 
-            {/* Error Message */}
-            {formError && (
-              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                {formError}
-              </div>
-            )}
-
             {/* Profile Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Username */}
@@ -243,10 +249,14 @@ export default function ProfileCompletionPage() {
                   type="text"
                   placeholder="Choose a username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value.toLowerCase());
+                    clearFieldError("username");
+                  }}
                   disabled={isLoading}
                   autoComplete="username"
                   maxLength={30}
+                  className={fieldErrors.has("username") ? "border-destructive" : ""}
                 />
                 <p className="text-xs text-muted-foreground">
                   3-30 characters. Letters, numbers, underscores, and hyphens only.
@@ -255,52 +265,59 @@ export default function ProfileCompletionPage() {
 
               {/* Date of Birth */}
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Label>Date of Birth</Label>
                 <div className="flex gap-2">
                   <Input
-                    id="dateOfBirth"
                     type="text"
-                    placeholder="MM/DD/YYYY"
-                    value={dobInput}
+                    inputMode="numeric"
+                    placeholder="MM"
+                    value={dobMonth}
                     onChange={(e) => {
-                      const val = autoFormatDate(e.target.value, dobInput);
-                      setDobInput(val);
-                      setDateOfBirth(parseDateInput(val));
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 2);
+                      setDobMonth(val);
+                      clearFieldError("dob");
+                      if (val.length === 2) dobDayRef.current?.focus();
                     }}
-                    maxLength={10}
+                    maxLength={2}
                     disabled={isLoading}
-                    autoComplete="bday"
+                    autoComplete="bday-month"
+                    className={`text-center ${fieldErrors.has("dob") ? "border-destructive" : ""}`}
                   />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="shrink-0"
-                        disabled={isLoading}
-                        type="button"
-                      >
-                        <CalendarIcon className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dateOfBirth}
-                        onSelect={(date) => {
-                          setDateOfBirth(date);
-                          setDobInput(date ? format(date, "MM/dd/yyyy") : "");
-                        }}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1920-01-01")
-                        }
-                        defaultMonth={dateOfBirth || new Date(1990, 0)}
-                        captionLayout="dropdown"
-                        fromYear={1920}
-                        toYear={new Date().getFullYear()}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <span className="flex items-center text-muted-foreground">/</span>
+                  <Input
+                    ref={dobDayRef}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="DD"
+                    value={dobDay}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 2);
+                      setDobDay(val);
+                      clearFieldError("dob");
+                      if (val.length === 2) dobYearRef.current?.focus();
+                    }}
+                    maxLength={2}
+                    disabled={isLoading}
+                    autoComplete="bday-day"
+                    className={`text-center ${fieldErrors.has("dob") ? "border-destructive" : ""}`}
+                  />
+                  <span className="flex items-center text-muted-foreground">/</span>
+                  <Input
+                    ref={dobYearRef}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="YYYY"
+                    value={dobYear}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      setDobYear(val);
+                      clearFieldError("dob");
+                    }}
+                    maxLength={4}
+                    disabled={isLoading}
+                    autoComplete="bday-year"
+                    className={`text-center ${fieldErrors.has("dob") ? "border-destructive" : ""}`}
+                  />
                 </div>
               </div>
 
@@ -312,17 +329,21 @@ export default function ProfileCompletionPage() {
                   type="text"
                   placeholder="Enter your city"
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    clearFieldError("city");
+                  }}
                   disabled={isLoading}
                   autoComplete="address-level2"
+                  className={fieldErrors.has("city") ? "border-destructive" : ""}
                 />
               </div>
 
               {/* State */}
               <div className="space-y-2">
                 <Label htmlFor="state">State</Label>
-                <Select value={state} onValueChange={setState} disabled={isLoading}>
-                  <SelectTrigger id="state">
+                <Select value={state} onValueChange={(val) => { setState(val); clearFieldError("state"); }} disabled={isLoading}>
+                  <SelectTrigger id="state" className={fieldErrors.has("state") ? "border-destructive" : ""}>
                     <SelectValue placeholder="Select your state" />
                   </SelectTrigger>
                   <SelectContent>
@@ -337,50 +358,89 @@ export default function ProfileCompletionPage() {
 
               {/* Target Exam Date */}
               <div className="space-y-2">
-                <Label htmlFor="targetExamDate">Target Exam Date</Label>
+                <Label>Target Exam Date</Label>
                 <div className="flex gap-2">
                   <Input
-                    id="targetExamDate"
                     type="text"
-                    placeholder="MM/DD/YYYY"
-                    value={examInput}
+                    inputMode="numeric"
+                    placeholder="MM"
+                    value={examMonth}
                     onChange={(e) => {
-                      const val = autoFormatDate(e.target.value, examInput);
-                      setExamInput(val);
-                      setTargetExamDate(parseDateInput(val));
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 2);
+                      setExamMonth(val);
+                      if (val.length === 2) examDayRef.current?.focus();
                     }}
-                    maxLength={10}
+                    maxLength={2}
                     disabled={isLoading}
+                    className="text-center"
                   />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="shrink-0"
-                        disabled={isLoading}
-                        type="button"
-                      >
-                        <CalendarIcon className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={targetExamDate}
-                        onSelect={(date) => {
-                          setTargetExamDate(date);
-                          setExamInput(date ? format(date, "MM/dd/yyyy") : "");
-                        }}
-                        disabled={(date) => date < new Date()}
-                        defaultMonth={targetExamDate || new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <span className="flex items-center text-muted-foreground">/</span>
+                  <Input
+                    ref={examDayRef}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="DD"
+                    value={examDay}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 2);
+                      setExamDay(val);
+                      if (val.length === 2) examYearRef.current?.focus();
+                    }}
+                    maxLength={2}
+                    disabled={isLoading}
+                    className="text-center"
+                  />
+                  <span className="flex items-center text-muted-foreground">/</span>
+                  <Input
+                    ref={examYearRef}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="YYYY"
+                    value={examYear}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      setExamYear(val);
+                    }}
+                    maxLength={4}
+                    disabled={isLoading}
+                    className="text-center"
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground">
                   We&apos;ll help you create a study plan based on your target date
                 </p>
+              </div>
+
+              {/* Terms and Conditions */}
+              <div className="flex items-start space-x-3 pt-2">
+                <Checkbox
+                  id="terms"
+                  checked={agreedToTerms}
+                  onCheckedChange={(checked) => {
+                    setAgreedToTerms(checked === true);
+                    if (checked) {
+                      setFormError("");
+                      clearFieldError("terms");
+                    }
+                  }}
+                  disabled={isLoading}
+                  className={fieldErrors.has("terms") ? "border-destructive" : ""}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label
+                    htmlFor="terms"
+                    className="text-sm font-medium leading-none cursor-pointer"
+                  >
+                    I agree to the{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      className="text-amber hover:text-amber-dark underline"
+                    >
+                      Terms and Conditions
+                    </a>
+                  </Label>
+                </div>
               </div>
 
               {/* Newsletter Opt-in */}
@@ -405,6 +465,19 @@ export default function ProfileCompletionPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Error Message */}
+              {formError && (
+                <motion.div
+                  key={shakeKey}
+                  initial={{ x: 0 }}
+                  animate={{ x: [0, -10, 10, -10, 10, 0] }}
+                  transition={{ duration: 0.4 }}
+                  className="p-3 rounded-md bg-destructive/10 text-destructive text-sm"
+                >
+                  {formError}
+                </motion.div>
+              )}
 
               <Button
                 type="submit"

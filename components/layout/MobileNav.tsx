@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
   Menu,
-  Zap,
   LogOut,
   Loader2,
   LayoutDashboard,
@@ -14,7 +13,7 @@ import {
   Layers,
   ClipboardCheck,
   Calculator,
-  Mail,
+  Settings,
   ChevronDown,
   Building2,
 } from "lucide-react";
@@ -32,7 +31,7 @@ const navLinks = [
   { href: "/flashcards", label: "Flashcards", icon: Layers },
   { href: "/mock-exam", label: "Mock Exam", icon: ClipboardCheck },
   { href: "/load-calculator", label: "Load Calculator", icon: Calculator },
-  { href: "/contact", label: "Contact", icon: Mail },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 const calcSubLinks = [
@@ -52,17 +51,19 @@ export function MobileNav() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="min-w-[44px] min-h-[44px]">
-          <Menu className="h-6 w-6" />
+          <Menu className="size-[22px]" />
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] sm:w-[320px]">
-        <SheetTitle className="flex items-center gap-2 mb-6">
-          <Zap className="h-6 w-6 text-amber" />
-          <span className="font-bold">SparkyPass</span>
+      <SheetContent side="right" className="w-[280px] sm:w-[320px] px-3">
+        <SheetTitle className="flex items-center gap-3 mb-8">
+          <div className="w-8 h-8 rounded-lg bg-stone-900 flex items-center justify-center">
+            <img src="/lightning-bolt.svg" alt="SparkyPass" className="w-5 h-5" />
+          </div>
+          <span className="font-bold text-2xl">SparkyPass</span>
         </SheetTitle>
 
-        <nav className="flex flex-col gap-1">
+        {session && <nav className="flex flex-col gap-2">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
@@ -72,13 +73,13 @@ export function MobileNav() {
                 <div key={link.href}>
                   <button
                     onClick={() => setCalcExpanded(!calcExpanded)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] w-full ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] w-full text-lg ${
                       isActive
-                        ? "bg-amber/10 text-amber font-medium border-l-3 border-amber"
+                        ? "bg-amber/10 text-amber dark:bg-sparky-green-bg dark:text-sparky-green dark:drop-shadow-[0_0_6px_rgba(163,255,0,0.2)] font-medium border-l-3 border-amber dark:border-sparky-green"
                         : "text-foreground hover:bg-muted"
                     }`}
                   >
-                    <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? "text-amber" : "text-muted-foreground"}`} />
+                    <Icon className={`h-6 w-6 flex-shrink-0 ${isActive ? "text-amber dark:text-sparky-green" : "text-muted-foreground"}`} />
                     <span className="flex-1 text-left">{link.label}</span>
                     <ChevronDown className={`h-4 w-4 transition-transform ${calcExpanded ? "rotate-180" : ""}`} />
                   </button>
@@ -92,13 +93,13 @@ export function MobileNav() {
                             key={sub.href}
                             href={sub.href}
                             onClick={closeSheet}
-                            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors min-h-[40px] ${
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] text-base ${
                               subActive
-                                ? "bg-amber/10 text-amber font-medium"
+                                ? "bg-amber/10 text-amber dark:bg-sparky-green-bg dark:text-sparky-green dark:drop-shadow-[0_0_6px_rgba(163,255,0,0.2)] font-medium"
                                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
                             }`}
                           >
-                            <SubIcon className={`h-4 w-4 flex-shrink-0 ${subActive ? "text-amber" : "text-muted-foreground"}`} />
+                            <SubIcon className={`h-5 w-5 flex-shrink-0 ${subActive ? "text-amber dark:text-sparky-green" : "text-muted-foreground"}`} />
                             {sub.label}
                           </Link>
                         );
@@ -114,18 +115,18 @@ export function MobileNav() {
                 key={link.href}
                 href={link.href}
                 onClick={closeSheet}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] text-lg ${
                   isActive
-                    ? "bg-amber/10 text-amber font-medium border-l-3 border-amber"
+                    ? "bg-amber/10 text-amber dark:bg-sparky-green-bg dark:text-sparky-green dark:drop-shadow-[0_0_6px_rgba(163,255,0,0.2)] font-medium border-l-3 border-amber dark:border-sparky-green"
                     : "text-foreground hover:bg-muted"
                 }`}
               >
-                <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? "text-amber" : "text-muted-foreground"}`} />
+                <Icon className={`h-6 w-6 flex-shrink-0 ${isActive ? "text-amber dark:text-sparky-green" : "text-muted-foreground"}`} />
                 {link.label}
               </Link>
             );
           })}
-        </nav>
+        </nav>}
 
         <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-border">
           {status === "loading" ? (

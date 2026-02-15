@@ -175,17 +175,17 @@ export default function ProfilePage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="container mx-auto px-4 py-8">
+      <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-8">
         <div className="animate-pulse">
-          <div className="h-10 bg-muted rounded w-48 mb-8" />
+          <div className="h-10 bg-muted dark:bg-stone-800 rounded w-48 mb-8" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <div className="h-64 bg-muted rounded" />
-              <div className="h-48 bg-muted rounded" />
+              <div className="h-64 bg-muted dark:bg-stone-800 rounded" />
+              <div className="h-48 bg-muted dark:bg-stone-800 rounded" />
             </div>
             <div className="space-y-6">
-              <div className="h-48 bg-muted rounded" />
-              <div className="h-48 bg-muted rounded" />
+              <div className="h-48 bg-muted dark:bg-stone-800 rounded" />
+              <div className="h-48 bg-muted dark:bg-stone-800 rounded" />
             </div>
           </div>
         </div>
@@ -213,15 +213,23 @@ export default function ProfilePage() {
     : "Unknown";
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-8">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Page Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-8"
+        className="relative z-10 mb-8"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-2">
           Your Profile
         </h1>
         <p className="text-muted-foreground">
@@ -229,7 +237,7 @@ export default function ProfilePage() {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Profile Info and Settings */}
         <div className="lg:col-span-2 space-y-6">
           {/* Personal Information Card */}
@@ -238,7 +246,7 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <Card>
+            <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <User className="h-5 w-5 text-purple" />
@@ -248,7 +256,7 @@ export default function ProfilePage() {
               <CardContent className="space-y-6">
                 {/* Name */}
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-purple-soft flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-purple-soft dark:bg-purple/10 flex items-center justify-center flex-shrink-0">
                     <User className="h-5 w-5 text-purple" />
                   </div>
                   <div>
@@ -285,7 +293,7 @@ export default function ProfilePage() {
 
                 {/* Date of Birth */}
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-purple-soft flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-purple-soft dark:bg-purple/10 flex items-center justify-center flex-shrink-0">
                     <Calendar className="h-5 w-5 text-purple" />
                   </div>
                   <div>
@@ -307,7 +315,7 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Card>
+            <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <ClipboardCheck className="h-5 w-5 text-amber" />
@@ -427,7 +435,7 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Card>
+            <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Award className="h-5 w-5 text-amber" />
@@ -463,7 +471,7 @@ export default function ProfilePage() {
                     <span>Progress to next level</span>
                     <span>{xpProgress.percentage}%</span>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${xpProgress.percentage}%` }}
@@ -485,7 +493,7 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Card>
+            <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-emerald" />
@@ -508,7 +516,7 @@ export default function ProfilePage() {
 
                 {/* Accuracy */}
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-soft flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-purple-soft dark:bg-purple/10 flex items-center justify-center">
                     <TrendingUp className="h-5 w-5 text-purple" />
                   </div>
                   <div>
@@ -543,7 +551,7 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <Card>
+            <Card className="border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Star className="h-5 w-5 text-purple" />
@@ -553,7 +561,7 @@ export default function ProfilePage() {
               <CardContent>
                 <Button
                   variant="outline"
-                  className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="w-full border-border dark:border-stone-700 text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={handleSignOut}
                 >
                   <LogOut className="mr-2 h-4 w-4" />

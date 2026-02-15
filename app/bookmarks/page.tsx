@@ -17,6 +17,9 @@ import {
   Table,
   Box,
   CircleDot,
+  Activity,
+  Cog,
+  Thermometer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,13 +53,16 @@ const categoryIcons: Record<CategorySlug, typeof BookOpen> = {
   "chapter-9-tables": Table,
   "box-fill": Box,
   "conduit-fill": CircleDot,
+  "voltage-drop": Activity,
+  "motor-calculations": Cog,
+  "temperature-correction": Thermometer,
 };
 
 // Map category slugs to colors
 const categoryColors: Record<CategorySlug, { icon: string; bg: string; badge: string }> = {
   "load-calculations": {
     icon: "text-purple",
-    bg: "bg-purple-soft",
+    bg: "bg-purple-soft dark:bg-purple/10",
     badge: "bg-purple/10 text-purple",
   },
   "grounding-bonding": {
@@ -88,6 +94,21 @@ const categoryColors: Record<CategorySlug, { icon: string; bg: string; badge: st
     icon: "text-rose-500",
     bg: "bg-rose-500/10",
     badge: "bg-rose-500/10 text-rose-500",
+  },
+  "voltage-drop": {
+    icon: "text-yellow-500",
+    bg: "bg-yellow-500/10",
+    badge: "bg-yellow-500/10 text-yellow-500",
+  },
+  "motor-calculations": {
+    icon: "text-indigo-500",
+    bg: "bg-indigo-500/10",
+    badge: "bg-indigo-500/10 text-indigo-500",
+  },
+  "temperature-correction": {
+    icon: "text-red-500",
+    bg: "bg-red-500/10",
+    badge: "bg-red-500/10 text-red-500",
   },
 };
 
@@ -175,14 +196,22 @@ export default function BookmarksPage() {
   // Loading skeleton
   if (loading) {
     return (
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8 space-y-2">
-          <div className="h-8 w-48 bg-muted animate-pulse rounded" />
-          <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+      <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-8">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="relative z-10 mb-8 space-y-2">
+          <div className="h-8 w-48 bg-muted dark:bg-stone-800 animate-pulse rounded" />
+          <div className="h-4 w-64 bg-muted dark:bg-stone-800 animate-pulse rounded" />
         </div>
-        <div className="space-y-4">
+        <div className="relative z-10 space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
+            <div key={i} className="h-24 bg-muted dark:bg-stone-800 animate-pulse rounded-lg" />
           ))}
         </div>
       </main>
@@ -192,14 +221,22 @@ export default function BookmarksPage() {
   // Empty state
   if (bookmarks.length === 0) {
     return (
-      <main className="container mx-auto px-4 py-8">
+      <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-8">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-8"
+          className="relative z-10 mb-8"
         >
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2">
             Your <span className="text-amber">Bookmarks</span>
           </h1>
           <p className="text-muted-foreground">
@@ -211,7 +248,7 @@ export default function BookmarksPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-col items-center justify-center py-16"
+          className="relative z-10 flex flex-col items-center justify-center py-16"
         >
           <div className="w-20 h-20 rounded-full bg-amber/10 flex items-center justify-center mb-6">
             <BookMarked className="h-10 w-10 text-amber" />
@@ -223,7 +260,7 @@ export default function BookmarksPage() {
             When you take quizzes, you can bookmark questions to review later.
             Look for the star icon on any question!
           </p>
-          <Button onClick={() => router.push("/quiz")} className="bg-amber hover:bg-amber/90">
+          <Button onClick={() => router.push("/quiz")} className="bg-amber hover:bg-amber-dark text-white">
             Start a Quiz
           </Button>
         </motion.div>
@@ -232,7 +269,7 @@ export default function BookmarksPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-8"
+          className="relative z-10 mt-8"
         >
           <SparkyMessage
             size="medium"
@@ -244,15 +281,23 @@ export default function BookmarksPage() {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="relative bg-cream dark:bg-stone-950 container mx-auto px-4 py-8">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-6"
+        className="relative z-10 mb-6"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground mb-2">
           Your <span className="text-amber">Bookmarks</span>
         </h1>
         <p className="text-muted-foreground">
@@ -266,7 +311,7 @@ export default function BookmarksPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="flex flex-col sm:flex-row gap-4 mb-6"
+        className="relative z-10 flex flex-col sm:flex-row gap-4 mb-6"
       >
         {/* Category Filter */}
         <div className="flex items-center gap-2">
@@ -299,7 +344,7 @@ export default function BookmarksPage() {
       </motion.div>
 
       {/* Bookmarks List */}
-      <div className="space-y-4">
+      <div className="relative z-10 space-y-4">
         <AnimatePresence mode="popLayout">
           {filteredBookmarks.map((bookmark, index) => {
             if (!bookmark.question) return null;
@@ -319,7 +364,7 @@ export default function BookmarksPage() {
                 transition={{ duration: 0.3, delay: index * 0.05 }}
                 layout
               >
-                <Card className="overflow-hidden">
+                <Card className="overflow-hidden border-border dark:border-stone-800 bg-card dark:bg-stone-900/50 transition-all duration-300 hover:border-amber/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)]">
                   {/* Collapsed View */}
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
@@ -396,7 +441,7 @@ export default function BookmarksPage() {
                                     className={`flex items-start gap-2 p-2 rounded-lg ${
                                       i === question.correctAnswer
                                         ? "bg-emerald/10 border border-emerald/30"
-                                        : "bg-muted"
+                                        : "bg-muted dark:bg-stone-800"
                                     }`}
                                   >
                                     <span
@@ -461,7 +506,7 @@ export default function BookmarksPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-12"
+          className="relative z-10 text-center py-12"
         >
           <p className="text-muted-foreground">
             No bookmarks in this category. Try selecting a different filter.
@@ -474,7 +519,7 @@ export default function BookmarksPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="mt-8"
+        className="relative z-10 mt-8"
       >
         <SparkyMessage
           size="medium"

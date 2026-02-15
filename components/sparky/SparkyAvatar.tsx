@@ -38,14 +38,18 @@ export function SparkyAvatar({
         className="w-full h-full"
         aria-label="Sparky the electrician mascot"
       >
-        {/* Hard Hat */}
-        <ellipse cx="50" cy="28" rx="32" ry="12" fill="#F59E0B" />
-        <rect x="20" y="24" width="60" height="14" rx="2" fill="#F59E0B" />
-        <rect x="15" y="36" width="70" height="6" rx="2" fill="#D97706" />
-        {/* Hat highlight */}
-        <ellipse cx="50" cy="26" rx="20" ry="6" fill="#FCD34D" opacity="0.5" />
+        {/* Glow filter for lightning bolt */}
+        <defs>
+          <filter id="sparky-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-        {/* Face */}
+        {/* Face (drawn first so it appears behind the hat) */}
         <circle cx="50" cy="58" r="24" fill="#FBBF24" />
         {/* Cheeks */}
         <circle cx="35" cy="62" r="4" fill="#F59E0B" opacity="0.4" />
@@ -67,8 +71,15 @@ export function SparkyAvatar({
         {/* Smile */}
         <path d="M38 68 Q50 78 62 68" stroke="#92400E" strokeWidth="3" fill="none" strokeLinecap="round" />
 
+        {/* Hard Hat (drawn after face so it appears on top) */}
+        <ellipse cx="50" cy="28" rx="26" ry="12" fill="#F59E0B" />
+        <rect x="26" y="24" width="48" height="14" rx="2" fill="#F59E0B" />
+        <rect x="22" y="36" width="56" height="6" rx="2" fill="#D97706" />
+        {/* Hat highlight */}
+        <ellipse cx="50" cy="26" rx="16" ry="6" fill="#FCD34D" opacity="0.5" />
+
         {/* Lightning bolt badge on hat */}
-        <path d="M52 20 L48 28 L52 28 L48 36 L56 26 L52 26 L56 20 Z" fill="#FFFBEB" />
+        <path d="M52 20 L48 28 L52 28 L48 36 L56 26 L52 26 L56 20 Z" fill="#A3FF00" filter="url(#sparky-glow)" />
       </svg>
     </div>
   );

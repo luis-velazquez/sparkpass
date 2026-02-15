@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -48,6 +48,20 @@ interface SavedQuestion {
 }
 
 export default function ReviewPage() {
+  return (
+    <Suspense fallback={
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-amber" />
+        </div>
+      </main>
+    }>
+      <ReviewContent />
+    </Suspense>
+  );
+}
+
+function ReviewContent() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -154,8 +168,18 @@ export default function ReviewPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-purple" />
+      <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh] relative z-10">
+          <Loader2 className="h-8 w-8 animate-spin text-purple" />
+        </div>
       </main>
     );
   }
@@ -165,7 +189,16 @@ export default function ReviewPage() {
   const category = currentQuestion ? CATEGORIES.find((c) => c.slug === currentQuestion.category) : null;
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="relative min-h-screen bg-cream dark:bg-stone-950">
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+      <div className="container mx-auto px-4 py-8 relative z-10">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -177,7 +210,7 @@ export default function ReviewPage() {
           <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">
             <span className="text-purple">Review Queue</span>
           </h1>
         </div>
@@ -193,9 +226,9 @@ export default function ReviewPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <Card className="p-12 text-center">
+          <Card className="p-12 text-center border-border dark:border-stone-800 bg-card dark:bg-stone-900/50">
             <BookMarked className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">No saved questions</h2>
+            <h2 className="text-xl font-semibold font-display text-foreground mb-2">No saved questions</h2>
             <p className="text-muted-foreground mb-6">
               Bookmark questions during quizzes to add them to your review queue.
             </p>
@@ -225,7 +258,7 @@ export default function ReviewPage() {
                 {questions.length} saved
               </span>
             </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div className="h-2 bg-muted dark:bg-stone-800 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
@@ -258,7 +291,7 @@ export default function ReviewPage() {
                     <Card className={`h-full flex flex-col ${
                       isFlipped
                         ? "bg-purple/5 border-purple/30"
-                        : "bg-card"
+                        : "bg-card dark:bg-stone-900/50 border-border dark:border-stone-800"
                     }`}>
                       <CardContent className="flex flex-col h-full p-6">
                         {!isFlipped ? (
@@ -269,7 +302,7 @@ export default function ReviewPage() {
                                 <span className="text-xs text-purple font-medium px-2 py-0.5 rounded bg-purple/10">
                                   {category?.name || currentQuestion.category}
                                 </span>
-                                <span className="text-xs text-muted-foreground capitalize px-2 py-0.5 rounded bg-muted">
+                                <span className="text-xs text-muted-foreground capitalize px-2 py-0.5 rounded bg-muted dark:bg-stone-800">
                                   {currentQuestion.difficulty}
                                 </span>
                               </div>
@@ -383,6 +416,7 @@ export default function ReviewPage() {
               variant="outline"
               onClick={handlePrev}
               disabled={currentIndex === 0}
+              className="border-border dark:border-stone-700"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
@@ -390,6 +424,7 @@ export default function ReviewPage() {
             <Button
               variant="outline"
               onClick={() => setIsFlipped(!isFlipped)}
+              className="border-border dark:border-stone-700"
             >
               <RotateCcw className="h-4 w-4 mr-1" />
               Flip
@@ -397,6 +432,7 @@ export default function ReviewPage() {
             <Button
               variant="outline"
               onClick={handleShuffle}
+              className="border-border dark:border-stone-700"
             >
               <Shuffle className="h-4 w-4 mr-1" />
               Shuffle
@@ -405,6 +441,7 @@ export default function ReviewPage() {
               variant="outline"
               onClick={handleNext}
               disabled={currentIndex === questions.length - 1}
+              className="border-border dark:border-stone-700"
             >
               Next
               <ChevronRight className="h-4 w-4 ml-1" />
@@ -449,6 +486,7 @@ export default function ReviewPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </main>
   );
 }
